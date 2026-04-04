@@ -7,15 +7,15 @@ import {
   UserPlus, Search, ArrowRight, X, Key, History, UserCheck
 } from 'lucide-react';
 
-// --- 🟢 Firebase Configuration ---
+// --- 🟢 Firebase Configuration (তোমার নতুন আইডিগুলো) ---
 const firebaseConfig = {
-    apiKey: "AIzaSyDgRjxCVckiX3DgdWhyQTJVvsxlcDt2_IQ",
-    authDomain: "math-excellence-a2a59.firebaseapp.com",
-    projectId: "math-excellence-a2a59",
-    storageBucket: "math-excellence-a2a59.firebasestorage.app",
-    messagingSenderId: "458796979791",
-    appId: "1:458796979791:web:e03d20bdaf3c049df7fc3a",
-    measurementId: "G-P42M1RNNRM"
+  apiKey: "AIzaSyCTk1csUI0HeZhZvy6dOFwmLr-YVswPACyY",
+  authDomain: "math-excellence-6d2b8.firebaseapp.com",
+  projectId: "math-excellence-6d2b8",
+  storageBucket: "math-excellence-6d2b8.firebasestorage.app",
+  messagingSenderId: "485798196973",
+  appId: "1:485798196973:web:4583be003937001685bee4",
+  measurementId: "G-BVR2P0EMPN"
 };
 
 // --- Sub-component: PDF Renderer ---
