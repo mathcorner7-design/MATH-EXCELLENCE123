@@ -1,17 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Trophy, BookOpen, TrendingUp, UserRound, Clock, ChevronRight, PlayCircle,
+  Trophy, BookOpen, TrendingUp, User, Clock, ChevronRight, PlayCircle,
   GraduationCap, Calendar, CheckCircle2, AlertCircle, PlusCircle, FileText,
-  Lock, Award, User, UploadCloud, Timer, Settings2, CheckCircle, ImageIcon,
+  Lock, Award, UploadCloud, Timer, Settings2, CheckCircle, ImageIcon,
   PenTool, ShieldAlert, Loader2, RefreshCcw, FileUp, ChevronLeft, Trash2,
-  UserPlus, Search, ArrowRight, X, KeyRound, History, UserCheck
+  UserPlus, Search, ArrowRight, X, Key, History, UserCheck
 } from 'lucide-react';
 
-// --- 🟢 Firebase Configuration (তোমার জন্য অ্যাড করে দেওয়া হলো) ---
-// Note: React-এ Firebase ব্যবহার করতে হলে এই ইমপোর্টগুলো লাগে।
-// তোমার এই অরিজিনাল কোডটি মূলত একটি সম্পূর্ণ ইউজার ইন্টারফেস।
-// ফায়ারবেজ ডেটা সেভ করার জন্য আমি কনফিগারেশন অবজেক্টটি নিচে দিয়ে দিচ্ছি।
-
+// --- 🟢 Firebase Configuration ---
 const firebaseConfig = {
     apiKey: "AIzaSyDgRjxCVckiX3DgdWhyQTJVvsxlcDt2_IQ",
     authDomain: "math-excellence-a2a59.firebaseapp.com",
@@ -177,12 +173,12 @@ const TeacherPinPortal = ({ correctPin, onAuthSuccess }) => {
   };
   return (
     <div className="max-w-md mx-auto mt-20 p-8 bg-white rounded-[2.5rem] shadow-2xl border-4 border-blue-50 text-center animate-in zoom-in duration-300">
-      <div className="w-16 h-16 bg-blue-700 rounded-2xl mx-auto flex items-center justify-center text-white shadow-xl mb-6 rotate-3 border-2 border-white shadow-blue-100 shadow-blue-200"><Lock size={32} /></div>
+      <div className="w-16 h-16 bg-blue-700 rounded-2xl mx-auto flex items-center justify-center text-white shadow-xl mb-6 rotate-3 border-2 border-white shadow-blue-200"><Lock size={32} /></div>
       <h2 className="text-2xl font-black text-slate-800 uppercase italic mb-2 font-sans italic font-sans">Teacher Zone</h2>
       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-8 font-sans">Access Restricted - Enter Secure PIN</p>
       <form onSubmit={handleLogin} className="space-y-4">
         <div className="relative group">
-          <KeyRound className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-blue-600" size={18} />
+          <Key className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-blue-600" size={18} />
           <input type="password" value={pin} onChange={(e) => setPin(e.target.value)} className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-500 font-black text-center text-lg tracking-[0.5em] italic font-sans" placeholder="••••••••" />
         </div>
         {error && <p className="text-[10px] font-black text-red-500 uppercase italic font-sans animate-pulse">{error}</p>}
@@ -264,7 +260,7 @@ const GrowthSectionView = ({ isPublished, results }) => {
   const uniqueStudents = Array.from(new Set(results.map(r => r.name))).sort();
   return (
     <div className="max-w-3xl mx-auto py-4 px-2 animate-in fade-in duration-500 font-sans italic">
-      <h2 className="text-lg font-black text-slate-800 uppercase italic mb-4 flex items-center gap-2 border-b-2 pb-2 font-sans italic font-sans font-sans"><TrendingUp className="text-blue-700 font-sans" size={20}/> Growth Portal</h2>
+      <h2 className="text-lg font-black text-slate-800 uppercase italic mb-4 flex items-center gap-2 border-b-2 pb-2 font-sans italic font-sans font-sans font-sans"><TrendingUp className="text-blue-700 font-sans" size={20}/> Growth Portal</h2>
       {!selectedStudent ? (
         <div className="space-y-3 italic font-sans font-sans"><p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 opacity-80 italic font-sans font-sans">Select Student Profile:</p><div className="grid grid-cols-1 md:grid-cols-2 gap-3 font-sans italic font-sans">{uniqueStudents.map((name, i) => (<button key={i} onClick={() => setSelectedStudent(name)} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm hover:border-blue-300 hover:shadow-md transition-all flex justify-between items-center group active:scale-95 italic font-sans font-sans"><div className="flex items-center gap-3 font-sans font-sans"><div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center text-blue-700 shadow-inner font-sans font-sans"><User size={16} /></div><span className="font-black text-slate-800 uppercase text-[10px] tracking-tight font-sans italic font-sans">{name}</span></div><ChevronRight className="text-slate-300 group-hover:text-blue-600 transition-colors italic font-sans font-sans" size={16} /></button>))}</div></div>
       ) : (
@@ -280,7 +276,7 @@ const LiveMockListingView = ({ liveMocks, onStart }) => {
   if (publishedMocks.length === 0) return <div className="py-24 text-center animate-in zoom-in duration-500 italic font-sans font-sans"><Clock size={40} className="text-slate-100 mx-auto mb-4 italic font-sans font-sans" /><h2 className="text-[11px] font-black text-slate-300 uppercase tracking-widest italic font-sans font-sans">No live mocks currently active</h2></div>;
   return (
     <div className="space-y-6 max-w-2xl mx-auto mt-6 animate-in slide-in-from-top-4 italic font-sans font-sans">
-      <h2 className="text-base font-black text-slate-800 uppercase italic mb-4 flex items-center gap-2 border-b-2 pb-2 font-sans italic font-sans font-sans font-sans"><Clock className="text-red-600 animate-pulse font-sans italic font-sans font-sans" size={20} /> Ongoing Live Mocks</h2>
+      <h2 className="text-base font-black text-slate-800 uppercase italic mb-4 flex items-center gap-2 border-b-2 pb-2 font-sans italic font-sans font-sans font-sans font-sans"><Clock className="text-red-600 animate-pulse font-sans italic font-sans font-sans" size={20} /> Ongoing Live Mocks</h2>
       {publishedMocks.map(m => (
         <div key={m.id} className="bg-white p-5 rounded-2xl border-2 border-red-50 shadow-lg flex flex-col md:flex-row justify-between items-center gap-4 relative overflow-hidden ring-4 ring-red-50/30 group hover:border-red-400 transition-all active:scale-[0.98] font-sans font-sans">
             <div className="absolute top-0 right-0 bg-red-600 text-white px-3 py-1 text-[8px] font-black uppercase tracking-widest animate-pulse shadow-sm italic font-sans font-sans">LIVE</div>
@@ -416,7 +412,7 @@ const TeacherZoneMainView = ({
         </div>
       )}
 
-      <div className="text-center animate-in slide-in-from-top-4 italic font-sans"><div className="w-10 h-10 bg-blue-700 rounded-xl mx-auto flex items-center justify-center text-white shadow-lg mb-2 border border-white ring-4 ring-blue-50 rotate-3 shadow-blue-100"><UserRound size={18} /></div><h2 className="text-lg font-black text-slate-800 uppercase italic underline decoration-blue-600 underline-offset-4 leading-none">Teacher Console</h2><button onClick={() => setIsChangingPin(!isChangingPin)} className="mt-2 text-[7px] font-black text-slate-300 uppercase tracking-widest flex items-center gap-1 mx-auto hover:text-blue-500 transition-colors font-sans"><Settings2 size={10} /> PIN Settings</button></div>
+      <div className="text-center animate-in slide-in-from-top-4 italic font-sans"><div className="w-10 h-10 bg-blue-700 rounded-xl mx-auto flex items-center justify-center text-white shadow-lg mb-2 border border-white ring-4 ring-blue-50 rotate-3 shadow-blue-100"><User size={18} /></div><h2 className="text-lg font-black text-slate-800 uppercase italic underline decoration-blue-600 underline-offset-4 leading-none">Teacher Console</h2><button onClick={() => setIsChangingPin(!isChangingPin)} className="mt-2 text-[7px] font-black text-slate-300 uppercase tracking-widest flex items-center gap-1 mx-auto hover:text-blue-500 transition-colors font-sans"><Settings2 size={10} /> PIN Settings</button></div>
 
       {isChangingPin && (
         <div className="max-w-xs mx-auto p-4 bg-yellow-50 border-2 border-yellow-100 rounded-2xl space-y-3 shadow-sm animate-in fade-in italic">
@@ -581,7 +577,7 @@ const App = () => {
       <header className="bg-white border-b sticky top-0 z-50 shadow-sm px-4 py-2.5 flex justify-between items-center ring-1 ring-slate-100 italic">
         <div className="cursor-pointer group font-sans font-sans font-sans font-sans" onClick={() => setActiveTab('home')}>
           <h1 className="text-xl md:text-2xl font-black text-blue-700 uppercase tracking-tighter italic leading-none group-hover:scale-[0.98] transition-transform italic font-sans font-sans font-sans">MATH EXCELLENCE</h1>
-          <p className="text-[8px] md:text-[9px] font-bold text-slate-400 italic font-sans italic opacity-80 mt-1 tracking-widest leading-none italic font-black font-sans font-sans font-sans">"Your future our priority"</p>
+          <p className="text-[8px] md:text-[9px] font-bold text-slate-400 italic font-sans italic opacity-80 mt-1 tracking-widest leading-none italic font-black font-sans font-sans font-sans font-sans font-sans font-sans font-sans">"Your future our priority"</p>
         </div>
         <div className="hidden md:block shadow-inner rounded-full p-0.5 ring-1 ring-blue-50 font-sans font-sans font-sans"><span className="bg-blue-700 text-white px-5 py-2 rounded-full font-black text-[9px] uppercase tracking-widest shadow-md italic italic italic font-sans font-sans font-sans">BUILD YOUR FUTURE WITH ANSHU SIR</span></div>
       </header>
@@ -591,7 +587,7 @@ const App = () => {
             { id: 'live', label: 'Live Mock', icon: <Clock size={12} /> },
             { id: 'practice', label: 'Practice Mock', icon: <BookOpen size={12} /> },
             { id: 'growth', label: 'Your Growth', icon: <TrendingUp size={12} /> },
-            { id: 'teacher', label: 'Teacher Zone', icon: <UserRound size={12} /> }
+            { id: 'teacher', label: 'Teacher Zone', icon: <User size={12} /> }
           ].map((item) => (
             <button key={item.id} onClick={() => setActiveTab(item.id)} className={`flex items-center gap-1.5 px-4 md:px-8 py-4 transition-all border-b-4 font-black text-[10px] md:text-xs uppercase tracking-widest italic font-sans font-sans font-sans ${activeTab === item.id ? 'border-yellow-400 bg-blue-800 text-white shadow-inner font-sans font-sans font-sans italic font-sans font-sans' : 'border-transparent hover:bg-blue-600 font-sans italic font-sans font-sans font-sans'}`}>{item.icon} {item.label}</button>
           ))}
