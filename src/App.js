@@ -7,6 +7,7 @@ import {
   Loader2, ChevronLeft, Trash2, UserPlus, History, UserCheck, X, CheckSquare, AlertCircle, ListChecks
 } from 'lucide-react';
 
+// --- 🟢 Firebase Configuration ---
 const firebaseConfig = {
   apiKey: "AIzaSyCTk1csUI0HeZhZvy6dOFwmLr-YVswPACyY",
   authDomain: "math-excellence-6d2b8.firebaseapp.com",
@@ -29,6 +30,7 @@ const App = () => {
   const [studentCodeInput, setStudentCodeInput] = useState('');
   const [teacherPin, setTeacherPin] = useState('1234567890');
   const [isTeacherAuthenticated, setIsTeacherAuthenticated] = useState(false);
+  
   const [liveMocks, setLiveMocks] = useState([]);
   const [practiceSets, setPracticeSets] = useState([]);
   const [students, setStudents] = useState([]);
@@ -74,7 +76,7 @@ const App = () => {
             <h3 className="font-bold text-lg mb-6 uppercase tracking-tight italic">Student Login</h3>
             <div className="space-y-4">
               <input autoFocus type="text" value={studentNameInput} onChange={(e) => setStudentNameInput(e.target.value)} className="w-full p-3 rounded-xl border-2 font-bold text-center outline-none focus:border-blue-500 uppercase" placeholder="YOUR NAME" />
-              <input type="text" value={studentCodeInput} onChange={(e) => setStudentCodeInput(e.target.value)} className="w-full p-3 rounded-xl border-2 font-bold text-center outline-none focus:border-blue-500" placeholder="4-DIGIT CODE (OPTIONAL)" />
+              <input type="text" value={studentCodeInput} onChange={(e) => setStudentCodeInput(e.target.value)} className="w-full p-3 rounded-xl border-2 font-bold text-center outline-none focus:border-blue-500" placeholder="CODE (OPTIONAL)" />
             </div>
             <div className="flex gap-4 mt-6">
               <button onClick={() => setShowNameModal(false)} className="flex-1 py-3 rounded-xl bg-slate-100 font-bold text-[10px] uppercase">Cancel</button>
@@ -86,7 +88,7 @@ const App = () => {
 
       <header className="bg-white border-b sticky top-0 z-50 shadow-sm px-6 py-2 flex justify-between items-center w-full max-w-6xl">
         <h1 className="text-lg font-black text-blue-700 uppercase italic tracking-tighter cursor-pointer" onClick={() => setActiveTab('home')}>MATH EXCELLENCE</h1>
-        <p className="text-[9px] font-bold text-slate-400 italic">ANSHU SIR'S ACADEMY</p>
+        <p className="text-[9px] font-bold text-slate-400 italic">BY ANSHU SIR</p>
       </header>
 
       <nav className="bg-blue-700 text-white w-full sticky top-[45px] z-40 flex justify-center shadow-lg">
@@ -102,14 +104,14 @@ const App = () => {
           <div className="space-y-6 animate-in fade-in w-full text-center">
             <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border-4 border-slate-50">
                <GraduationCap size={48} className="text-blue-700 mx-auto mb-3 animate-bounce-slow" />
-               <h2 className="text-xl md:text-3xl font-black uppercase italic tracking-tight leading-tight">Elevate Your Mathematics <br/> <span className="text-blue-700 underline decoration-yellow-400 decoration-2 underline-offset-8">with Anshu Sir</span></h2>
+               <h2 className="text-xl md:text-3xl font-black uppercase italic tracking-tight leading-tight">Master Mathematics <br/> <span className="text-blue-700 underline decoration-yellow-400 decoration-2 underline-offset-8">with Anshu Sir</span></h2>
                <button onClick={() => setActiveTab('live')} className="mt-8 bg-blue-700 text-white px-8 py-2.5 rounded-full font-bold text-[9px] uppercase shadow-xl hover:bg-blue-800 transition-all">Start Session</button>
             </div>
             <div className="bg-white p-5 rounded-3xl shadow-md border border-slate-100 text-left w-full">
               <h3 className="font-bold text-xs uppercase mb-3 border-b pb-2 flex items-center gap-2 italic"><History size={16} className="text-blue-600"/> Activity Stream</h3>
               <div className="space-y-2">
                 {activityLogs.slice(0, 8).map(log => (
-                  <div key={log.id} className="p-3 bg-slate-50 rounded-xl flex justify-between items-center border-l-4 border-blue-600 shadow-sm transition-all hover:bg-white">
+                  <div key={log.id} className="p-2.5 bg-slate-50 rounded-xl flex justify-between items-center border-l-4 border-blue-600 shadow-sm transition-all hover:bg-white">
                     <div><p className="text-[10px] font-black uppercase text-slate-800">{log.studentName}</p><p className="text-[8px] font-bold text-slate-400 uppercase italic">{log.examTitle} {log.scoreDisplay ? `• Score: ${log.scoreDisplay}` : ''}</p></div>
                     <div className="text-right text-[7px] font-bold text-slate-300 uppercase leading-tight">{log.timeDisplay} <br/> {log.dateDisplay}</div>
                   </div>
@@ -118,13 +120,175 @@ const App = () => {
             </div>
           </div>
         )}
-        {/* ... (Keep your Admin and Growth logic same as previous response) ... */}
+
+        {activeTab === 'live' && (
+          <div className="space-y-4 w-full text-left">
+            <h2 className="font-bold uppercase text-slate-700 border-b-2 pb-2 text-[10px] flex items-center gap-2"><Clock size={14} className="text-red-600"/> Ongoing Live Mocks</h2>
+            {liveMocks.filter(m => m.isPublished).map(m => (
+              <div key={m.id} className="bg-white p-4 rounded-2xl shadow flex justify-between items-center border border-slate-100">
+                <div><h3 className="text-sm font-black uppercase italic tracking-tighter">{m.name}</h3><p className="text-[9px] font-bold text-red-600 uppercase italic mt-1">Duration: {m.hours || 0}h {m.minutes || 0}m</p></div>
+                <button onClick={() => handleStartExamFlow(m)} className="bg-red-600 text-white px-6 py-2 rounded-full font-bold text-[9px] uppercase shadow-lg">Attend</button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {activeTab === 'teacher' && (!isTeacherAuthenticated ? 
+          <div className="max-w-md w-full mx-auto mt-20 p-10 bg-white rounded-3xl shadow-xl text-center border-t-8 border-blue-700">
+            <Lock size={40} className="text-blue-700 mx-auto mb-6" />
+            <input type="password" onChange={(e) => { if(e.target.value === teacherPin) setIsTeacherAuthenticated(true); }} className="w-full py-4 bg-slate-50 border-2 rounded-xl text-center text-4xl font-black outline-none" placeholder="••••" />
+          </div> : <TeacherZoneMainView liveMocks={liveMocks} practiceSets={practiceSets} students={students} teacherPin={teacherPin} studentResults={studentResults} setTeacherPin={async (v) => await setDoc(doc(db, "settings", "adminConfig"), { pin: v }, { merge: true })} />
+        )}
+
+        {activeTab === 'growth' && <GrowthSectionView results={studentResults} students={students} />}
+        
+        {activeTab === 'practice' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full text-left">
+            {practiceSets.filter(p => p.isPublished).map(p => (
+              <div key={p.id} className="bg-white p-4 rounded-2xl shadow flex justify-between items-center border border-slate-100 hover:border-blue-300">
+                <div><h3 className="font-bold uppercase text-xs italic">{p.name}</h3><p className="text-[9px] font-bold text-slate-400 uppercase italic mt-1">Time: {p.hours || 0}h {p.minutes || 0}m</p></div>
+                <button onClick={() => handleStartExamFlow(p)} className="bg-blue-700 text-white px-6 py-2 rounded-full font-bold text-[9px] uppercase shadow-md">Start</button>
+              </div>
+            ))}
+          </div>
+        )}
       </main>
     </div>
   );
 };
 
-// --- Sub-component: 🔴 Interactive Exam Hall (সংশোধিত ডিজাইন - সরু ও বড় পিডিএফ) ---
+// --- Sub-component: Teacher Zone (FULL) ---
+const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, setTeacherPin, studentResults }) => {
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [isChangingPin, setIsChangingPin] = useState(false);
+  const [pinVal, setPinVal] = useState('');
+
+  const updateField = async (id, type, field, value) => { 
+    const coll = type === 'live' ? 'liveMocks' : 'practiceSets';
+    await setDoc(doc(db, coll, id), { [field]: value }, { merge: true }); 
+  };
+
+  const PaperManager = ({ title, items, type, color }) => (
+    <div className="bg-white p-6 rounded-3xl shadow-sm border-t-8 border-slate-100 mb-8 w-full text-left">
+      <div className="flex justify-between items-center border-b pb-4 mb-6"><h3 className={`font-bold uppercase text-xs italic ${color}`}>{title} Manager</h3><button onClick={async () => await addDoc(collection(db, type === 'live' ? 'liveMocks' : 'practiceSets'), { name: "NEW ASSIGNMENT", hours: "1", minutes: "0", fileUrl: "", isPublished: false, answerKey: "", questionMarks: "" })} className="p-2 bg-slate-100 rounded-full shadow-sm">+</button></div>
+      <div className="space-y-6">{items.map(item => (
+        <div key={item.id} className="p-5 bg-slate-50 rounded-2xl border-2 border-white space-y-4 shadow-sm">
+          <div className="flex gap-2">
+            <input type="text" value={item.name} onChange={(e) => updateField(item.id, type, 'name', e.target.value.toUpperCase())} className="flex-1 p-2 rounded-lg border text-xs font-bold uppercase outline-none" />
+            <button onClick={() => updateField(item.id, type, 'isPublished', !item.isPublished)} className={`px-4 py-1 rounded-lg text-[9px] font-bold ${item.isPublished ? 'bg-green-600 text-white' : 'bg-slate-300'}`}>{item.isPublished ? 'LIVE' : 'HIDE'}</button>
+            <button onClick={async () => { if(window.confirm("Delete?")) await deleteDoc(doc(db, type === 'live' ? 'liveMocks' : 'practiceSets', item.id)); }} className="text-red-400"><Trash2 size={18}/></button>
+          </div>
+          <div className="flex gap-2">
+            <div className="flex items-center gap-1 bg-white px-2 py-2 rounded-lg border-2 border-blue-50">
+               <input type="number" value={item.hours} onChange={(e) => updateField(item.id, type, 'hours', e.target.value)} className="w-10 text-center font-black text-md bg-blue-50 rounded outline-none" /> <span className="font-bold text-[9px]">H</span> 
+               <input type="number" value={item.minutes} onChange={(e) => updateField(item.id, type, 'minutes', e.target.value)} className="w-10 text-center font-black text-md bg-blue-50 rounded outline-none" /> <span className="font-bold text-[9px]">M</span>
+            </div>
+            <input type="text" value={item.fileUrl} onChange={(e) => updateField(item.id, type, 'fileUrl', e.target.value)} className="flex-1 p-2 rounded-lg border text-[10px] outline-none shadow-sm" placeholder="PDF Link" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div className="bg-white p-3 rounded-xl border border-blue-100">
+                <p className="text-[8px] font-black text-blue-700 uppercase mb-2 flex items-center gap-2 tracking-widest italic"><CheckSquare size={12}/> Answer Key (A,B,C...)</p>
+                <input type="text" value={item.answerKey || ""} onChange={(e) => updateField(item.id, type, 'answerKey', e.target.value.toUpperCase())} className="w-full p-2 rounded-lg bg-blue-50/30 border-2 border-blue-100 font-bold text-xs outline-none" placeholder="A,B,D,C" />
+             </div>
+             <div className="bg-white p-3 rounded-xl border border-yellow-100">
+                <p className="text-[8px] font-black text-yellow-700 uppercase mb-2 flex items-center gap-2 tracking-widest italic"><Award size={12}/> Marks/Question (1,2,5...)</p>
+                <input type="text" value={item.questionMarks || ""} onChange={(e) => updateField(item.id, type, 'questionMarks', e.target.value)} className="w-full p-2 rounded-lg bg-yellow-50/30 border-2 border-yellow-100 font-bold text-xs outline-none" placeholder="1,1,2,5" />
+             </div>
+          </div>
+        </div>
+      ))}</div>
+    </div>
+  );
+
+  return (
+    <div className="w-full flex flex-col items-center">
+      <div className="bg-white p-4 rounded-2xl flex justify-between items-center w-full mb-8 border-2 shadow-sm">
+        <div className="flex gap-2">
+          <button onClick={() => setIsChangingPin(!isChangingPin)} className="px-4 py-1.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-black uppercase">PIN</button>
+          <button onClick={async () => { if(window.confirm("Purge logs?")) { const q = query(collection(db, "logs")); const snapshot = await getDocs(q); const batch = writeBatch(db); snapshot.docs.forEach((d) => batch.delete(d.ref)); await batch.commit(); } }} className="px-4 py-1.5 rounded-full bg-red-100 text-red-700 text-[10px] font-black uppercase">Clear Logs</button>
+        </div>
+      </div>
+      
+      {isChangingPin && (
+        <div className="max-w-sm w-full p-6 bg-blue-50 rounded-3xl border-2 mb-8 animate-in slide-in-from-top-4">
+           <input type="text" onChange={(e) => setPinVal(e.target.value)} className="w-full p-3 rounded-xl bg-white border-2 text-xl font-black text-center" placeholder="NEW PIN" />
+           <button onClick={async () => { if(pinVal.length >= 4) { await setTeacherPin(pinVal); setIsChangingPin(false); alert("Saved!"); }}} className="w-full py-2 bg-blue-700 text-white rounded-lg mt-4 font-bold text-xs uppercase uppercase shadow-lg">Save</button>
+        </div>
+      )}
+
+      <PaperManager title="Live Mock" items={liveMocks} type="live" color="text-red-600" />
+      <PaperManager title="Practice" items={practiceSets} type="practice" color="text-blue-700" />
+
+      <div className="bg-white p-8 rounded-3xl shadow-lg border-t-8 border-slate-900 w-full mb-20 text-center">
+        <h3 className="font-bold text-xs uppercase mb-6 flex items-center justify-center gap-3 italic"><Trophy size={24} className="text-yellow-600"/> Student Registry</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {students.map((std) => (
+            <div key={std.id} className="relative group p-4 bg-slate-50 border-2 border-white rounded-[2rem] flex flex-col items-center">
+              <p className="text-sm font-black uppercase italic tracking-tighter text-slate-800">{std.name}</p>
+              <p className="text-[10px] font-bold text-blue-600 uppercase mt-1 italic tracking-widest">Code: {std.studentCode || 'None'}</p>
+              <div className="flex gap-2 mt-4">
+                <button onClick={() => setSelectedStudent(std)} className="px-4 py-1 bg-white border-2 rounded-full text-[9px] font-bold uppercase shadow-sm italic hover:bg-slate-900 hover:text-white transition-all">Report</button>
+                <button onClick={async () => { if(window.confirm(`Delete ${std.name}?`)) await deleteDoc(doc(db, "students", std.id)); }} className="p-1.5 bg-red-50 text-red-500 rounded-full border border-red-100 active:scale-90"><Trash2 size={12}/></button>
+              </div>
+            </div>
+          ))}
+          <button onClick={async () => { 
+            const n = prompt("Student Name:"); 
+            const c = prompt("Unique Code (Phone last 4 digits):");
+            if(n) await addDoc(collection(db, "students"), {name: n.toUpperCase(), studentCode: c || ""}); 
+          }} className="p-8 border-2 border-dashed rounded-[2rem] text-[10px] font-bold text-slate-300 uppercase hover:text-blue-600 transition-all">+ NEW STUDENT</button>
+        </div>
+      </div>
+      {selectedStudent && <AdminMarksheetModal student={selectedStudent} results={studentResults} onClose={() => setSelectedStudent(null)} />}
+    </div>
+  );
+};
+
+const AdminMarksheetModal = ({ student, results, onClose }) => {
+  const [newRes, setNewRes] = useState({ exam: "", obtained: "", total: "", date: "" });
+  return (
+    <div className="fixed inset-0 bg-white z-[1200] p-6 overflow-y-auto animate-in slide-in-from-right-full duration-500">
+       <button onClick={onClose} className="font-black text-blue-600 mb-8 flex items-center gap-2 border-b-2 border-blue-600 w-fit uppercase text-[10px] italic"><ChevronLeft size={20}/> BACK</button>
+       <div className="bg-white p-8 rounded-[3rem] border-4 border-slate-50 shadow-2xl max-w-xl mx-auto space-y-8">
+          <h3 className="text-xl font-black uppercase italic border-b pb-4 leading-none tracking-tighter">{student?.name} Performance Logs</h3>
+          <div className="p-6 bg-blue-50 rounded-[2.5rem] space-y-4 shadow-inner border-2 border-blue-100">
+             <div className="grid grid-cols-1 gap-4 text-left">
+               <input type="text" value={newRes.exam} onChange={(e) => setNewRes({...newRes, exam: e.target.value.toUpperCase()})} className="w-full p-3 rounded-xl border-2 font-bold text-xs outline-none" placeholder="Module Name" />
+               <input type="date" value={newRes.date} onChange={(e) => setNewRes({...newRes, date: e.target.value})} className="w-full p-3 rounded-xl border-2 font-bold text-xs" />
+               <div className="flex gap-2"><input type="number" placeholder="Obt" value={newRes.obtained} onChange={(e) => setNewRes({...newRes, obtained: e.target.value})} className="w-1/2 p-3 rounded-xl border-2 text-xs text-center" /><input type="number" placeholder="Full" value={newRes.total} onChange={(e) => setNewRes({...newRes, total: e.target.value})} className="w-1/2 p-3 rounded-xl border-2 text-xs text-center" /></div>
+             </div>
+             <button onClick={async () => { if(newRes.exam && newRes.obtained && newRes.total && newRes.date) { const p = Math.round((parseFloat(newRes.obtained)/parseFloat(newRes.total))*100); await addDoc(collection(db, "results"), { ...newRes, name: student.name, percent: p, timestamp: Date.now() }); setNewRes({exam: "", obtained: "", total: "", date: ""}); alert("Saved!"); }}} className="w-full py-4 bg-blue-700 text-white rounded-2xl font-bold uppercase text-xs shadow-lg active:scale-95 transition-all">Manual Entry</button>
+          </div>
+          <div className="space-y-4 pt-6 border-t-2">
+             {results.filter(r => r.name === student?.name).sort((a,b)=>b.timestamp-a.timestamp).map(r => (<div key={r.id} className="p-4 bg-slate-50 border-2 rounded-[2rem] flex justify-between items-center shadow-md transition-all hover:bg-white group"><div className="flex items-center gap-4"><div className="w-10 h-10 rounded-lg flex items-center justify-center font-black text-xs bg-white shadow">{r.percent}%</div><div><p className="text-xs font-black uppercase italic tracking-tighter leading-none">{r.exam}</p><p className="text-[9px] font-bold text-slate-400 mt-1">{r.date} • Score: {r.obtained}/{r.total}</p></div></div><button onClick={async () => { if(window.confirm("Purge?")) await deleteDoc(doc(db, "results", r.id)); }} className="text-red-200 hover:text-red-600 active:scale-90"><Trash2 size={24} /></button></div>))}
+          </div>
+       </div>
+    </div>
+  );
+};
+
+const GrowthSectionView = ({ results, students }) => {
+  const [sel, setSel] = useState(null);
+  return (
+    <div className="max-w-2xl mx-auto w-full animate-in fade-in duration-500 text-left">
+      {!sel ? (
+        <div className="grid gap-4">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-6 italic opacity-80">Search Registered Profiles:</p>
+          {students.map((std) => (<button key={std.id} onClick={() => setSel(std.name)} className="w-full bg-white p-5 rounded-[2rem] shadow-xl border-4 border-white flex justify-between items-center group active:scale-95 transition-all hover:border-blue-200"><div className="flex items-center gap-4"><User size={18} className="text-blue-700"/> <span className="font-bold text-slate-800 uppercase text-[15px] italic tracking-tight">{std.name}</span></div><ChevronRight size={24} className="text-slate-300 group-hover:text-blue-600" /></button>))}
+        </div>
+      ) : (
+        <div className="space-y-6 animate-in slide-in-from-right-10 duration-500">
+          <button onClick={() => setSel(null)} className="flex items-center gap-2 text-[11px] font-bold text-blue-600 uppercase italic hover:underline decoration-2 underline-offset-8 transition-all"><ChevronLeft size={24}/> Return</button>
+          <div className="bg-white rounded-[3rem] shadow-2xl overflow-hidden border-8 border-slate-50 relative">
+             <div className="bg-blue-700 p-8 text-white text-center relative overflow-hidden"><Trophy className="absolute -top-16 -right-16 opacity-10 rotate-12" size={120}/><h2 className="text-2xl font-black uppercase italic tracking-tighter leading-none mb-4">Growth Transcript</h2><div className="inline-block bg-white/20 px-8 py-2 rounded-full border border-white/40 backdrop-blur-md shadow-lg"><p className="text-sm font-black uppercase tracking-widest italic">{sel}</p></div></div>
+             <div className="p-6 overflow-x-auto"><table className="w-full text-xs font-bold border-separate border-spacing-y-4"><thead><tr className="text-slate-400 uppercase text-[9px] tracking-widest opacity-80"><th className="pb-3 text-left">Exam</th><th className="pb-3 text-center">Marks</th><th className="pb-3 text-right">Status</th></tr></thead><tbody>{results.filter(r => r.name === sel).sort((a,b)=>new Date(b.date)-new Date(a.date)).map(r => (<tr key={r.id} className="bg-slate-50 rounded-2xl shadow-sm"><td className="p-4 uppercase text-slate-800 italic rounded-l-2xl border-l-8 border-blue-600 tracking-tighter text-md">{r.exam}</td><td className="p-4 text-center text-blue-700 text-2xl font-black italic">{r.obtained}/{r.total}</td><td className="p-4 text-right rounded-r-2xl"><span className={`px-4 py-1.5 rounded-full text-[9px] font-black tracking-widest border-2 shadow-sm ${r.percent >= 40 ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}`}>{r.percent >= 40 ? 'SUCCESS' : 'FAILURE'}</span></td></tr>))}</tbody></table></div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
   const [timeLeft, setTimeLeft] = useState(parseInt(exam?.duration) || 3600);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -184,58 +348,72 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
   const formatTime = (s) => `${Math.floor(s/60)}:${s%60 < 10 ? '0'+(s%60) : s%60}`;
 
   if (isSubmitted) return (
-    <div className="fixed inset-0 bg-white z-[2000] flex flex-col items-center overflow-y-auto p-8 text-center animate-in zoom-in duration-500">
-      <CheckCircle size={64} className="text-green-600 mb-6 animate-bounce" />
-      <h2 className="text-2xl font-black text-slate-800 uppercase italic mb-6">Performance Report</h2>
-      <div className="bg-slate-50 p-6 rounded-[2rem] border-2 border-slate-100 mb-8 w-full max-w-xs shadow-inner">
-         <h3 className="text-4xl font-black text-blue-700 italic tracking-tighter leading-none">{scoreData?.correct} / {scoreData?.total}</h3>
+    <div className="fixed inset-0 bg-white z-[2000] flex flex-col items-center overflow-y-auto p-10 text-center animate-in zoom-in duration-500">
+      <CheckCircle size={80} className="text-green-600 mb-6 animate-bounce" />
+      <h2 className="text-3xl font-black text-slate-800 uppercase italic mb-8 tracking-tighter">Evaluation Done</h2>
+      <div className="bg-slate-50 p-8 rounded-[3rem] border-4 border-white mb-10 w-full max-w-sm shadow-2xl text-center">
+         <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 opacity-60">Final Marks Allocation</p>
+         <h3 className="text-5xl font-black text-blue-700 italic tracking-tighter leading-none">{scoreData?.correct} / {scoreData?.total}</h3>
       </div>
-      <button onClick={onFinish} className="bg-blue-700 text-white px-12 py-3 rounded-full font-black uppercase text-[11px] shadow-lg">Close Exam Hall</button>
+      <div className="w-full max-w-lg space-y-3 mb-14 text-left">
+         <h4 className="text-[11px] font-black text-slate-500 uppercase border-b-4 border-slate-50 pb-3 flex gap-3 italic"><ListChecks size={18} className="text-blue-600"/> Corrective Analytics:</h4>
+         {scoreData?.details.map(item => (
+           <div key={item.qNum} className={`p-4 rounded-2xl border-4 flex justify-between items-center transition-all ${item.status ? 'bg-green-50 border-green-100 text-green-700 shadow-sm shadow-green-100' : 'bg-red-50 border-red-100 text-red-700 shadow-sm shadow-red-100'}`}>
+             <div>
+               <p className="font-black text-xs uppercase italic tracking-tighter">Unit Q{item.qNum} <span className="text-[9px] opacity-60 ml-1">({item.mark} pts)</span></p>
+               <p className="text-[10px] font-bold opacity-80 mt-1 uppercase italic">Choice: {item.selected} • Verified: {item.correct}</p>
+             </div>
+             {item.status ? <CheckSquare size={18} className="drop-shadow-md"/> : <AlertCircle size={18} className="drop-shadow-md"/>}
+           </div>
+         ))}
+      </div>
+      <button onClick={onFinish} className="bg-blue-700 text-white px-16 py-4 rounded-full font-black uppercase text-[12px] shadow-2xl active:scale-95 transition-all border-b-8 border-blue-900 active:border-b-0 mb-20">Close Exam Hall</button>
     </div>
   );
 
   return (
     <div className="fixed inset-0 bg-slate-950 z-[100] flex flex-col overflow-hidden">
       {/* 🔴 সুপার স্লিম হেডার (সরু করা হয়েছে) */}
-      <div className="bg-white p-1.5 md:p-2 flex justify-between items-center border-b-4 border-yellow-400 shadow-xl relative z-50">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-red-600 rounded-lg flex items-center justify-center text-white"><ShieldAlert size={16}/></div>
+      <div className="bg-white p-2 md:p-3 flex justify-between items-center border-b-8 border-yellow-400 shadow-2xl relative z-50">
+        <div className="flex items-center gap-4">
+          <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center text-white animate-pulse"><ShieldAlert size={18}/></div>
           <div>
-            <h2 className="font-black text-slate-800 text-[10px] md:text-xs uppercase italic tracking-tighter leading-none truncate max-w-[120px]">{exam?.name}</h2>
-            <p className="text-[7px] text-blue-700 font-black uppercase mt-0.5 italic">{exam?.studentName}</p>
+            <h2 className="font-black text-slate-800 text-[10px] md:text-xs uppercase italic tracking-tighter leading-none truncate max-w-[150px]">{exam?.name}</h2>
+            <p className="text-[8px] md:text-[9px] text-blue-700 font-black uppercase mt-1 tracking-widest italic">{exam?.studentName}</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <div className={`px-4 py-1 rounded-xl font-black text-xl md:text-2xl border-2 ${timeLeft < 300 ? 'text-red-600 border-red-200 animate-pulse' : 'text-slate-800 border-slate-200'}`}>{formatTime(timeLeft)}</div>
-          <button onClick={() => { if(window.confirm("SUBMIT?")) submitExam(); }} className="bg-green-600 text-white px-5 py-1.5 rounded-full font-black text-[9px] uppercase shadow-lg border-b-4 border-green-800 active:border-b-0 transition-all active:scale-95">SUBMIT</button>
+        <div className="flex items-center gap-6">
+          <div className={`px-5 py-1.5 rounded-xl font-black text-2xl md:text-3xl border-4 transition-all ${timeLeft < 300 ? 'text-red-600 animate-pulse border-red-200' : 'text-slate-800 border-slate-100'}`}>{formatTime(timeLeft)}</div>
+          <button onClick={() => { if(window.confirm("SUBMIT EXAM?")) submitExam(); }} className="bg-green-600 text-white px-6 py-2 rounded-full font-black text-[10px] uppercase shadow-lg border-b-4 border-green-800 active:border-b-0 transition-all active:scale-95">SUBMIT</button>
         </div>
       </div>
 
       {/* 🔴 পিডিএফ ভিউয়ার এলাকা (এখন আরও বড় জায়গা পাবে) */}
       <div className="flex-1 bg-slate-900 overflow-hidden relative">
-         <iframe src={exam?.fileUrl?.replace('/view?usp=sharing', '/preview').replace('/view', '/preview')} className="w-full h-full border-none" title="PDF" />
+         <iframe src={exam?.fileUrl?.replace('/view?usp=sharing', '/preview').replace('/view', '/preview')} className="w-full h-full border-none opacity-95" title="Question Paper" />
          
          {/* 🔴 কমপ্যাক্ট ওএমআর প্যানেল (উচ্চতা কমিয়ে জায়গা বের করা হয়েছে) */}
-         <div className="absolute bottom-0 left-0 right-0 z-50 bg-slate-800/98 border-t-2 border-slate-700 backdrop-blur-xl p-2 md:p-3 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+         <div className="absolute bottom-0 left-0 right-0 z-50 bg-slate-800/98 border-t-4 border-slate-700 backdrop-blur-xl p-3 md:p-4 shadow-[0_-15px_40px_rgba(0,0,0,0.6)]">
             <div className="max-w-4xl mx-auto">
-               <div className="flex items-center justify-between mb-1.5 px-2">
-                  <span className="text-[8px] font-black text-blue-400 uppercase tracking-widest italic flex items-center gap-2"><PenTool size={14} className="animate-bounce"/> RESPONSE PANEL</span>
-                  {activeQuestion && <button onClick={() => setActiveQuestion(null)} className="text-slate-500 font-black text-[9px] uppercase border-b border-slate-700 hover:text-white transition-all">Deselect</button>}
+               <div className="flex items-center justify-between mb-2 px-2">
+                  <span className="text-[9px] font-black text-blue-400 uppercase tracking-[0.3em] italic flex items-center gap-3"><PenTool size={16} className="animate-bounce"/> RESPONSE INTERFACE</span>
+                  {activeQuestion && <button onClick={() => setActiveQuestion(null)} className="text-slate-500 font-black text-[10px] uppercase border-b-2 border-slate-700 hover:text-white transition-all">Close</button>}
                </div>
                {activeQuestion ? (
-                 <div className="flex flex-col items-center animate-in slide-in-from-bottom-2 duration-300 pb-1">
-                    <div className="flex gap-4">
+                 <div className="flex flex-col items-center animate-in slide-in-from-bottom-2 duration-200 pb-2">
+                    <p className="text-white font-black text-xs mb-4 tracking-widest italic uppercase opacity-60">Choice for Unit Q{activeQuestion}:</p>
+                    <div className="flex gap-5">
                       {['A', 'B', 'C', 'D'].map(opt => (
-                        <button key={opt} onClick={() => { setAnswers({...answers, [activeQuestion]: opt}); setActiveQuestion(null); }} className={`w-11 h-11 rounded-xl font-black text-xl flex items-center justify-center border-b-4 transition-all active:scale-90 active:border-b-0 ${answers[activeQuestion] === opt ? 'bg-blue-600 text-white border-blue-900 shadow-lg' : 'bg-slate-700 text-slate-300 border-slate-950 hover:bg-slate-600'}`}>{opt}</button>
+                        <button key={opt} onClick={() => { setAnswers({...answers, [activeQuestion]: opt}); setActiveQuestion(null); }} className={`w-12 h-12 rounded-xl font-black text-xl flex items-center justify-center border-b-8 transition-all active:scale-90 active:border-b-0 ${answers[activeQuestion] === opt ? 'bg-blue-600 text-white border-blue-900 shadow-[0_0_20px_rgba(37,99,235,0.5)]' : 'bg-slate-700 text-slate-300 border-slate-950 hover:bg-slate-600'}`}>{opt}</button>
                       ))}
                     </div>
                  </div>
                ) : (
-                 <div className="flex overflow-x-auto gap-3 pb-1 no-scrollbar snap-x items-center justify-start">
+                 <div className="flex overflow-x-auto gap-3 pb-2 no-scrollbar snap-x items-center justify-start">
                     {answerKeyArray.map((_, index) => {
                       const num = index + 1;
                       return (
-                        <button key={num} onClick={() => setActiveQuestion(num)} className={`min-w-[38px] h-[38px] rounded-lg font-black text-xs flex items-center justify-center transition-all snap-center border-b-4 shadow-lg active:scale-90 ${answers[num] ? 'bg-green-600 text-white border-green-900' : 'bg-slate-700 text-slate-400 border-slate-900 hover:bg-slate-600'}`}>{num}</button>
+                        <button key={num} onClick={() => setActiveQuestion(num)} className={`min-w-[42px] h-[42px] rounded-xl font-black text-xs flex items-center justify-center transition-all snap-center border-b-4 shadow-lg active:scale-90 ${answers[num] ? 'bg-green-600 text-white border-green-900' : 'bg-slate-700 text-slate-400 border-slate-900 hover:bg-slate-600 hover:text-white'}`}>{num}</button>
                       );
                     })}
                  </div>
