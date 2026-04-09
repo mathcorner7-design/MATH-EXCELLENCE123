@@ -320,7 +320,55 @@ const AdminMarksheetModal = ({ student, results, onClose }) => {
              </div>
              <button onClick={async () => { if(newRes.exam && newRes.obtained && newRes.total && newRes.date) { const p = Math.round((parseFloat(newRes.obtained)/parseFloat(newRes.total))*100); await addDoc(collection(db, "results"), { ...newRes, name: student.name, percent: p, timestamp: Date.now() }); setNewRes({exam: "", obtained: "", total: "", date: ""}); alert("Saved!"); } }} className="w-full py-5 bg-blue-700 text-white rounded-[1.5rem] font-black uppercase text-xs shadow-xl active:scale-95 transition-all">Manual Entry</button>
           </div>
-          <div className="space-y-5 pt-8 border-t-4 border-slate-50">{results.filter(r => r.name === student?.name).sort((a,b)=>b.timestamp-a.timestamp).map(r => (<div key={r.id} className="p-6 bg-slate-50 border-2 border-white rounded-[2.5rem] flex justify-between items-center shadow-md transition-all hover:bg-white group"><div className="flex items-center gap-5"><div className="w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl bg-white shadow-lg border-2 border-slate-100 group-hover:text-blue-700 transition-all">{r.percent}%</div><div><p className="text-md font-black uppercase italic tracking-tighter leading-none">{r.exam}</p><p className="text-[11px] font-bold text-slate-400 mt-2 italic">{r.date} • Score: {r.obtained}/{r.total}</p></div></div><button onClick={async () => { if(window.confirm("Purge record?")) await deleteDoc(doc(db, "results", r.id)); }} className="text-red-200 hover:text-red-600 active:scale-90"><Trash2 size={28} /></button></div>))}</div>
+          <div className="space-y-5 pt-8 border-t-4 border-slate-50">{results.filter(r => r.name === student?.name).sort((a,b)=>b.timestamp-a.timestamp).map(r => (<div key={r.id} className="p-6 bg-slate-50 border-2 border-white rounded-[2.5rem] flex justify-between items-center shadow-md transition-all hover:bg-white group">
+            {/* 🟠 Written Paper Review Button */}
+          {r.details && r.details.some(d => d.pending) && (
+            <div className="mt-4 p-4 bg-orange-50 border-2 border-orange-100 rounded-2xl animate-pulse w-full max-w-xs">
+              <p className="text-[10px] font-black text-orange-700 uppercase mb-2 italic">Written Solution Pending!</p>
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const pendingQ = r.details.find(d => d.pending);
+                  const imgWindow = window.open("");
+                  imgWindow.document.write(`
+                    <html>
+                      <body style="margin:0; display:flex; flex-direction:column; align-items:center; background:#000; color:#fff; font-family:sans-serif;">
+                        <h2 style="padding:20px;">Unit Q${pendingQ.qNum} Review</h2>
+                        <img src="${pendingQ.selected}" style="max-width:90%; border:5px solid #fff; border-radius:10px;" />
+                        <p style="padding:20px;">Close this tab and enter marks below.</p>
+                      </body>
+                    </html>
+                  `);
+                  
+                  const mark = prompt("Enter Marks for Q" + pendingQ.qNum + " (Max " + pendingQ.mark + "):");
+                  
+                  if (mark !== null && mark !== "") {
+                    const updatedDetails = r.details.map(d => {
+                      if (d.pending && d.qNum === pendingQ.qNum) {
+                        return { ...d, status: true, mark: parseFloat(mark), pending: false, selected: "PHOTO_DELETED" };
+                      }
+                      return d;
+                    });
+                    
+                    const newTotal = updatedDetails.reduce((sum, d) => sum + (d.status ? d.mark : 0), 0);
+                    const newPercent = Math.round((newTotal / r.total) * 100);
+                    
+                    setDoc(doc(db, "results", r.id), { 
+                      details: updatedDetails, 
+                      obtained: newTotal, 
+                      percent: newPercent 
+                    }, { merge: true });
+                    
+                    alert("Marks Updated Successfully!");
+                  }
+                }}
+                className="w-full py-2 bg-orange-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all"
+              >
+                Grade Written Solution
+              </button>
+            </div>
+          )}
+  <div className="flex items-center gap-5"><div className="w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl bg-white shadow-lg border-2 border-slate-100 group-hover:text-blue-700 transition-all">{r.percent}%</div><div><p className="text-md font-black uppercase italic tracking-tighter leading-none">{r.exam}</p><p className="text-[11px] font-bold text-slate-400 mt-2 italic">{r.date} • Score: {r.obtained}/{r.total}</p></div></div><button onClick={async () => { if(window.confirm("Purge record?")) await deleteDoc(doc(db, "results", r.id)); }} className="text-red-200 hover:text-red-600 active:scale-90"><Trash2 size={28} /></button></div>))}</div>
        </div>
     </div>
   );
@@ -393,7 +441,28 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
   const [answers, setAnswers] = useState({});
   const [activeQuestion, setActiveQuestion] = useState(null);
   const [scoreData, setScoreData] = useState(null);
-
+  // --- 🟠 NEW: Image Compression Logic ---
+  const handleImageUpload = (qNum, file) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 800; 
+        const scaleSize = MAX_WIDTH / img.width;
+        canvas.width = MAX_WIDTH;
+        canvas.height = img.height * scaleSize;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.5); 
+        setAnswers(prev => ({...prev, [qNum]: compressedBase64}));
+        setActiveQuestion(null); 
+      };
+    };
+  };
   const answerKeyArray = exam?.answerKey ? exam.answerKey.split(',').map(k => k.trim().toUpperCase()) : [];
   const marksArray = exam?.questionMarks ? exam.questionMarks.split(',').map(m => parseFloat(m.trim()) || 1) : [];
 
@@ -408,13 +477,27 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
     try {
       let totalObtainedMarks = 0;
       let totalPossibleMarks = 0;
-      const detailResults = answerKeyArray.map((key, index) => {
+            const detailResults = answerKeyArray.map((key, index) => {
         const qNum = index + 1;
         const qMark = marksArray[index] !== undefined ? marksArray[index] : 1;
-        const isCorrect = (answers[qNum] || '') === key;
+        
+        // 🟠 Written লজিক: যদি Key 'W' হয় তবে অটো-নম্বর হবে না
+        const isWritten = key === 'W';
+        const isCorrect = isWritten ? false : (answers[qNum] || '') === key;
+        
         totalPossibleMarks += qMark;
-        if (isCorrect) totalObtainedMarks += qMark;
-        return { qNum, selected: answers[qNum] || 'None', correct: key, status: isCorrect, mark: qMark };
+        // MCQ হলে অটোমেটিক স্কোর যোগ হবে, লিখিত হলে পরে আপনি হাতে দেবেন
+        if (!isWritten && isCorrect) totalObtainedMarks += qMark;
+        
+        return { 
+          qNum, 
+          selected: answers[qNum] || 'None', 
+          correct: key, 
+          status: isCorrect, 
+          mark: qMark,
+          type: isWritten ? 'written' : 'mcq',
+          pending: isWritten 
+        };
       });
       const percent = totalPossibleMarks > 0 ? Math.round((totalObtainedMarks / totalPossibleMarks) * 100) : 0;
       const d = new Date();
@@ -495,13 +578,26 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
                   {activeQuestion && <button onClick={() => setActiveQuestion(null)} className="text-slate-500 font-black text-[10px] uppercase border-b-2 border-slate-700 hover:text-white transition-all">Close</button>}
                </div>
                {activeQuestion ? (
-                 <div className="flex flex-col items-center animate-in slide-in-from-bottom-2 duration-200 pb-2">
-                    <p className="text-white font-black text-xs mb-4 tracking-widest italic uppercase opacity-60">Choice for Unit Q{activeQuestion}:</p>
-                    <div className="flex gap-5">
-                      {['A', 'B', 'C', 'D'].map(opt => (
-                        <button key={opt} onClick={() => { setAnswers({...answers, [activeQuestion]: opt}); setActiveQuestion(null); }} className={`w-12 h-12 rounded-xl font-black text-xl flex items-center justify-center border-b-8 transition-all active:scale-90 active:border-b-0 ${answers[activeQuestion] === opt ? 'bg-blue-600 text-white border-blue-900 shadow-[0_0_20px_rgba(37,99,235,0.5)]' : 'bg-slate-700 text-slate-300 border-slate-950 hover:bg-slate-600'}`}>{opt}</button>
-                      ))}
-                    </div>
+                                 <div className="flex flex-col items-center animate-in slide-in-from-bottom-2 duration-200 pb-2">
+                    <p className="text-white font-black text-xs mb-4 tracking-widest italic uppercase opacity-60">
+                      {answerKeyArray[activeQuestion-1] === 'W' ? `Upload Solution for Unit Q${activeQuestion}:` : `Choice for Unit Q${activeQuestion}:`}
+                    </p>
+                    
+                    {answerKeyArray[activeQuestion-1] === 'W' ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <label className="bg-blue-600 text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase cursor-pointer shadow-xl active:scale-95 flex items-center gap-2">
+                           <PenTool size={16}/> {answers[activeQuestion]?.startsWith('data:image') ? 'CHANGE PHOTO' : 'CAPTURE SOLUTION'}
+                           <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleImageUpload(activeQuestion, e.target.files[0])} />
+                        </label>
+                        {answers[activeQuestion]?.startsWith('data:image') && <p className="text-green-400 text-[8px] font-bold uppercase">✓ Photo Captured</p>}
+                      </div>
+                    ) : (
+                      <div className="flex gap-5">
+                        {['A', 'B', 'C', 'D'].map(opt => (
+                          <button key={opt} onClick={() => { setAnswers({...answers, [activeQuestion]: opt}); setActiveQuestion(null); }} className={`w-12 h-12 rounded-xl font-black text-xl flex items-center justify-center border-b-8 transition-all active:scale-90 active:border-b-0 ${answers[activeQuestion] === opt ? 'bg-blue-600 text-white border-blue-900 shadow-[0_0_20px_rgba(37,99,235,0.5)]' : 'bg-slate-700 text-slate-300 border-slate-950 hover:bg-slate-600'}`}>{opt}</button>
+                        ))}
+                      </div>
+                    )}
                  </div>
                ) : (
                  <div className="flex overflow-x-auto gap-3 pb-2 no-scrollbar snap-x items-center justify-start">
