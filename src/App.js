@@ -320,121 +320,66 @@ const AdminMarksheetModal = ({ student, results, onClose }) => {
              </div>
              <button onClick={async () => { if(newRes.exam && newRes.obtained && newRes.total && newRes.date) { const p = Math.round((parseFloat(newRes.obtained)/parseFloat(newRes.total))*100); await addDoc(collection(db, "results"), { ...newRes, name: student.name, percent: p, timestamp: Date.now() }); setNewRes({exam: "", obtained: "", total: "", date: ""}); alert("Saved!"); } }} className="w-full py-5 bg-blue-700 text-white rounded-[1.5rem] font-black uppercase text-xs shadow-xl active:scale-95 transition-all">Manual Entry</button>
           </div>
-          <div className="space-y-5 pt-8 border-t-4 border-slate-50">{results.filter(r => r.name === student?.name).sort((a,b)=>b.timestamp-a.timestamp).map(r => (<div key={r.id} className="p-6 bg-slate-50 border-2 border-white rounded-[2.5rem] flex justify-between items-center shadow-md transition-all hover:bg-white group">
-            {/* 🟠 Written Paper Review Button */}
-          {r.details && r.details.some(d => d.pending) && (
-            <div className="mt-4 p-4 bg-orange-50 border-2 border-orange-100 rounded-2xl animate-pulse w-full max-w-xs">
-              <p className="text-[10px] font-black text-orange-700 uppercase mb-2 italic">Written Solution Pending!</p>
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const pendingQ = r.details.find(d => d.pending);
-                  const imgWindow = window.open("");
-                  imgWindow.document.write(`
-                    <html>
-                      <body style="margin:0; display:flex; flex-direction:column; align-items:center; background:#000; color:#fff; font-family:sans-serif;">
-                        <h2 style="padding:20px;">Unit Q${pendingQ.qNum} Review</h2>
-                        <img src="${pendingQ.selected}" style="max-width:90%; border:5px solid #fff; border-radius:10px;" />
-                        <p style="padding:20px;">Close this tab and enter marks below.</p>
-                      </body>
-                    </html>
-                  `);
-                  
-                  const mark = prompt("Enter Marks for Q" + pendingQ.qNum + " (Max " + pendingQ.mark + "):");
-                  
-                  if (mark !== null && mark !== "") {
-                    const updatedDetails = r.details.map(d => {
-                      if (d.pending && d.qNum === pendingQ.qNum) {
-                        return { ...d, status: true, mark: parseFloat(mark), pending: false, selected: "PHOTO_DELETED" };
-                      }
-                      return d;
-                    });
-                    
-                    const newTotal = updatedDetails.reduce((sum, d) => sum + (d.status ? d.mark : 0), 0);
-                    const newPercent = Math.round((newTotal / r.total) * 100);
-                    
-                    setDoc(doc(db, "results", r.id), { 
-                      details: updatedDetails, 
-                      obtained: newTotal, 
-                      percent: newPercent 
-                    }, { merge: true });
-                    
-                    alert("Marks Updated Successfully!");
-                  }
-                }}
-                className="w-full py-2 bg-orange-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all"
-              >
-                Grade Written Solution
-              </button>
-            </div>
-          )}
-  <div className="flex items-center gap-5"><div className="w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl bg-white shadow-lg border-2 border-slate-100 group-hover:text-blue-700 transition-all">{r.percent}%</div><div><p className="text-md font-black uppercase italic tracking-tighter leading-none">{r.exam}</p><p className="text-[11px] font-bold text-slate-400 mt-2 italic">{r.date} • Score: {r.obtained}/{r.total}</p></div></div><button onClick={async () => { if(window.confirm("Purge record?")) await deleteDoc(doc(db, "results", r.id)); }} className="text-red-200 hover:text-red-600 active:scale-90"><Trash2 size={28} /></button></div>))}</div>
+          <div className="space-y-5 pt-8 border-t-4 border-slate-50">
+            {results.filter(r => r.name === student?.name).sort((a,b)=>b.timestamp-a.timestamp).map(r => (
+              <div key={r.id} className="p-4 bg-white border-2 border-slate-100 rounded-[2rem] flex flex-col gap-4 shadow-sm hover:shadow-md transition-all group">
+                <div className="flex justify-between items-center w-full">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg bg-blue-50 text-blue-700 border-2 border-white shadow-sm">{r.percent}%</div>
+                    <div>
+                      <p className="text-sm font-black uppercase italic tracking-tighter leading-none">{r.exam}</p>
+                      <p className="text-[10px] font-bold text-slate-400 mt-1 italic">{r.date} • Score: {r.obtained}/{r.total}</p>
+                    </div>
+                  </div>
+                  <button onClick={async () => { if(window.confirm("Purge record?")) await deleteDoc(doc(db, "results", r.id)); }} className="text-red-200 hover:text-red-500 active:scale-90 transition-all"><Trash2 size={24} /></button>
+                </div>
+
+                {/* 🟠 Written Paper Review Section */}
+                {r.details && r.details.some(d => d.pending) && (
+                  <div className="p-4 bg-orange-50 border-2 border-orange-100 rounded-2xl w-full max-w-xs self-center shadow-inner">
+                    <p className="text-[9px] font-black text-orange-700 uppercase mb-2 italic text-center animate-pulse">Written Solution Pending!</p>
+                    <div className="flex flex-col gap-2">
+                      <button 
+                        onClick={() => window.open(r.details.find(d => d.pending).selected, "_blank")}
+                        className="w-full py-2 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase shadow-md active:scale-95"
+                      >
+                        View Paper
+                      </button>
+                      <div className="flex gap-2">
+                        <input 
+                          id={`mark-input-${r.id}`}
+                          type="number" 
+                          placeholder="Marks"
+                          className="w-1/2 p-2 border-2 rounded-xl text-center font-black text-xs outline-none focus:border-orange-500 bg-white"
+                        />
+                        <button 
+                          onClick={async () => {
+                            const markInput = document.getElementById(`mark-input-${r.id}`);
+                            const mark = markInput.value;
+                            if (!mark) return alert("Please enter marks!");
+                            const pendingQ = r.details.find(d => d.pending);
+                            const updatedDetails = r.details.map(d => {
+                              if (d.pending && d.qNum === pendingQ.qNum) {
+                                return { ...d, status: true, mark: parseFloat(mark), pending: false, selected: "PHOTO_DELETED" };
+                              }
+                              return d;
+                            });
+                            const newTotal = updatedDetails.reduce((sum, d) => sum + (d.status ? d.mark : 0), 0);
+                            const newPercent = Math.round((newTotal / r.total) * 100);
+                            await setDoc(doc(db, "results", r.id), { details: updatedDetails, obtained: newTotal, percent: newPercent }, { merge: true });
+                            alert("Marks Updated Successfully!");
+                          }}
+                          className="w-1/2 py-2 bg-orange-600 text-white rounded-xl font-black text-[10px] uppercase shadow-md active:scale-95"
+                        >
+                          Submit
+                        </button>
+                    </div>
+              </div>
+          </div>
        </div>
     </div>
-  );
-};
-
-// --- 🔵 GrowthSectionView (Upgraded for Review Access) ---
-const GrowthSectionView = ({ results, students }) => {
-  const [sel, setSel] = useState(null);
-  const [viewingResult, setViewingResult] = useState(null);
-
-  return (
-    <div className="max-w-2xl mx-auto w-full animate-in fade-in duration-500 text-left">
-      {!sel ? (
-        <div className="grid gap-5">
-          <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-6 italic opacity-80">Search Profiles:</p>
-          {students.map((std) => (<button key={std.id} onClick={() => setSel(std.name)} className="w-full bg-white p-6 rounded-[2.2rem] shadow-xl border-4 border-white flex justify-between items-center group active:scale-95 transition-all hover:border-blue-200"><div className="flex items-center gap-5"><div className="w-12 h-10 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-700 shadow-inner group-hover:bg-blue-700 group-hover:text-white transition-all"><User size={20}/></div> <span className="font-black text-slate-800 uppercase text-[15px] italic tracking-tight">{std.name}</span></div><ChevronRight size={28} className="text-slate-200 group-hover:text-blue-600 transition-colors" /></button>))}
-        </div>
-      ) : (
-        <div className="space-y-8 animate-in slide-in-from-right-20 duration-700">
-          <button onClick={() => setSel(null)} className="flex items-center gap-3 text-[12px] font-black text-blue-600 uppercase italic hover:underline decoration-4 underline-offset-8 transition-all"><ChevronLeft size={30}/> Return</button>
-          <div className="bg-white rounded-[4rem] shadow-3xl overflow-hidden border-[12px] border-slate-50 relative">
-             <div className="bg-blue-700 p-12 text-white text-center relative overflow-hidden"><Trophy className="absolute -top-24 -right-24 opacity-10 rotate-12" size={200}/><h2 className="text-4xl font-black uppercase italic tracking-tighter leading-none mb-6">Performance Transcript</h2><div className="inline-block bg-white/20 px-10 py-3 rounded-full border-2 border-white/40 backdrop-blur-md shadow-2xl"><p className="text-lg font-black uppercase tracking-[0.3em] italic">{sel}</p></div></div>
-             <div className="p-8 overflow-x-auto">
-               <table className="w-full text-sm font-bold border-separate border-spacing-y-5">
-                 <thead>
-                   <tr className="text-slate-400 uppercase text-[10px] tracking-widest opacity-80">
-                     <th className="pb-4 text-left px-4">Exam Unit</th>
-                     <th className="pb-4 text-center">Score</th>
-                     <th className="pb-4 text-right px-4">Status</th>
-                   </tr>
-                 </thead>
-                 <tbody>
-                   {results.filter(r => r.name === sel).sort((a,b)=>new Date(b.date)-new Date(a.date)).map(r => (
-                     <tr key={r.id} className="bg-slate-50 rounded-3xl shadow-sm hover:bg-white transition-all">
-                       <td className="p-6 uppercase text-slate-800 italic rounded-l-[2rem] border-l-[12px] border-blue-600 tracking-tighter text-lg leading-none">
-                          {r.exam}
-                          {/* Only show Review button if details exist (to keep legacy records intact) */}
-                          {r.details && (
-                            <button 
-                              onClick={() => setViewingResult(r)}
-                              className="flex items-center gap-1 mt-3 text-[8px] font-black text-blue-600 uppercase tracking-widest hover:text-blue-800 transition-all border-b-2 border-blue-50 w-fit"
-                            >
-                              <Eye size={10}/> REVIEW REPORT
-                            </button>
-                          )}
-                       </td>
-                       <td className="p-6 text-center text-blue-700 text-4xl italic tracking-tighter leading-none font-black">{r.obtained}/{r.total}</td>
-                       <td className="p-6 text-right rounded-r-[2rem] px-8">
-                         <span className={`px-6 py-2 rounded-full text-[11px] font-black tracking-widest border-4 shadow-xl transition-all ${r.percent >= 40 ? 'bg-green-100 text-green-700 border-green-200 shadow-green-100' : 'bg-red-100 text-red-700 border-red-200 shadow-red-100'}`}>
-                           {r.percent >= 40 ? 'SUCCESS' : 'FAILURE'}
-                         </span>
-                       </td>
-                     </tr>
-                   ))}
-                 </tbody>
-               </table>
-             </div>
-          </div>
-        </div>
-      )}
-      {/* Review Modal used only when requested */}
-      {viewingResult && <ReviewResultModal result={viewingResult} onClose={() => setViewingResult(null)} />}
-    </div>
-  );
-};
-
+);       
+};    
 const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
   const [timeLeft, setTimeLeft] = useState(parseInt(exam?.duration) || 3600);
   const [isSubmitted, setIsSubmitted] = useState(false);
