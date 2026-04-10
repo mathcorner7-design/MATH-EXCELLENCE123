@@ -25,10 +25,9 @@ const db = getFirestore(app);
 const ImagePreviewModal = ({ src, onClose }) => {
   if (!src) return null;
   return (
-    <div className="fixed inset-0 bg-black/90 z-[3000] flex flex-col items-center justify-center p-4 backdrop-blur-md animate-in fade-in duration-300">
+    <div className="fixed inset-0 bg-black/90 z-[3000] flex flex-col items-center justify-center p-4 backdrop-blur-md animate-in fade-in">
       <button onClick={onClose} className="absolute top-10 right-10 text-white p-3 bg-red-600 rounded-full shadow-2xl"><X size={32}/></button>
-      <img src={src} alt="Student Solution" className="max-w-full max-h-[80vh] rounded-xl shadow-2xl border-4 border-white animate-in zoom-in duration-300" />
-      <p className="text-white mt-6 font-black uppercase italic tracking-widest text-xs">Student's Hand-written Solution</p>
+      <img src={src} alt="Student Solution" className="max-w-full max-h-[80vh] rounded-xl shadow-2xl border-4 border-white animate-in zoom-in" />
     </div>
   );
 };
@@ -58,7 +57,6 @@ const ReviewResultModal = ({ result, onClose }) => {
   );
 };
 
-// --- 🟡 Main App Component ---
 const App = () => {
   const [activeTab, setActiveTab] = useState('home');
   const [isExamActive, setIsExamActive] = useState(false);
@@ -191,7 +189,7 @@ const App = () => {
   );
 };
 
-// --- Teacher Zone ---
+// --- Teacher Zone Main View ---
 const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, setTeacherPin, studentResults }) => {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isChangingPin, setIsChangingPin] = useState(false);
@@ -301,6 +299,7 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
   );
 };
 
+// --- 🟡 ADMIN MARKSHEET MODAL (FIXED FOR MULTIPLE IMAGES) ---
 const AdminMarksheetModal = ({ student, results, onClose }) => {
   const [newRes, setNewRes] = useState({ exam: "", obtained: "", total: "", date: "" });
   const [previewImg, setPreviewImg] = useState(null);
@@ -314,6 +313,7 @@ const AdminMarksheetModal = ({ student, results, onClose }) => {
             <div className="w-16 h-16 bg-blue-700 rounded-[1.5rem] flex items-center justify-center text-white shadow-xl italic font-black text-2xl">{student?.name?.charAt(0)}</div>
             <div><h3 className="text-3xl font-black uppercase italic tracking-tighter leading-none">{student?.name}</h3><p className="text-[11px] font-bold text-slate-300 uppercase tracking-widest mt-1 italic">Performance Logs</p></div>
           </div>
+
           <div className="p-8 bg-blue-50 rounded-[2.5rem] space-y-5 shadow-inner border-2 border-blue-100">
              <div className="grid grid-cols-1 gap-5 text-left">
                <input type="text" value={newRes.exam} onChange={(e) => setNewRes({...newRes, exam: e.target.value.toUpperCase()})} className="w-full p-4 rounded-xl border-2 font-black text-xs outline-none shadow-sm focus:border-blue-500" placeholder="Module Name" />
@@ -322,10 +322,11 @@ const AdminMarksheetModal = ({ student, results, onClose }) => {
              </div>
              <button onClick={async () => { if(newRes.exam && newRes.obtained && newRes.total && newRes.date) { const p = Math.round((parseFloat(newRes.obtained)/parseFloat(newRes.total))*100); await addDoc(collection(db, "results"), { ...newRes, name: student.name, percent: p, timestamp: Date.now() }); setNewRes({exam: "", obtained: "", total: "", date: ""}); alert("Saved!"); } }} className="w-full py-5 bg-blue-700 text-white rounded-[1.5rem] font-black uppercase text-xs shadow-xl active:scale-95 transition-all">Manual Entry</button>
           </div>
-          <div className="space-y-5 pt-8 border-t-4 border-slate-50">
+
+          <div className="space-y-8 pt-8 border-t-4 border-slate-50">
             {results.filter(r => r.name === student?.name).sort((a,b)=>b.timestamp-a.timestamp).map(r => (
-              <div key={r.id} className="p-4 bg-white border-2 border-slate-100 rounded-[2rem] flex flex-col gap-4 shadow-sm hover:shadow-md transition-all group">
-                <div className="flex justify-between items-center w-full">
+              <div key={r.id} className="p-6 bg-white border-2 border-slate-100 rounded-[2.5rem] flex flex-col gap-6 shadow-sm hover:shadow-md transition-all group">
+                <div className="flex justify-between items-start w-full">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg bg-blue-50 text-blue-700 border-2 border-white shadow-sm">{r.percent}%</div>
                     <div className="flex-1 min-w-0 pr-2">
@@ -335,22 +336,29 @@ const AdminMarksheetModal = ({ student, results, onClose }) => {
                   </div>
                   <button onClick={async () => { if(window.confirm("Purge record?")) await deleteDoc(doc(db, "results", r.id)); }} className="text-red-200 hover:text-red-500 active:scale-90 transition-all flex-shrink-0"><Trash2 size={24} /></button>
                 </div>
+
+                {/* 🟠 HORIZONTAL SLIDER FOR PENDING PAPERS */}
                 {r.details && r.details.some(d => d.pending) && (
-                  <div className="p-4 bg-orange-50 border-2 border-orange-100 rounded-2xl w-full max-w-xs self-center shadow-inner">
-                    <p className="text-[9px] font-black text-orange-700 uppercase mb-2 italic text-center animate-pulse">Written Solution Pending!</p>
-                    <div className="flex flex-col gap-2">
-                      <button onClick={() => setPreviewImg(r.details.find(d => d.pending).selected)} className="w-full py-2 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase shadow-md active:scale-95">View Paper</button>
-                      <div className="flex gap-2">
-                        <input id={`mark-input-${r.id}`} type="number" placeholder="Marks" className="w-1/2 p-2 border-2 rounded-xl text-center font-black text-xs outline-none focus:border-orange-500 bg-white" />
-                        <button onClick={async () => {
-                            const mark = document.getElementById(`mark-input-${r.id}`).value;
-                            if (!mark) return alert("Please enter marks!");
-                            const updatedDetails = r.details.map(d => d.pending ? { ...d, status: true, mark: parseFloat(mark), pending: false, selected: "PHOTO_DELETED" } : d);
-                            const newTotal = updatedDetails.reduce((sum, d) => sum + (d.status ? d.mark : 0), 0);
-                            await setDoc(doc(db, "results", r.id), { details: updatedDetails, obtained: newTotal, percent: Math.round((newTotal / r.total) * 100) }, { merge: true });
-                            alert("Marks Updated Successfully!");
-                          }} className="w-1/2 py-2 bg-orange-600 text-white rounded-xl font-black text-[10px] uppercase shadow-md active:scale-95">Submit</button>
-                      </div>
+                  <div className="bg-orange-50 border-2 border-orange-100 rounded-[2rem] p-4 flex flex-col gap-3 shadow-inner">
+                    <p className="text-[10px] font-black text-orange-600 uppercase italic text-center animate-pulse tracking-widest">Action Required: Written Solutions</p>
+                    <div className="flex overflow-x-auto gap-4 pb-4 no-scrollbar snap-x snap-mandatory">
+                      {r.details.filter(d => d.pending).map((pendingQ, pIdx) => (
+                        <div key={pIdx} className="min-w-[200px] bg-white border-2 border-white shadow-md rounded-2xl p-4 flex flex-col items-center gap-3 snap-center">
+                          <p className="text-[9px] font-black text-slate-400 uppercase italic">Unit Q{pendingQ.qNum}</p>
+                          <button onClick={() => setPreviewImg(pendingQ.selected)} className="w-full py-2 bg-blue-600 text-white rounded-xl font-black text-[9px] uppercase shadow-sm">View Work</button>
+                          <div className="flex gap-2 w-full">
+                            <input id={`mark-input-${r.id}-${pendingQ.qNum}`} type="number" placeholder="Marks" className="w-1/2 p-2 border-2 rounded-xl text-center font-black text-[10px] outline-none focus:border-orange-500" />
+                            <button onClick={async () => {
+                                const markVal = document.getElementById(`mark-input-${r.id}-${pendingQ.qNum}`).value;
+                                if (!markVal) return alert("Enter marks!");
+                                const updatedDetails = r.details.map(d => (d.pending && d.qNum === pendingQ.qNum) ? { ...d, status: true, mark: parseFloat(markVal), pending: false, selected: "PHOTO_DELETED" } : d);
+                                const newObt = updatedDetails.reduce((sum, d) => sum + (d.status ? d.mark : 0), 0);
+                                await setDoc(doc(db, "results", r.id), { details: updatedDetails, obtained: newObt, percent: Math.round((newObt / r.total) * 100) }, { merge: true });
+                                alert(`Q${pendingQ.qNum} Done!`);
+                              }} className="w-1/2 py-2 bg-orange-600 text-white rounded-xl font-black text-[9px] uppercase shadow-sm">Save</button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -512,7 +520,7 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
   );
 };
 
-// --- 📈 Growth Section (HORIZONTAL & VERTICAL SCROLL ENABLED) ---
+// --- 📈 Growth Section ---
 const GrowthSectionView = ({ results, students }) => {
   const [sel, setSel] = useState(null);
   const [selectedReview, setSelectedReview] = useState(null);
@@ -523,53 +531,19 @@ const GrowthSectionView = ({ results, students }) => {
       
       {!sel ? (
         <div className="grid gap-4">
-          {students.map((std) => (
-            <button key={std.id} onClick={() => setSel(std.name)} className="w-full bg-white p-5 rounded-[2rem] shadow-lg border-2 border-white flex justify-between items-center group active:scale-95 transition-all">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-700 shadow-inner group-hover:bg-blue-700 group-hover:text-white transition-all"><User size={18}/></div> 
-                <span className="font-black text-slate-800 uppercase text-[14px] italic tracking-tight break-words">{std.name}</span>
-              </div>
-              <ChevronRight size={24} className="text-slate-200 group-hover:text-blue-600" />
-            </button>
-          ))}
+          {students.map((std) => (<button key={std.id} onClick={() => setSel(std.name)} className="w-full bg-white p-5 rounded-[2rem] shadow-lg border-2 border-white flex justify-between items-center group active:scale-95 transition-all"><div className="flex items-center gap-4"><div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-700 shadow-inner group-hover:bg-blue-700 group-hover:text-white transition-all"><User size={18}/></div> <span className="font-black text-slate-800 uppercase text-[14px] italic tracking-tight break-words">{std.name}</span></div><ChevronRight size={24} className="text-slate-200 group-hover:text-blue-600" /></button>))}
         </div>
       ) : (
         <div className="space-y-6 animate-in slide-in-from-right-20 duration-700">
-          <button onClick={() => setSel(null)} className="flex items-center gap-2 text-[12px] font-black text-blue-600 uppercase italic hover:underline ml-2">
-            <ChevronLeft size={24}/> Return
-          </button>
-          
+          <button onClick={() => setSel(null)} className="flex items-center gap-2 text-[12px] font-black text-blue-600 uppercase italic hover:underline ml-2"><ChevronLeft size={24}/> Return</button>
           <div className="bg-white rounded-[3rem] shadow-2xl overflow-hidden border-4 border-slate-100 flex flex-col max-h-[80vh]">
-             
-             <div className="bg-blue-700 p-8 text-white text-center relative overflow-hidden flex-shrink-0">
-                <Trophy className="absolute -top-10 -right-10 opacity-10 rotate-12" size={150}/>
-                <h2 className="text-2xl font-black uppercase italic tracking-tighter mb-2 leading-none break-words px-4">Performance Transcript</h2>
-                <div className="inline-block bg-white/20 px-6 py-1.5 rounded-full border border-white/30 max-w-[90%] overflow-hidden">
-                  <p className="text-sm font-black uppercase italic break-words">{sel}</p>
-                </div>
-             </div>
-             
+             <div className="bg-blue-700 p-8 text-white text-center relative overflow-hidden flex-shrink-0"><Trophy className="absolute -top-10 -right-10 opacity-10 rotate-12" size={150}/><h2 className="text-2xl font-black uppercase italic tracking-tighter mb-2 leading-none break-words px-4 text-white">Performance Transcript</h2><div className="inline-block bg-white/20 px-6 py-1.5 rounded-full border border-white/30 max-w-[90%] overflow-hidden"><p className="text-sm font-black uppercase italic break-words text-white">{sel}</p></div></div>
              <div className="overflow-auto p-4 md:p-6 space-y-4 bg-slate-50/50">
                {results.filter(r => r.name === sel).sort((a,b)=> (b.timestamp || 0) - (a.timestamp || 0)).map(r => (
                  <div key={r.id} className="min-w-[450px] md:min-w-0 bg-white rounded-[2rem] border-2 border-white shadow-sm flex items-center p-5 gap-6 hover:shadow-md transition-all group">
-                   
-                   <div className="flex-1 min-w-0 border-l-8 border-blue-600 pl-5">
-                     <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Exam Unit</p>
-                     <p className="text-sm md:text-lg font-black uppercase italic text-slate-800 leading-tight whitespace-normal break-words">
-                       {r.exam}
-                     </p>
-                   </div>
-
-                   <div className="text-center px-4 border-l border-slate-100 min-w-[100px]">
-                     <p className="text-[9px] font-bold text-slate-400 uppercase mb-0.5">Score</p>
-                     <p className="text-2xl md:text-3xl font-black italic text-blue-700 leading-none">{r.obtained}/{r.total}</p>
-                   </div>
-
-                   <div className="flex-shrink-0">
-                     <button onClick={() => setSelectedReview(r)} className="bg-slate-50 text-blue-700 p-3 rounded-2xl border-2 border-white shadow-sm hover:bg-blue-700 hover:text-white transition-all">
-                       <Eye size={20}/>
-                     </button>
-                   </div>
+                   <div className="flex-1 min-w-0 border-l-8 border-blue-600 pl-5"><p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Exam Unit</p><p className="text-sm md:text-lg font-black uppercase italic text-slate-800 leading-tight whitespace-normal break-words">{r.exam}</p></div>
+                   <div className="text-center px-4 border-l border-slate-100 min-w-[100px]"><p className="text-[9px] font-bold text-slate-400 uppercase mb-0.5">Score</p><p className="text-2xl md:text-3xl font-black italic text-blue-700 leading-none">{r.obtained}/{r.total}</p></div>
+                   <div className="flex-shrink-0"><button onClick={() => setSelectedReview(r)} className="bg-slate-50 text-blue-700 p-3 rounded-2xl border-2 border-white shadow-sm hover:bg-blue-700 hover:text-white transition-all"><Eye size={20}/></button></div>
                  </div>
                ))}
              </div>
