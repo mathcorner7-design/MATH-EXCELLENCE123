@@ -4,7 +4,7 @@ import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, setD
 import { 
   Trophy, BookOpen, TrendingUp, User, Clock, ChevronRight, GraduationCap, PlusCircle, 
   FileText, Lock, Award, Timer, Settings2, CheckCircle, PenTool, ShieldAlert, 
-  Loader2, ChevronLeft, Trash2, UserPlus, History, UserCheck, X, CheckSquare, AlertCircle, ListChecks, Eye, Camera, Send, Link, Zap
+  Loader2, ChevronLeft, Trash2, UserPlus, History, UserCheck, X, CheckSquare, AlertCircle, ListChecks, Eye, Camera, Send, Link, Zap, Download
 } from 'lucide-react';
 
 // --- 🟢 Firebase Configuration ---
@@ -110,8 +110,17 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 select-none flex flex-col items-center overflow-x-hidden">
+      {/* 🟣 Print Styles Only (Doesn't affect UI) */}
+      <style>{`
+        @media print {
+          header, nav, .print-hide, button, .trash-btn { display: none !important; }
+          .print-area { display: block !important; position: absolute; top: 0; left: 0; width: 100%; border: none !important; box-shadow: none !important; }
+          .print-card { border: 2px solid #e2e8f0 !important; margin-bottom: 10px !important; break-inside: avoid; }
+        }
+      `}</style>
+
       {showNameModal && (
-        <div className="fixed inset-0 bg-black/80 z-[1000] flex items-center justify-center p-6 backdrop-blur-sm">
+        <div className="fixed inset-0 bg-black/80 z-[1000] flex items-center justify-center p-6 backdrop-blur-sm print-hide">
           <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl border-4 border-slate-50">
             <UserCheck size={40} className="text-blue-600 mx-auto mb-4" />
             <h3 className="font-bold text-lg mb-6 uppercase tracking-tight italic">Student Login</h3>
@@ -128,12 +137,12 @@ const App = () => {
         </div>
       )}
 
-      <header className="bg-white border-b sticky top-0 z-50 shadow-sm px-6 py-2 flex justify-between items-center w-full max-w-6xl">
+      <header className="bg-white border-b sticky top-0 z-50 shadow-sm px-6 py-2 flex justify-between items-center w-full max-w-6xl print-hide">
         <h1 className="text-lg font-black text-blue-700 uppercase italic tracking-tighter cursor-pointer" onClick={() => setActiveTab('home')}>MATH EXCELLENCE</h1>
         <p className="text-[9px] font-bold text-slate-400 italic">ANSHU SIR</p>
       </header>
 
-      <nav className="bg-blue-700 text-white w-full sticky top-[45px] z-40 flex justify-center shadow-lg">
+      <nav className="bg-blue-700 text-white w-full sticky top-[45px] z-40 flex justify-center shadow-lg print-hide">
         <div className="max-w-6xl w-full flex overflow-x-auto no-scrollbar">
           {[{ id: 'home', label: 'Home', icon: <History size={14}/> }, { id: 'live', label: 'Live Mock', icon: <Clock size={14}/> }, { id: 'practice', label: 'Practice', icon: <BookOpen size={14}/> }, { id: 'growth', label: 'Growth', icon: <TrendingUp size={14}/> }, { id: 'teacher', label: 'Admin', icon: <User size={14}/> }].map((item) => (
             <button key={item.id} onClick={() => setActiveTab(item.id)} className={`flex-1 flex items-center justify-center gap-1.5 px-4 py-3.5 font-bold text-[9px] uppercase border-b-4 transition-all ${activeTab === item.id ? 'border-yellow-400 bg-blue-800' : 'border-transparent'}`}>{item.icon} {item.label}</button>
@@ -143,7 +152,7 @@ const App = () => {
 
       <main className="w-full max-w-5xl p-4 mb-20 flex flex-col items-center">
         {activeTab === 'home' && (
-          <div className="space-y-6 animate-in fade-in w-full text-center">
+          <div className="space-y-6 animate-in fade-in w-full text-center print-hide">
             <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border-4 border-slate-50">
                <GraduationCap size={48} className="text-blue-700 mx-auto mb-3 animate-bounce-slow" />
                <h2 className="text-xl md:text-3xl font-black uppercase italic tracking-tight leading-tight">Elevate Your Mathematics <br/> <span className="text-blue-700 underline decoration-yellow-400 decoration-2 underline-offset-8">with Anshu Sir</span></h2>
@@ -154,7 +163,6 @@ const App = () => {
               <div className="space-y-3">
                 {activityLogs.slice(0, 10).map(log => (
                   <div key={log.id} className="p-2.5 bg-slate-50 rounded-xl flex justify-between items-center border-l-4 border-blue-600 shadow-sm transition-all hover:bg-white">
-                    {/* 🔴 Activity Stream Score removed, Date/Time added */}
                     <div><p className="text-[10px] font-black uppercase text-slate-800">{log.studentName}</p><p className="text-[8px] font-bold text-slate-400 uppercase italic">{log.examTitle} • {new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} • {new Date(log.timestamp).toLocaleDateString('en-GB')}</p></div>
                     <div className="text-right text-[7px] font-bold text-slate-300 uppercase leading-tight">RECENT <br/> ACTIVITY</div>
                   </div>
@@ -165,7 +173,7 @@ const App = () => {
         )}
 
         {activeTab === 'live' && (
-          <div className="space-y-4 w-full text-left">
+          <div className="space-y-4 w-full text-left print-hide">
             <h2 className="font-bold uppercase text-slate-700 border-b-2 pb-2 text-[10px] flex items-center gap-2"><Clock size={14} className="text-red-600"/> Ongoing Live Mocks</h2>
             {liveMocks.filter(m => m.isPublished).map(m => (
               <div key={m.id} className="bg-white p-4 rounded-2xl shadow flex justify-between items-center border border-slate-100">
@@ -177,7 +185,7 @@ const App = () => {
         )}
 
         {activeTab === 'teacher' && (!isTeacherAuthenticated ? 
-          <div className="max-w-md w-full mx-auto mt-20 p-10 bg-white rounded-3xl shadow-xl text-center border-t-8 border-blue-700">
+          <div className="max-w-md w-full mx-auto mt-20 p-10 bg-white rounded-3xl shadow-xl text-center border-t-8 border-blue-700 print-hide">
             <Lock size={40} className="text-blue-700 mx-auto mb-6" />
             <input type="password" onChange={(e) => { if(e.target.value === teacherPin) setIsTeacherAuthenticated(true); }} className="w-full py-4 bg-slate-50 border-2 rounded-xl text-center text-4xl font-black outline-none" placeholder="••••" />
           </div> : <TeacherZoneMainView liveMocks={liveMocks} practiceSets={practiceSets} students={students} teacherPin={teacherPin} studentResults={studentResults} setTeacherPin={async (v) => await setDoc(doc(db, "settings", "adminConfig"), { pin: v }, { merge: true })} />
@@ -186,7 +194,7 @@ const App = () => {
         {activeTab === 'growth' && <GrowthSectionView results={studentResults} students={students} />}
         
         {activeTab === 'practice' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full text-left">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full text-left print-hide">
             {practiceSets.filter(p => p.isPublished).map(p => (
               <div key={p.id} className="bg-white p-4 rounded-2xl shadow flex justify-between items-center border border-slate-100 hover:border-blue-300">
                 <div className="flex-1 pr-4"><h3 className="font-bold uppercase text-xs italic break-words">{p.name}</h3><p className="text-[9px] font-bold text-slate-400 uppercase italic mt-1">Time: {p.hours || 0}h {p.minutes || 0}m</p></div>
@@ -238,7 +246,7 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
   };
 
   const PaperManager = ({ title, items, type, color }) => (
-    <div className="bg-white rounded-[2rem] shadow-sm border-t-8 border-slate-100 mb-8 w-full overflow-hidden">
+    <div className="bg-white rounded-[2rem] shadow-sm border-t-8 border-slate-100 mb-8 w-full overflow-hidden print-hide">
       <div className="flex justify-between items-center p-6 border-b">
         <h3 className={`font-black uppercase text-xs italic ${color}`}>{title} Manager ({items.length})</h3>
       </div>
@@ -297,7 +305,7 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
 
   return (
     <div className="w-full flex flex-col items-center">
-      <div className="bg-white p-6 rounded-[2.5rem] shadow-xl border-t-8 border-blue-700 w-full mb-8 text-left animate-in fade-in">
+      <div className="bg-white p-6 rounded-[2.5rem] shadow-xl border-t-8 border-blue-700 w-full mb-8 text-left animate-in fade-in print-hide">
         <div className="flex justify-between items-center mb-6">
            <h3 className="font-black text-[10px] uppercase flex items-center gap-2 italic text-blue-700"><Zap size={20}/> KUI GET (Quick Add)</h3>
            <div className="flex gap-1 p-1 bg-slate-100 rounded-xl">
@@ -319,21 +327,22 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
         </div>
       </div>
 
-      <div className="bg-white p-4 rounded-2xl flex justify-between items-center w-full mb-8 border-2 shadow-sm">
+      <div className="bg-white p-4 rounded-2xl flex justify-between items-center w-full mb-8 border-2 shadow-sm print-hide">
         <div className="flex gap-2">
           <button onClick={() => setIsChangingPin(!isChangingPin)} className="px-5 py-2 rounded-full bg-blue-100 text-blue-700 text-[10px] font-black uppercase">PIN</button>
           <button onClick={async () => { if(window.confirm("Clear Logs?")) { const q = query(collection(db, "logs")); const snapshot = await getDocs(q); const batch = writeBatch(db); snapshot.docs.forEach((d) => batch.delete(d.ref)); await batch.commit(); } }} className="px-5 py-2 rounded-full bg-red-100 text-red-700 text-[10px] font-black uppercase">Clear Activity</button>
         </div>
       </div>
       {isChangingPin && (
-        <div className="max-w-sm w-full p-6 bg-blue-50 rounded-3xl border-2 border-blue-100 mb-8 animate-in slide-in-from-top-4">
+        <div className="max-w-sm w-full p-6 bg-blue-50 rounded-3xl border-2 border-blue-100 mb-8 animate-in slide-in-from-top-4 print-hide">
            <input type="text" onChange={(e) => setPinVal(e.target.value)} className="w-full p-3 rounded-xl bg-white border-2 text-xl font-black text-center" placeholder="NEW PIN" />
            <button onClick={async () => { if(pinVal.length >= 4) { await setTeacherPin(pinVal); setIsChangingPin(false); alert("Updated!"); }}} className="w-full py-3 bg-blue-700 text-white rounded-lg mt-4 font-bold text-xs uppercase">Save</button>
         </div>
       )}
       <PaperManager title="Live Mock Exam" items={liveMocks} type="live" color="text-red-600" />
       <PaperManager title="Practice Sets" items={practiceSets} type="practice" color="text-blue-700" />
-      <div className="bg-white p-8 rounded-[2.5rem] shadow-lg border-t-8 border-slate-900 w-full mb-20 text-center">
+      
+      <div className="bg-white p-8 rounded-[2.5rem] shadow-lg border-t-8 border-slate-900 w-full mb-20 text-center print-hide">
         <h3 className="font-black text-xs uppercase mb-8 flex items-center justify-center gap-3 italic text-slate-800"><Trophy size={28} className="text-yellow-600"/> Student Registry</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {students.map((std) => (
@@ -362,16 +371,16 @@ const AdminMarksheetModal = ({ student, results, onClose }) => {
   return (
     <div className="fixed inset-0 bg-white z-[1200] p-6 overflow-y-auto animate-in slide-in-from-right-full duration-500">
        {previewImg && <ImagePreviewModal src={previewImg} onClose={() => setPreviewImg(null)} />}
-       <button onClick={onClose} className="font-black text-blue-600 mb-10 flex items-center gap-3 border-b-4 border-blue-600 w-fit uppercase text-[11px] italic tracking-tighter hover:text-blue-800 transition-all"><ChevronLeft size={24}/> Return to Registry</button>
+       <button onClick={onClose} className="font-black text-blue-600 mb-10 flex items-center gap-3 border-b-4 border-blue-600 w-fit uppercase text-[11px] italic tracking-tighter hover:text-blue-800 transition-all print-hide"><ChevronLeft size={24}/> Return to Registry</button>
        <div className="bg-white p-10 rounded-[3rem] border-4 border-slate-50 shadow-3xl max-w-xl mx-auto space-y-10">
           <div className="flex items-center gap-5 border-b-4 border-slate-50 pb-6"><div className="w-16 h-16 bg-blue-700 rounded-[1.5rem] flex items-center justify-center text-white shadow-xl italic font-black text-2xl">{student?.name?.charAt(0)}</div><div><h3 className="text-3xl font-black uppercase italic tracking-tighter leading-none">{student?.name}</h3><p className="text-[11px] font-bold text-slate-300 uppercase tracking-widest mt-1 italic">Performance Logs</p></div></div>
-          <div className="p-8 bg-blue-50 rounded-[2.5rem] space-y-5 shadow-inner border-2 border-blue-100"><div className="grid grid-cols-1 gap-5 text-left"><input type="text" value={newRes.exam} onChange={(e) => setNewRes({...newRes, exam: e.target.value.toUpperCase()})} className="w-full p-4 rounded-xl border-2 font-black text-xs outline-none shadow-sm focus:border-blue-500" placeholder="Module Name" /><input type="date" value={newRes.date} onChange={(e) => setNewRes({...newRes, date: e.target.value})} className="w-full p-4 rounded-xl border-2 font-black text-xs outline-none shadow-sm" /><div className="flex gap-3"><input type="number" placeholder="Obt" value={newRes.obtained} onChange={(e) => setNewRes({...newRes, obtained: e.target.value})} className="w-1/2 p-4 rounded-xl border-2 font-black text-lg text-center outline-none shadow-sm focus:border-blue-500" /><input type="number" placeholder="Full" value={newRes.total} onChange={(e) => setNewRes({...newRes, total: e.target.value})} className="w-1/2 p-4 rounded-xl border-2 font-black text-lg text-center outline-none shadow-sm focus:border-blue-500" /></div></div><button onClick={async () => { if(newRes.exam && newRes.obtained && newRes.total && newRes.date) { const p = Math.round((parseFloat(newRes.obtained)/parseFloat(newRes.total))*100); await addDoc(collection(db, "results"), { ...newRes, name: student.name, percent: p, timestamp: Date.now() }); setNewRes({exam: "", obtained: "", total: "", date: ""}); alert("Saved!"); } }} className="w-full py-5 bg-blue-700 text-white rounded-[1.5rem] font-black uppercase text-xs shadow-xl active:scale-95 transition-all">Manual Entry</button></div>
+          <div className="p-8 bg-blue-50 rounded-[2.5rem] space-y-5 shadow-inner border-2 border-blue-100 print-hide"><div className="grid grid-cols-1 gap-5 text-left"><input type="text" value={newRes.exam} onChange={(e) => setNewRes({...newRes, exam: e.target.value.toUpperCase()})} className="w-full p-4 rounded-xl border-2 font-black text-xs outline-none shadow-sm focus:border-blue-500" placeholder="Module Name" /><input type="date" value={newRes.date} onChange={(e) => setNewRes({...newRes, date: e.target.value})} className="w-full p-4 rounded-xl border-2 font-black text-xs outline-none shadow-sm" /><div className="flex gap-3"><input type="number" placeholder="Obt" value={newRes.obtained} onChange={(e) => setNewRes({...newRes, obtained: e.target.value})} className="w-1/2 p-4 rounded-xl border-2 font-black text-lg text-center outline-none shadow-sm focus:border-blue-500" /><input type="number" placeholder="Full" value={newRes.total} onChange={(e) => setNewRes({...newRes, total: e.target.value})} className="w-1/2 p-4 rounded-xl border-2 font-black text-lg text-center outline-none shadow-sm focus:border-blue-500" /></div></div><button onClick={async () => { if(newRes.exam && newRes.obtained && newRes.total && newRes.date) { const p = Math.round((parseFloat(newRes.obtained)/parseFloat(newRes.total))*100); await addDoc(collection(db, "results"), { ...newRes, name: student.name, percent: p, timestamp: Date.now() }); setNewRes({exam: "", obtained: "", total: "", date: ""}); alert("Saved!"); } }} className="w-full py-5 bg-blue-700 text-white rounded-[1.5rem] font-black uppercase text-xs shadow-xl active:scale-95 transition-all">Manual Entry</button></div>
           <div className="space-y-8 pt-8 border-t-4 border-slate-50">
             {results.filter(r => r.name === student?.name).sort((a,b)=>b.timestamp-a.timestamp).map(r => (
               <div key={r.id} className="p-6 bg-white border-2 border-slate-100 rounded-[2.5rem] flex flex-col gap-6 shadow-sm hover:shadow-md transition-all group">
-                <div className="flex justify-between items-start w-full"><div className="flex items-center gap-4"><div className="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg bg-blue-50 text-blue-700 border-2 border-white shadow-sm">{r.percent}%</div><div className="flex-1 min-w-0 pr-2"><p className="text-sm font-black uppercase italic tracking-tighter leading-none break-words whitespace-normal">{r.exam}</p><p className="text-[10px] font-bold text-slate-400 mt-1 italic">{r.date} • Score: {r.obtained}/{r.total}</p></div></div><button onClick={async () => { if(window.confirm("Purge record?")) await deleteDoc(doc(db, "results", r.id)); }} className="text-red-200 hover:text-red-500 active:scale-90 transition-all flex-shrink-0"><Trash2 size={24} /></button></div>
+                <div className="flex justify-between items-start w-full"><div className="flex items-center gap-4"><div className="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg bg-blue-50 text-blue-700 border-2 border-white shadow-sm">{r.percent}%</div><div className="flex-1 min-w-0 pr-2"><p className="text-sm font-black uppercase italic tracking-tighter leading-none break-words whitespace-normal">{r.exam}</p><p className="text-[10px] font-bold text-slate-400 mt-1 italic">{r.date} • Score: {r.obtained}/{r.total}</p></div></div><button onClick={async () => { if(window.confirm("Purge record?")) await deleteDoc(doc(db, "results", r.id)); }} className="text-red-200 hover:text-red-500 active:scale-90 transition-all flex-shrink-0 print-hide"><Trash2 size={24} /></button></div>
                 {r.details && r.details.some(d => d.pending) && (
-                  <div className="bg-orange-50 border-2 border-orange-100 rounded-[2rem] p-4 flex flex-col gap-3 shadow-inner"><p className="text-[10px] font-black text-orange-600 uppercase italic text-center animate-pulse tracking-widest">Action Required: Written Solutions</p><div className="flex overflow-x-auto gap-4 pb-4 no-scrollbar snap-x snap-mandatory">
+                  <div className="bg-orange-50 border-2 border-orange-100 rounded-[2rem] p-4 flex flex-col gap-3 shadow-inner print-hide"><p className="text-[10px] font-black text-orange-600 uppercase italic text-center animate-pulse tracking-widest">Action Required: Written Solutions</p><div className="flex overflow-x-auto gap-4 pb-4 no-scrollbar snap-x snap-mandatory">
                       {r.details.filter(d => d.pending).map((pendingQ, pIdx) => {
                          const photoList = Array.isArray(pendingQ.selected) ? pendingQ.selected : [pendingQ.selected];
                          return photoList.map((photoUrl, imgIdx) => (
@@ -455,7 +464,6 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
       const matchedStudent = studentsList.find(s => s.studentCode?.toString().trim() === exam.studentCode?.toString().trim());
       if (matchedStudent) finalStudentName = matchedStudent.name;
       
-      // 🔴 Activity Log: Score display logic removed to keep time/date visible
       await addDoc(collection(db, "logs"), { studentName: finalStudentName, examTitle: exam.name, timestamp: Date.now() });
       await addDoc(collection(db, "results"), { name: finalStudentName, exam: exam.name, percent, obtained: totalObtainedMarks, total: totalPossibleMarks, date: d.toLocaleDateString('en-GB'), timestamp: Date.now(), details: detailResults });
       setScoreData({ correct: totalObtainedMarks, total: totalPossibleMarks, percent, details: detailResults });
@@ -487,21 +495,61 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
   );
 };
 
-// --- 📈 Growth Section (Updated with Time & Date) ---
+// --- 📈 Growth Section (Updated with Print/PDF Feature) ---
 const GrowthSectionView = ({ results, students }) => {
   const [sel, setSel] = useState(null);
   const [selectedReview, setSelectedReview] = useState(null);
+
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
-    <div className="max-w-2xl mx-auto w-full animate-in fade-in duration-500 text-left px-2">{selectedReview && <ReviewResultModal result={selectedReview} onClose={() => setSelectedReview(null)} />}
+    <div className="max-w-2xl mx-auto w-full animate-in fade-in duration-500 text-left px-2">
+      {selectedReview && <ReviewResultModal result={selectedReview} onClose={() => setSelectedReview(null)} />}
+      
       {!sel ? (
-        <div className="grid gap-4">{students.map((std) => (<button key={std.id} onClick={() => setSel(std.name)} className="w-full bg-white p-5 rounded-[2rem] shadow-lg border-2 border-white flex justify-between items-center group active:scale-95 transition-all"><div className="flex items-center gap-4"><div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-700 shadow-inner group-hover:bg-blue-700 group-hover:text-white transition-all"><User size={18}/></div> <span className="font-black text-slate-800 uppercase text-[14px] italic tracking-tight break-words">{std.name}</span></div><ChevronRight size={24} className="text-slate-200 group-hover:text-blue-600" /></button>))}</div>
+        <div className="grid gap-4 print-hide">
+          {students.map((std) => (<button key={std.id} onClick={() => setSel(std.name)} className="w-full bg-white p-5 rounded-[2rem] shadow-lg border-2 border-white flex justify-between items-center group active:scale-95 transition-all"><div className="flex items-center gap-4"><div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-700 shadow-inner group-hover:bg-blue-700 group-hover:text-white transition-all"><User size={18}/></div> <span className="font-black text-slate-800 uppercase text-[14px] italic tracking-tight break-words">{std.name}</span></div><ChevronRight size={24} className="text-slate-200 group-hover:text-blue-600" /></button>))}
+        </div>
       ) : (
-        <div className="space-y-6 animate-in slide-in-from-right-20 duration-700"><button onClick={() => setSel(null)} className="flex items-center gap-2 text-[12px] font-black text-blue-600 uppercase italic hover:underline ml-2"><ChevronLeft size={24}/> Return</button><div className="bg-white rounded-[3rem] shadow-2xl overflow-hidden border-4 border-slate-100 flex flex-col max-h-[80vh]"><div className="bg-blue-700 p-8 text-white text-center relative overflow-hidden flex-shrink-0"><Trophy className="absolute -top-10 -right-10 opacity-10 rotate-12" size={150}/><h2 className="text-2xl font-black uppercase italic tracking-tighter mb-2 leading-none break-words px-4 text-white">Performance Transcript</h2><div className="inline-block bg-white/20 px-6 py-1.5 rounded-full border border-white/30 max-w-[90%] overflow-hidden"><p className="text-sm font-black uppercase italic break-words text-white">{sel}</p></div></div><div className="overflow-auto p-4 md:p-6 space-y-4 bg-slate-50/50">
+        <div className="space-y-6 animate-in slide-in-from-right-20 duration-700 print-area">
+          <div className="flex justify-between items-center print-hide">
+             <button onClick={() => setSel(null)} className="flex items-center gap-2 text-[12px] font-black text-blue-600 uppercase italic hover:underline ml-2"><ChevronLeft size={24}/> Return</button>
+             <button onClick={handlePrint} className="bg-slate-900 text-white px-5 py-2 rounded-full font-black text-[10px] uppercase flex items-center gap-2 shadow-xl"><Download size={16}/> Download PDF</button>
+          </div>
+          
+          <div className="bg-white rounded-[3rem] shadow-2xl overflow-hidden border-4 border-slate-100 flex flex-col max-h-[80vh] print-area">
+             <div className="bg-blue-700 p-8 text-white text-center relative overflow-hidden flex-shrink-0">
+                <Trophy className="absolute -top-10 -right-10 opacity-10 rotate-12 print-hide" size={150}/>
+                <h2 className="text-2xl font-black uppercase italic tracking-tighter mb-2 leading-none break-words px-4 text-white">Performance Transcript</h2>
+                <div className="inline-block bg-white/20 px-6 py-1.5 rounded-full border border-white/30 max-w-[90%] overflow-hidden">
+                   <p className="text-sm font-black uppercase italic break-words text-white">{sel}</p>
+                </div>
+             </div>
+             
+             <div className="overflow-auto p-4 md:p-6 space-y-4 bg-slate-50/50 print-area">
                {results.filter(r => r.name === sel).sort((a,b)=> (b.timestamp || 0) - (a.timestamp || 0)).map(r => (
-                 <div key={r.id} className="min-w-[450px] md:min-w-0 bg-white rounded-[2rem] border-2 border-white shadow-sm flex items-center p-5 gap-6 hover:shadow-md transition-all group"><div className="flex-1 min-w-0 border-l-8 border-blue-600 pl-5"><p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Exam Unit</p><p className="text-sm md:text-lg font-black uppercase italic text-slate-800 leading-tight whitespace-normal break-words">{r.exam}</p>
-                   {/* 🔴 Added Time & Date below Exam Title */}
-                   <p className="text-[9px] font-black text-blue-500 uppercase italic mt-1">{new Date(r.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} • {new Date(r.timestamp).toLocaleDateString('en-GB')}</p>
-                 </div><div className="text-center px-4 border-l border-slate-100 min-w-[100px]"><p className="text-[9px] font-bold text-slate-400 uppercase mb-0.5">Score</p><p className="text-2xl md:text-3xl font-black italic text-blue-700 leading-none">{r.obtained}/{r.total}</p></div><div className="flex-shrink-0"><button onClick={() => setSelectedReview(r)} className="bg-slate-50 text-blue-700 p-3 rounded-2xl border-2 border-white shadow-sm hover:bg-blue-700 hover:text-white transition-all"><Eye size={20}/></button></div></div>))}</div></div></div>)}</div>
+                 <div key={r.id} className="min-w-[450px] md:min-w-0 bg-white rounded-[2rem] border-2 border-white shadow-sm flex items-center p-5 gap-6 hover:shadow-md transition-all group print-card">
+                   <div className="flex-1 min-w-0 border-l-8 border-blue-600 pl-5">
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Exam Unit</p>
+                      <p className="text-sm md:text-lg font-black uppercase italic text-slate-800 leading-tight whitespace-normal break-words">{r.exam}</p>
+                      <p className="text-[9px] font-black text-blue-500 uppercase italic mt-1">{new Date(r.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} • {new Date(r.timestamp).toLocaleDateString('en-GB')}</p>
+                   </div>
+                   <div className="text-center px-4 border-l border-slate-100 min-w-[100px]">
+                      <p className="text-[9px] font-bold text-slate-400 uppercase mb-0.5">Score</p>
+                      <p className="text-2xl md:text-3xl font-black italic text-blue-700 leading-none">{r.obtained}/{r.total}</p>
+                   </div>
+                   <div className="flex-shrink-0 print-hide">
+                      <button onClick={() => setSelectedReview(r)} className="bg-slate-50 text-blue-700 p-3 rounded-2xl border-2 border-white shadow-sm hover:bg-blue-700 hover:text-white transition-all"><Eye size={20}/></button>
+                   </div>
+                 </div>
+               ))}
+             </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
