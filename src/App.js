@@ -143,7 +143,7 @@ const App = () => {
 
       {showNameModal && (
         <div className="fixed inset-0 bg-black/90 z-[1000] flex items-center justify-center p-6 backdrop-blur-md print:hidden">
-          <div className="bg-slate-900 rounded-3xl p-8 max-sm w-full text-center shadow-2xl border-2 border-slate-800">
+          <div className="bg-slate-900 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl border-2 border-slate-800">
             <UserCheck size={40} className="text-blue-500 mx-auto mb-4" />
             <h3 className="font-bold text-lg mb-6 uppercase tracking-tight italic text-white">Student Login</h3>
             <div className="space-y-4">
@@ -178,6 +178,17 @@ const App = () => {
                <GraduationCap size={48} className="text-blue-400 mx-auto mb-3 animate-bounce-slow" />
                <h2 className="text-xl md:text-3xl font-black uppercase italic tracking-tight leading-tight text-white">Elevate Your Mathematics <br/> <span className="text-blue-400 underline decoration-yellow-400 decoration-2 underline-offset-8">with Anshu Sir</span></h2>
                <button onClick={() => setActiveTab('live')} className="mt-8 bg-blue-700 text-white px-8 py-2.5 rounded-full font-bold text-[9px] uppercase shadow-xl hover:bg-blue-800 transition-all">Start Session</button>
+            </div>
+            <div className="bg-black/60 backdrop-blur-xl p-5 rounded-3xl shadow-md border border-white/10 text-left w-full">
+              <h3 className="font-bold text-xs uppercase mb-3 border-b border-white/10 pb-2 flex items-center gap-2 italic text-blue-300"><History size={16} className="text-blue-400"/> Activity Stream</h3>
+              <div className="space-y-3">
+                {activityLogs.slice(0, 10).map(log => (
+                  <div key={log.id} className="p-2.5 bg-white/5 rounded-xl flex justify-between items-center border-l-4 border-blue-600 shadow-sm transition-all hover:bg-white/10">
+                    <div><p className="text-[10px] font-black uppercase text-white">{log.studentName}</p><p className="text-[8px] font-bold text-slate-400 uppercase italic">{log.examTitle} • {new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} • {new Date(log.timestamp).toLocaleDateString('en-GB')}</p></div>
+                    <div className="text-right text-[7px] font-bold text-slate-500 uppercase leading-tight">RECENT <br/> ACTIVITY</div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -222,6 +233,7 @@ const App = () => {
 const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, setTeacherPin, studentResults }) => {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isChangingPin, setIsChangingPin] = useState(false);
+  const [pinVal, setPinVal] = useState('');
   const [expandedId, setExpandedId] = useState(null);
 
   const [quickAddType, setQuickAddType] = useState('live');
@@ -231,7 +243,7 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
   const [qaLink, setQaLink] = useState('');
   const [qaKey, setQaKey] = useState('');
   const [qaMarks, setQaMarks] = useState('');
-  const [qaNeg, setQaNeg] = useState('0'); // New Negative Marking state
+  const [qaNeg, setQaNeg] = useState('0'); // Added back Neg Mark State
 
   const updateField = async (id, type, field, value) => { 
     const coll = type === 'live' ? 'liveMocks' : 'practiceSets';
@@ -248,12 +260,12 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
       fileUrl: qaLink.trim(), 
       answerKey: qaKey.toUpperCase(),
       questionMarks: qaMarks,
-      negativeMark: qaNeg || "0", // New
+      negativeMark: qaNeg || "0", // Added back Neg Mark
       isPublished: false,
       timestamp: Date.now()
     });
     setQaName(''); setQaLink(''); setQaKey(''); setQaMarks(''); setQaNeg('0');
-    alert(`Success: Added to ${quickAddType}`);
+    alert(`Success: Added to ${quickAddType === 'live' ? 'Live Mocks' : 'Practice Sets'}`);
   };
 
   const PaperManager = ({ title, items, type, color }) => (
@@ -271,7 +283,9 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
                     <div className={`w-2 h-2 rounded-full flex-shrink-0 ${item.isPublished ? 'bg-green-500 animate-pulse' : 'bg-slate-700'}`}></div>
                     <span className="text-xs font-black uppercase italic text-white break-words">{item.name}</span>
                   </div>
-                  <p className="text-[8px] font-bold text-slate-500 uppercase italic ml-5 mt-1">Neg: {item.negativeMark || "0"}</p>
+                  <p className="text-[8px] font-bold text-slate-500 uppercase italic ml-5 mt-1">
+                    Created: {item.timestamp ? `${new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} • ${new Date(item.timestamp).toLocaleDateString('en-GB')}` : 'N/A'}
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -280,6 +294,33 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
                  <ChevronRight size={18} className={`transition-transform text-slate-600 ${expandedId === item.id ? 'rotate-90 text-blue-400' : ''}`} />
               </div>
             </div>
+            {expandedId === item.id && (
+              <div className="p-5 border-t border-white/5 bg-black/40 space-y-4 animate-in slide-in-from-top-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-[8px] font-black text-slate-500 uppercase mb-1 ml-1">Exam Name</p>
+                    <input type="text" defaultValue={item.name} onBlur={(e) => updateField(item.id, type, 'name', e.target.value.toUpperCase())} className="w-full p-2.5 rounded-xl border border-white/10 bg-black text-white text-xs font-black outline-none focus:border-blue-500" />
+                  </div>
+                  <div>
+                    <p className="text-[8px] font-black text-red-400 uppercase mb-1 ml-1">Negative Marking</p>
+                    <input type="number" step="0.01" defaultValue={item.negativeMark || 0} onBlur={(e) => updateField(item.id, type, 'negativeMark', e.target.value)} className="w-full p-2.5 rounded-xl border border-white/10 bg-black text-white text-xs font-black outline-none focus:border-red-500" />
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  <div className="bg-black p-2.5 rounded-xl border border-white/10 shadow-sm">
+                    <p className="text-[8px] font-black text-blue-400 uppercase mb-1 ml-1">Time Limit</p>
+                    <div className="flex items-center gap-1">
+                      <input type="number" defaultValue={item.hours} onBlur={(e) => updateField(item.id, type, 'hours', e.target.value)} className="w-10 text-center font-black bg-slate-900 rounded-lg outline-none text-white" /> <span className="font-bold text-[9px]">H</span> 
+                      <input type="number" defaultValue={item.minutes} onBlur={(e) => updateField(item.id, type, 'minutes', e.target.value)} className="w-10 text-center font-black bg-slate-900 rounded-lg outline-none text-white" /> <span className="font-bold text-[9px]">M</span>
+                    </div>
+                  </div>
+                  <div className="flex-1 bg-black p-2.5 rounded-xl border border-white/10 shadow-sm">
+                    <p className="text-[8px] font-black text-slate-500 uppercase mb-1 ml-1">Google Drive Link</p>
+                    <input type="text" defaultValue={item.fileUrl} onBlur={(e) => updateField(item.id, type, 'fileUrl', e.target.value)} className="w-full p-2 rounded-lg border border-white/5 bg-black text-white text-[10px] outline-none font-bold" />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -289,24 +330,39 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
   return (
     <div className="w-full flex flex-col items-center">
       <div className="bg-slate-950/80 backdrop-blur-xl p-6 rounded-[2.5rem] shadow-2xl border-t-8 border-blue-700 w-full mb-8 text-left animate-in fade-in print:hidden border-x border-b border-white/5">
-        <h3 className="font-black text-[10px] uppercase flex items-center gap-2 italic text-blue-400 mb-6"><Zap size={20}/> KUI GET (Quick Add)</h3>
+        <div className="flex justify-between items-center mb-6">
+           <h3 className="font-black text-[10px] uppercase flex items-center gap-2 italic text-blue-400"><Zap size={20}/> KUI GET (Quick Add)</h3>
+           <div className="flex gap-1 p-1 bg-black rounded-xl border border-white/5">
+              <button onClick={() => setQuickAddType('live')} className={`px-4 py-1.5 rounded-lg font-black text-[8px] uppercase transition-all ${quickAddType === 'live' ? 'bg-red-600 text-white shadow-md' : 'text-slate-500'}`}>Live</button>
+              <button onClick={() => setQuickAddType('practice')} className={`px-4 py-1.5 rounded-lg font-black text-[8px] uppercase transition-all ${quickAddType === 'practice' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500'}`}>Practice</button>
+           </div>
+        </div>
         <div className="space-y-6">
-          <div className="flex gap-1 p-1 bg-black rounded-xl border border-white/5 w-fit">
-              <button onClick={() => setQuickAddType('live')} className={`px-4 py-1.5 rounded-lg font-black text-[8px] uppercase ${quickAddType === 'live' ? 'bg-red-600 text-white' : 'text-slate-500'}`}>Live</button>
-              <button onClick={() => setQuickAddType('practice')} className={`px-4 py-1.5 rounded-lg font-black text-[8px] uppercase ${quickAddType === 'practice' ? 'bg-blue-600 text-white' : 'text-slate-500'}`}>Practice</button>
+          <div><p className="text-[8px] font-black text-slate-500 uppercase mb-1 ml-1 italic leading-none">Exam Name</p><input type="text" value={qaName} onChange={(e) => setQaName(e.target.value)} className="w-full p-3.5 bg-black border border-white/10 rounded-2xl text-[10px] font-black outline-none shadow-inner focus:border-blue-500 text-white transition-all uppercase" placeholder="New Slot" /></div>
+          <div className="flex flex-col md:flex-row gap-4">
+             <div className="bg-black p-3 rounded-2xl border border-white/10 shadow-inner min-w-[120px]"><p className="text-[8px] font-black text-blue-400 uppercase mb-1 ml-1 italic">Time Limit</p><div className="flex items-center gap-1 font-black text-[10px] text-white"><input type="number" value={qaHours} onChange={(e) => setQaHours(e.target.value)} className="w-8 text-center bg-transparent outline-none" /> <span>H</span><input type="number" value={qaMinutes} onChange={(e) => setQaMinutes(e.target.value)} className="w-8 text-center bg-transparent outline-none" /> <span>M</span></div></div>
+             <div className="flex-1 bg-black p-3 rounded-2xl border border-white/10 shadow-inner"><p className="text-[8px] font-black text-red-400 uppercase mb-1 ml-1 italic tracking-widest">Negative Mark (Ex: 0.25)</p><input type="number" step="0.01" value={qaNeg} onChange={(e) => setQaNeg(e.target.value)} className="w-full bg-transparent outline-none text-[10px] font-bold text-white" placeholder="0 for no negative" /></div>
           </div>
-          <input type="text" value={qaName} onChange={(e) => setQaName(e.target.value)} className="w-full p-3.5 bg-black border border-white/10 rounded-2xl text-[10px] font-black text-white uppercase outline-none focus:border-blue-500" placeholder="Exam Name" />
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-             <div className="bg-black p-3 rounded-2xl border border-white/10"><p className="text-[8px] font-black text-blue-400 uppercase italic">Hours</p><input type="number" value={qaHours} onChange={(e) => setQaHours(e.target.value)} className="w-full bg-transparent text-white font-black" /></div>
-             <div className="bg-black p-3 rounded-2xl border border-white/10"><p className="text-[8px] font-black text-blue-400 uppercase italic">Minutes</p><input type="number" value={qaMinutes} onChange={(e) => setQaMinutes(e.target.value)} className="w-full bg-transparent text-white font-black" /></div>
-             <div className="bg-black p-3 rounded-2xl border border-white/10 col-span-2"><p className="text-[8px] font-black text-red-400 uppercase italic">Negative Mark (Ex: 0.25)</p><input type="number" step="0.01" value={qaNeg} onChange={(e) => setQaNeg(e.target.value)} className="w-full bg-transparent text-white font-black" /></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div className="bg-black p-3 rounded-2xl border border-white/10 shadow-inner"><p className="text-[9px] font-black text-blue-400 uppercase mb-1 italic">Correct Key</p><input type="text" value={qaKey} onChange={(e) => setQaKey(e.target.value)} className="w-full bg-transparent outline-none font-black text-[10px] uppercase text-white" placeholder="e.g. A,B,W,D" /></div>
+             <div className="bg-black p-3 rounded-2xl border border-white/10 shadow-inner"><p className="text-[9px] font-black text-yellow-500 uppercase mb-1 italic">Marks/Q</p><input type="text" value={qaMarks} onChange={(e) => setQaMarks(e.target.value)} className="w-full bg-transparent outline-none font-black text-[10px] text-white" placeholder="e.g. 1,1,5,1" /></div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-             <input type="text" value={qaLink} onChange={(e) => setQaLink(e.target.value)} className="bg-black p-3 rounded-2xl border border-white/10 text-[9px] text-white" placeholder="Google Drive Link" />
-             <input type="text" value={qaKey} onChange={(e) => setQaKey(e.target.value)} className="bg-black p-3 rounded-2xl border border-white/10 text-[9px] text-white" placeholder="Key (A,B,W...)" />
-             <input type="text" value={qaMarks} onChange={(e) => setQaMarks(e.target.value)} className="bg-black p-3 rounded-2xl border border-white/10 text-[9px] text-white" placeholder="Marks (1,1,5...)" />
-          </div>
-          <button onClick={handleQuickAdd} className="w-full bg-blue-700 text-white py-4 rounded-[1.5rem] font-black text-[11px] uppercase shadow-2xl flex items-center justify-center gap-3"><Send size={18}/> Deploy</button>
+          <button onClick={handleQuickAdd} className="w-full bg-blue-700 text-white py-4 rounded-[1.5rem] font-black text-[11px] uppercase shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-3 border-b-4 border-blue-900 hover:bg-blue-600 italic tracking-tighter"><Send size={18}/> Deploy to Registry</button>
+        </div>
+      </div>
+
+      <div className="bg-black/60 backdrop-blur-xl p-4 rounded-2xl flex justify-between items-center w-full mb-8 border border-white/10 shadow-sm print:hidden">
+        <div className="flex gap-2">
+          {isChangingPin ? (
+            <div className="flex gap-2 animate-in slide-in-from-left-2">
+               <input type="password" value={pinVal} onChange={(e) => setPinVal(e.target.value)} className="bg-black border border-white/10 rounded-full px-4 text-xs font-black outline-none text-white w-24" placeholder="NEW" />
+               <button onClick={async () => { if(pinVal.length >= 4) { await setTeacherPin(pinVal); setIsChangingPin(false); setPinVal(''); alert("PIN UPDATED"); } }} className="bg-green-600 text-white px-3 py-1.5 rounded-full text-[8px] font-black uppercase">Save</button>
+               <button onClick={() => setIsChangingPin(false)} className="text-slate-500 text-[8px] font-black uppercase">X</button>
+            </div>
+          ) : (
+            <button onClick={() => setIsChangingPin(true)} className="px-5 py-2 rounded-full bg-blue-900/40 text-blue-400 text-[10px] font-black uppercase border border-blue-800/50">PIN</button>
+          )}
+          <button onClick={async () => { if(window.confirm("Clear Logs?")) { const q = query(collection(db, "logs")); const snapshot = await getDocs(q); const batch = writeBatch(db); snapshot.docs.forEach((d) => batch.delete(d.ref)); await batch.commit(); } }} className="px-5 py-2 rounded-full bg-red-900/40 text-red-400 text-[10px] font-black uppercase border border-red-800/50">Clear Activity</button>
         </div>
       </div>
       
@@ -367,7 +423,7 @@ const AdminMarksheetModal = ({ student, results, onClose }) => {
   );
 };
     
-// --- 🟡 Interactive Exam Hall (Negative Marking Logic Updated) ---
+// --- 🟡 Interactive Exam Hall (Anti-Refresh & Deselect Fixed) ---
 const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
   const recoveryKey = `exam_recovery_${exam.studentCode}_${exam.id}`;
   const timerKey = `timer_end_${exam.studentCode}_${exam.id}`;
@@ -451,7 +507,7 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
 
   const answerKeyArray = exam?.answerKey ? exam.answerKey.split(',').map(k => k.trim().toUpperCase()) : [];
   const marksArray = exam?.questionMarks ? exam.questionMarks.split(',').map(m => parseFloat(m.trim()) || 1) : [];
-  const negVal = parseFloat(exam?.negativeMark) || 0; // Negative Mark Value
+  const negVal = parseFloat(exam?.negativeMark) || 0; // Added back Neg Mark Value
 
   useEffect(() => {
     let t;
@@ -475,7 +531,7 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
 
         if (key !== 'W') {
           if (isCorrect) totalObtainedMarks += qMark;
-          else if (isWrong) totalObtainedMarks -= negVal; // Applied Negative Marking
+          else if (isWrong) totalObtainedMarks -= negVal; // Applied Neg Marking logic
         }
 
         return { qNum, selected: studentAns, correct: key, status: isCorrect, mark: qMark, type: key === 'W' ? 'written' : 'mcq', pending: key === 'W' };
@@ -520,7 +576,6 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
   );
 };
 
-// --- 🟡 Growth Section View (Scroll & Mobile Fix) ---
 const GrowthSectionView = ({ results, students }) => {
   const [sel, setSel] = useState(null);
   const [selectedReview, setSelectedReview] = useState(null);
@@ -547,8 +602,8 @@ const GrowthSectionView = ({ results, students }) => {
                    <p className="text-sm font-black uppercase italic break-words text-white">{sel}</p>
                 </div>
              </div>
-             {/* --- MOBILE SCROLL FIX HERE --- */}
-             <div className="p-4 md:p-6 space-y-4 bg-white/5 overflow-x-hidden print:bg-white print:overflow-visible h-auto">
+             {/* --- MOBILE VIEW SCROLL FIX --- */}
+             <div className="p-4 md:p-6 space-y-4 bg-white/5 print:bg-white print:overflow-visible h-auto">
                {results.filter(r => r.name === sel).sort((a,b)=> (b.timestamp || 0) - (a.timestamp || 0)).map(r => (
                  <div key={r.id} className="w-full bg-slate-900/60 rounded-[2rem] border border-white/10 shadow-sm flex items-center p-4 md:p-5 gap-3 md:gap-6 hover:shadow-md transition-all group print-card">
                    <div className="flex-1 min-w-0 border-l-4 md:border-l-8 border-blue-600 pl-3 md:pl-5">
