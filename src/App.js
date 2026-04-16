@@ -78,7 +78,6 @@ const App = () => {
   const [pendingExam, setPendingExam] = useState(null);
 
   useEffect(() => {
-    // 🔴 Fixed Sorting: Load all data first, then sort manually to preserve old data (N/A)
     onSnapshot(collection(db, "liveMocks"), (s) => {
       const data = s.docs.map(d => ({id: d.id, ...d.data()}));
       setLiveMocks(data.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)));
@@ -128,7 +127,6 @@ const App = () => {
           .print-full-report { display: block !important; position: static !important; width: 100% !important; height: auto !important; overflow: visible !important; }
           .print-card { border: 2px solid #ddd !important; break-inside: avoid; page-break-inside: avoid; margin-bottom: 15px !important; }
         }
-        /* Anti-jump scroll anchoring */
         main { overflow-anchor: none; }
       `}</style>
 
@@ -210,7 +208,7 @@ const App = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full text-left print:hidden">
             {practiceSets.filter(p => p.isPublished).map(p => (
               <div key={p.id} className="bg-white p-4 rounded-2xl shadow flex justify-between items-center border border-slate-100 hover:border-blue-300">
-                <div className="flex-1 pr-4"><h3 className="font-bold uppercase text-xs italic break-words">{p.name}</h3><p className="text-[9px] font-bold text-slate-400 uppercase italic mt-1">Time: {p.hours || 0}h {p.minutes || 0}m</p></div>
+                <div className="flex-1 pr-4"><h3 className="font-bold uppercase text-xs italic break-words">{p.name}</h3><p className="text-[9px] font-bold text-slate-400 uppercase italic mt-1">Time: {p.hours || 0}h {m.minutes || 0}m</p></div>
                 <button onClick={() => handleStartExamFlow(p)} className="bg-blue-700 text-white px-6 py-2 rounded-full font-bold text-[9px] uppercase shadow-md h-fit">Start</button>
               </div>
             ))}
@@ -288,7 +286,6 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
               <div className="p-5 border-t bg-slate-50/20 space-y-4 animate-in slide-in-from-top-2">
                 <div>
                    <p className="text-[8px] font-black text-slate-400 uppercase mb-1 ml-1">Exam Name</p>
-                   {/* 🔴 Removed autoFocus to stop jumping */}
                    <input type="text" defaultValue={item.name} onBlur={(e) => updateField(item.id, type, 'name', e.target.value.toUpperCase())} className="w-full p-2.5 rounded-xl border-2 text-xs font-black outline-none bg-white focus:border-blue-400" />
                 </div>
                 <div className="flex flex-wrap gap-3">
@@ -383,6 +380,7 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
   );
 };
 
+// --- 🟡 ADMIN MARKSHEET MODAL ---
 const AdminMarksheetModal = ({ student, results, onClose }) => {
   const [newRes, setNewRes] = useState({ exam: "", obtained: "", total: "", date: "" });
   const [previewImg, setPreviewImg] = useState(null);
@@ -414,12 +412,46 @@ const AdminMarksheetModal = ({ student, results, onClose }) => {
   );
 };
     
+// --- 🟡 Interactive Exam Hall (Recovery & Anti-Refresh Integrated) ---
 const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
-  const [timeLeft, setTimeLeft] = useState(parseInt(exam?.duration) || 3600);
+  const recoveryKey = `exam_recovery_${exam.studentCode}_${exam.id}`;
+  const timerKey = `timer_end_${exam.studentCode}_${exam.id}`;
+
+  const [timeLeft, setTimeLeft] = useState(() => {
+    const savedEnd = localStorage.getItem(timerKey);
+    if (savedEnd) {
+      const remaining = Math.floor((parseInt(savedEnd) - Date.now()) / 1000);
+      return remaining > 0 ? remaining : 0;
+    }
+    const initialDuration = parseInt(exam?.duration) || 3600;
+    localStorage.setItem(timerKey, (Date.now() + initialDuration * 1000).toString());
+    return initialDuration;
+  });
+
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [answers, setAnswers] = useState({});
+  
+  const [answers, setAnswers] = useState(() => {
+    const savedAnswers = localStorage.getItem(recoveryKey);
+    return savedAnswers ? JSON.parse(savedAnswers) : {};
+  });
+
   const [activeQuestion, setActiveQuestion] = useState(null);
   const [scoreData, setScoreData] = useState(null);
+
+  useEffect(() => {
+    localStorage.setItem(recoveryKey, JSON.stringify(answers));
+  }, [answers, recoveryKey]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (!isSubmitted) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isSubmitted]);
 
   const handleImageUpload = (qNum, file) => {
     if (!file) return;
@@ -485,6 +517,9 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
       await addDoc(collection(db, "logs"), { studentName: finalStudentName, examTitle: exam.name, timestamp: Date.now() });
       await addDoc(collection(db, "results"), { name: finalStudentName, exam: exam.name, percent, obtained: totalObtainedMarks, total: totalPossibleMarks, date: d.toLocaleDateString('en-GB'), timestamp: Date.now(), details: detailResults });
       setScoreData({ correct: totalObtainedMarks, total: totalPossibleMarks, percent, details: detailResults });
+      
+      localStorage.removeItem(recoveryKey);
+      localStorage.removeItem(timerKey);
       setIsSubmitted(true);
     } catch (e) { setIsSubmitted(true); }
   };
