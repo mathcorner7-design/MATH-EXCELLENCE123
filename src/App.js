@@ -32,7 +32,7 @@ const ImagePreviewModal = ({ src, onClose }) => {
   );
 };
 
-// --- 🔵 Review Display Component (Updated UI) ---
+// --- 🔵 Review Display Component ---
 const ReviewResultModal = ({ result, onClose }) => {
   if (!result) return null;
   return (
@@ -154,8 +154,9 @@ const App = () => {
               <div className="space-y-3">
                 {activityLogs.slice(0, 10).map(log => (
                   <div key={log.id} className="p-2.5 bg-slate-50 rounded-xl flex justify-between items-center border-l-4 border-blue-600 shadow-sm transition-all hover:bg-white">
-                    <div><p className="text-[10px] font-black uppercase text-slate-800">{log.studentName}</p><p className="text-[8px] font-bold text-slate-400 uppercase italic">{log.examTitle} {log.scoreDisplay ? `• Score: ${log.scoreDisplay}` : ''}</p></div>
-                    <div className="text-right text-[7px] font-bold text-slate-300 uppercase leading-tight">{log.timeDisplay} <br/> {log.dateDisplay}</div>
+                    {/* 🔴 Activity Stream Score removed, Date/Time added */}
+                    <div><p className="text-[10px] font-black uppercase text-slate-800">{log.studentName}</p><p className="text-[8px] font-bold text-slate-400 uppercase italic">{log.examTitle} • {new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} • {new Date(log.timestamp).toLocaleDateString('en-GB')}</p></div>
+                    <div className="text-right text-[7px] font-bold text-slate-300 uppercase leading-tight">RECENT <br/> ACTIVITY</div>
                   </div>
                 ))}
               </div>
@@ -206,7 +207,6 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
   const [pinVal, setPinVal] = useState('');
   const [expandedId, setExpandedId] = useState(null);
 
-  // 🟢 Quick Add State (All Fields)
   const [quickAddType, setQuickAddType] = useState('live');
   const [qaName, setQaName] = useState('');
   const [qaHours, setQaHours] = useState('1');
@@ -356,7 +356,6 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
   );
 };
 
-// --- 🟡 ADMIN MARKSHEET MODAL (MULTI-PAGE FIXED) ---
 const AdminMarksheetModal = ({ student, results, onClose }) => {
   const [newRes, setNewRes] = useState({ exam: "", obtained: "", total: "", date: "" });
   const [previewImg, setPreviewImg] = useState(null);
@@ -455,7 +454,9 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
       let finalStudentName = exam.studentName.toUpperCase();
       const matchedStudent = studentsList.find(s => s.studentCode?.toString().trim() === exam.studentCode?.toString().trim());
       if (matchedStudent) finalStudentName = matchedStudent.name;
-      await addDoc(collection(db, "logs"), { studentName: finalStudentName, examTitle: exam.name, timestamp: Date.now(), scoreDisplay: `${totalObtainedMarks} / ${totalPossibleMarks}` });
+      
+      // 🔴 Activity Log: Score display logic removed to keep time/date visible
+      await addDoc(collection(db, "logs"), { studentName: finalStudentName, examTitle: exam.name, timestamp: Date.now() });
       await addDoc(collection(db, "results"), { name: finalStudentName, exam: exam.name, percent, obtained: totalObtainedMarks, total: totalPossibleMarks, date: d.toLocaleDateString('en-GB'), timestamp: Date.now(), details: detailResults });
       setScoreData({ correct: totalObtainedMarks, total: totalPossibleMarks, percent, details: detailResults });
       setIsSubmitted(true);
@@ -486,7 +487,7 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
   );
 };
 
-// --- 📈 Growth Section ---
+// --- 📈 Growth Section (Updated with Time & Date) ---
 const GrowthSectionView = ({ results, students }) => {
   const [sel, setSel] = useState(null);
   const [selectedReview, setSelectedReview] = useState(null);
@@ -497,7 +498,10 @@ const GrowthSectionView = ({ results, students }) => {
       ) : (
         <div className="space-y-6 animate-in slide-in-from-right-20 duration-700"><button onClick={() => setSel(null)} className="flex items-center gap-2 text-[12px] font-black text-blue-600 uppercase italic hover:underline ml-2"><ChevronLeft size={24}/> Return</button><div className="bg-white rounded-[3rem] shadow-2xl overflow-hidden border-4 border-slate-100 flex flex-col max-h-[80vh]"><div className="bg-blue-700 p-8 text-white text-center relative overflow-hidden flex-shrink-0"><Trophy className="absolute -top-10 -right-10 opacity-10 rotate-12" size={150}/><h2 className="text-2xl font-black uppercase italic tracking-tighter mb-2 leading-none break-words px-4 text-white">Performance Transcript</h2><div className="inline-block bg-white/20 px-6 py-1.5 rounded-full border border-white/30 max-w-[90%] overflow-hidden"><p className="text-sm font-black uppercase italic break-words text-white">{sel}</p></div></div><div className="overflow-auto p-4 md:p-6 space-y-4 bg-slate-50/50">
                {results.filter(r => r.name === sel).sort((a,b)=> (b.timestamp || 0) - (a.timestamp || 0)).map(r => (
-                 <div key={r.id} className="min-w-[450px] md:min-w-0 bg-white rounded-[2rem] border-2 border-white shadow-sm flex items-center p-5 gap-6 hover:shadow-md transition-all group"><div className="flex-1 min-w-0 border-l-8 border-blue-600 pl-5"><p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Exam Unit</p><p className="text-sm md:text-lg font-black uppercase italic text-slate-800 leading-tight whitespace-normal break-words">{r.exam}</p></div><div className="text-center px-4 border-l border-slate-100 min-w-[100px]"><p className="text-[9px] font-bold text-slate-400 uppercase mb-0.5">Score</p><p className="text-2xl md:text-3xl font-black italic text-blue-700 leading-none">{r.obtained}/{r.total}</p></div><div className="flex-shrink-0"><button onClick={() => setSelectedReview(r)} className="bg-slate-50 text-blue-700 p-3 rounded-2xl border-2 border-white shadow-sm hover:bg-blue-700 hover:text-white transition-all"><Eye size={20}/></button></div></div>))}</div></div></div>)}</div>
+                 <div key={r.id} className="min-w-[450px] md:min-w-0 bg-white rounded-[2rem] border-2 border-white shadow-sm flex items-center p-5 gap-6 hover:shadow-md transition-all group"><div className="flex-1 min-w-0 border-l-8 border-blue-600 pl-5"><p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Exam Unit</p><p className="text-sm md:text-lg font-black uppercase italic text-slate-800 leading-tight whitespace-normal break-words">{r.exam}</p>
+                   {/* 🔴 Added Time & Date below Exam Title */}
+                   <p className="text-[9px] font-black text-blue-500 uppercase italic mt-1">{new Date(r.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} • {new Date(r.timestamp).toLocaleDateString('en-GB')}</p>
+                 </div><div className="text-center px-4 border-l border-slate-100 min-w-[100px]"><p className="text-[9px] font-bold text-slate-400 uppercase mb-0.5">Score</p><p className="text-2xl md:text-3xl font-black italic text-blue-700 leading-none">{r.obtained}/{r.total}</p></div><div className="flex-shrink-0"><button onClick={() => setSelectedReview(r)} className="bg-slate-50 text-blue-700 p-3 rounded-2xl border-2 border-white shadow-sm hover:bg-blue-700 hover:text-white transition-all"><Eye size={20}/></button></div></div>))}</div></div></div>)}</div>
   );
 };
 
