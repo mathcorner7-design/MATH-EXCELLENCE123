@@ -69,18 +69,22 @@ const ReviewResultModal = ({ result, onClose }) => {
          <button onClick={onClose} className="p-2 bg-slate-800 rounded-full hover:bg-red-900 transition-all text-white"><X size={28}/></button>
       </div>
       <div className="w-full max-w-lg space-y-3 mb-14 text-left">
-         {result.details && result.details.map((item, idx) => (
-           <div key={idx} className={`p-4 rounded-2xl border-2 flex justify-between items-center transition-all ${item.pending ? 'bg-orange-900/40 border-orange-700 text-orange-200' : (item.status ? 'bg-green-900/40 border-green-700 text-green-200 shadow-sm' : 'bg-red-900/40 border-red-700 text-red-200 shadow-sm')}`}>
-             <div>
-               <p className="font-black text-xs uppercase italic tracking-tighter">Question Q{item.qNum} <span className="text-[9px] opacity-60 ml-1">({item.mark} Marks)</span></p>
-               <p className="text-[10px] font-bold opacity-80 mt-1 uppercase italic">
-                  Choice: {Array.isArray(item.selected) ? `IMAGE (${item.selected.length} Pgs)` : (item.selected?.startsWith('data:image') ? 'IMAGE' : item.selected)} • Correct: {item.correct}
-                  {item.pending && <span className="ml-2 bg-orange-600 px-2 py-0.5 rounded text-[8px] text-white">U GET: PENDING</span>}
-               </p>
+         {result.details && result.details.map((item, idx) => {
+           // Color Logic Fix: If written and mark is 0, show red.
+           const isCorrect = item.type === 'written' ? item.mark > 0 : item.status;
+           return (
+             <div key={idx} className={`p-4 rounded-2xl border-2 flex justify-between items-center transition-all ${item.pending ? 'bg-orange-900/40 border-orange-700 text-orange-200' : (isCorrect ? 'bg-green-900/40 border-green-700 text-green-200 shadow-sm' : 'bg-red-900/40 border-red-700 text-red-200 shadow-sm')}`}>
+               <div>
+                 <p className="font-black text-xs uppercase italic tracking-tighter">Question Q{item.qNum} <span className="text-[9px] opacity-60 ml-1">({item.mark} Marks)</span></p>
+                 <p className="text-[10px] font-bold opacity-80 mt-1 uppercase italic">
+                    Choice: {Array.isArray(item.selected) ? `IMAGE (${item.selected.length} Pgs)` : (item.selected?.startsWith('data:image') ? 'IMAGE' : item.selected)} • Correct: {item.correct}
+                    {item.pending && <span className="ml-2 bg-orange-600 px-2 py-0.5 rounded text-[8px] text-white">U GET: PENDING</span>}
+                 </p>
+               </div>
+               {item.pending ? <Clock size={18} className="animate-pulse" /> : (isCorrect ? <CheckSquare size={18}/> : <AlertCircle size={18}/>)}
              </div>
-             {item.pending ? <Clock size={18} className="animate-pulse" /> : (item.status ? <CheckSquare size={18}/> : <AlertCircle size={18}/>)}
-           </div>
-         ))}
+           );
+         })}
       </div>
       <button onClick={onClose} className="bg-blue-700 text-white px-16 py-4 rounded-full font-black uppercase text-[12px] shadow-2xl active:scale-95 transition-all border-b-8 border-blue-900 active:border-b-0 mb-20 tracking-tighter italic">Return to Growth</button>
     </div>
@@ -150,7 +154,7 @@ const App = () => {
     setShowNameModal(false);
   };
 
-  // Separating Live and Practice Logic
+  // Separating Live and Practice Logic (6 Hour Filter)
   const ongoingLive = liveMocks.filter(m => m.isPublished && (Date.now() - (m.timestamp || 0) < 6 * 3600000));
   const shiftedLive = liveMocks.filter(m => m.isPublished && (Date.now() - (m.timestamp || 0) >= 6 * 3600000));
 
@@ -321,6 +325,7 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
 
   const updateField = async (id, type, field, value) => { 
     const coll = type === 'live' ? 'liveMocks' : 'practiceSets';
+    // Logic: Fresh timer on every publish
     const finalVal = (field === 'isPublished' && value === true) ? { [field]: value, timestamp: Date.now() } : { [field]: value };
     await setDoc(doc(db, coll, id), finalVal, { merge: true }); 
   };
@@ -768,6 +773,8 @@ const GrowthSectionView = ({ results, students }) => {
 
                  return resultsWithAttempts.reverse().map((r) => {
                    const isMultiple = studentResults.filter(sr => sr.exam === r.exam).length > 1;
+                   // Logic for Written Notice:
+                   const hasWritten = r.details && r.details.some(d => d.type === 'written');
 
                    return (
                      <div key={r.id} className="w-full bg-slate-900/60 rounded-[2rem] border border-white/10 shadow-sm flex items-center p-4 md:p-5 gap-3 md:gap-6 hover:shadow-md transition-all group print-card">
@@ -776,6 +783,7 @@ const GrowthSectionView = ({ results, students }) => {
                             Exam Unit {isMultiple && <span className="text-yellow-500 ml-2">| ATTEMPT {r.attemptNo}</span>}
                           </p>
                           <p className="text-xs md:text-lg font-black uppercase italic text-white leading-tight whitespace-normal break-words">{r.exam}</p>
+                          {hasWritten && <p className="text-[7px] md:text-[8px] font-black text-orange-400 uppercase italic mt-0.5">Score may increase after Anshu Sir's review</p>}
                           <p className="text-[8px] md:text-[9px] font-black text-blue-400 uppercase italic mt-1">
                             {new Date(r.timestamp).toLocaleDateString('en-GB')} • {new Date(r.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                           </p>
