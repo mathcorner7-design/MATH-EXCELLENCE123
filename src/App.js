@@ -101,26 +101,26 @@ const App = () => {
     const m = parseInt(exam.minutes) || 0;
     setCurrentExam({ ...exam, duration: (h * 3600) + (m * 60) || 3600 });
     setShowNameModal(true);
+    setStudentNameInput('');
     setStudentCodeInput('');
   };
 
   const finalizeExamStart = () => {
     if (!studentNameInput.trim()) return alert("PLEASE ENTER YOUR NAME");
     
-    // Check if this exam is Guest-Only
     const isGuestSession = currentExam?.isGuestEnabled;
 
     if (!isGuestSession) {
       if (!studentCodeInput.trim()) return alert("THIS EXAM IS PROTECTED! UNIQUE CODE IS MANDATORY.");
-      const isRegistered = students.some(s => s.studentCode?.toString().trim() === studentCodeInput.trim());
-      if (!isRegistered) {
+      const matchedStudent = students.find(s => s.studentCode?.toString().trim() === studentCodeInput.trim());
+      if (!matchedStudent) {
         alert("INVALID STUDENT CODE! PLEASE CONTACT ANSHU SIR.");
         return;
       }
-      setCurrentExam(prev => ({ ...prev, studentName: studentNameInput.trim(), studentCode: studentCodeInput.trim(), isGuest: false }));
+      // Force Registered Name instead of Input Name
+      setCurrentExam(prev => ({ ...prev, studentName: matchedStudent.name, studentCode: studentCodeInput.trim(), isGuest: false }));
     } else {
-      // For Guest, code is optional but set as GUEST
-      setCurrentExam(prev => ({ ...prev, studentName: studentNameInput.trim(), studentCode: studentCodeInput.trim() || 'GUEST', isGuest: true }));
+      setCurrentExam(prev => ({ ...prev, studentName: studentNameInput.trim().toUpperCase(), studentCode: studentCodeInput.trim() || 'GUEST', isGuest: true }));
     }
 
     setIsExamActive(true);
@@ -590,8 +590,6 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
 
       // SAVE RESULTS ONLY FOR REGISTERED STUDENTS
       if (!exam.isGuest) {
-        const matchedStudent = studentsList.find(s => s.studentCode?.toString().trim() === exam.studentCode?.toString().trim());
-        if (matchedStudent) finalStudentName = matchedStudent.name;
         await addDoc(collection(db, "results"), { name: finalStudentName, exam: exam.name, percent, obtained: totalObtainedMarks, total: totalPossibleMarks, date: d.toLocaleDateString('en-GB'), timestamp: Date.now(), details: detailResults });
       }
 
