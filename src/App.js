@@ -126,6 +126,10 @@ const App = () => {
     setShowNameModal(false);
   };
 
+  // Logic to separate Ongoing Live and Shifted Live
+  const ongoingLive = liveMocks.filter(m => m.isPublished && (Date.now() - (m.timestamp || 0) < 6 * 3600000));
+  const shiftedLive = liveMocks.filter(m => m.isPublished && (Date.now() - (m.timestamp || 0) >= 6 * 3600000));
+
   if (isExamActive) return <InteractiveExamHall exam={currentExam} onFinish={() => setIsExamActive(false)} studentsList={students} />;
 
   return (
@@ -214,7 +218,7 @@ const App = () => {
         {activeTab === 'live' && (
           <div className="space-y-4 w-full text-left print:hidden">
             <h2 className="font-bold uppercase text-blue-300 border-b border-white/10 pb-2 text-[10px] flex items-center gap-2 bg-black/40 p-2 rounded-lg backdrop-blur-md"><Clock size={14} className="text-red-500"/> Ongoing Live Mocks</h2>
-            {liveMocks.filter(m => m.isPublished).map((m, i) => (
+            {ongoingLive.map((m, i) => (
               <div key={m.id} className="bg-black/60 backdrop-blur-xl p-4 rounded-2xl shadow-xl flex justify-between items-center border border-white/10">
                 <div className="flex-1 pr-4"><h3 className="text-sm font-black uppercase italic tracking-tighter text-white break-words">{i + 1}. {m.name}</h3><p className="text-[9px] font-bold text-red-500 uppercase italic mt-1">Duration: {m.hours || 0}h {m.minutes || 0}m</p></div>
                 <button onClick={() => handleStartExamFlow(m)} className={`px-6 py-2 rounded-full font-black text-[9px] uppercase shadow-lg h-fit flex items-center gap-2 ${m.isGuestEnabled ? 'bg-red-600 text-white' : 'bg-slate-800 text-blue-400 border border-blue-900/50'}`}>
@@ -235,15 +239,32 @@ const App = () => {
         {activeTab === 'growth' && <GrowthSectionView results={studentResults} students={students} />}
         
         {activeTab === 'practice' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full text-left print:hidden">
-            {practiceSets.filter(p => p.isPublished).map((p, i) => (
-              <div key={p.id} className="bg-black/60 backdrop-blur-xl p-4 rounded-2xl shadow flex justify-between items-center border border-white/10 hover:border-blue-500/50 transition-all">
-                <div className="flex-1 pr-4"><h3 className="font-bold uppercase text-xs italic text-white break-words">{i + 1}. {p.name}</h3><p className="text-[9px] font-bold text-slate-500 uppercase italic mt-1">Time: {p.hours || 0}h {p.minutes || 0}m</p></div>
-                <button onClick={() => handleStartExamFlow(p)} className={`px-6 py-2 rounded-full font-black text-[9px] uppercase shadow-md h-fit flex items-center gap-2 ${p.isGuestEnabled ? 'bg-blue-600 text-white' : 'bg-slate-800 text-blue-400 border border-blue-900/50'}`}>
-                  {!p.isGuestEnabled && <Lock size={12}/>} {p.isGuestEnabled ? 'Start' : 'Protected'}
-                </button>
-              </div>
-            ))}
+          <div className="w-full space-y-8 print:hidden">
+            {(() => {
+              const allMocks = [...practiceSets.filter(p => p.isPublished), ...shiftedLive];
+              const classes = [...new Set(allMocks.map(m => m.class || 'Other'))].sort((a,b) => parseInt(a) - parseInt(b));
+              
+              return classes.map(cls => (
+                <div key={cls} className="space-y-4">
+                  <h2 className="font-black uppercase text-blue-400 border-b-2 border-blue-900/50 pb-2 text-xs flex items-center gap-2 italic tracking-widest pl-2">
+                    <BookOpen size={16}/> Class {cls}
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {allMocks.filter(m => (m.class || 'Other') === cls).map((p, i) => (
+                      <div key={p.id} className="bg-black/60 backdrop-blur-xl p-4 rounded-2xl shadow flex justify-between items-center border border-white/10 hover:border-blue-500/50 transition-all">
+                        <div className="flex-1 pr-4">
+                          <h3 className="font-bold uppercase text-xs italic text-white break-words">{i + 1}. {p.name}</h3>
+                          <p className="text-[9px] font-bold text-slate-500 uppercase italic mt-1">Time: {p.hours || 0}h {p.minutes || 0}m</p>
+                        </div>
+                        <button onClick={() => handleStartExamFlow(p)} className={`px-6 py-2 rounded-full font-black text-[9px] uppercase shadow-md h-fit flex items-center gap-2 ${p.isGuestEnabled ? 'bg-blue-600 text-white' : 'bg-slate-800 text-blue-400 border border-blue-900/50'}`}>
+                          {!p.isGuestEnabled && <Lock size={12}/>} {p.isGuestEnabled ? 'Start' : 'Protected'}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ));
+            })()}
           </div>
         )}
       </main>
@@ -267,6 +288,7 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
   const [qaMarks, setQaMarks] = useState('');
   const [qaNeg, setQaNeg] = useState('0');
   const [qaGuest, setQaGuest] = useState(false);
+  const [qaClass, setQaClass] = useState('10');
 
   const updateField = async (id, type, field, value) => { 
     const coll = type === 'live' ? 'liveMocks' : 'practiceSets';
@@ -286,6 +308,7 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
       negativeMark: qaNeg || "0",
       isPublished: false,
       isGuestEnabled: qaGuest,
+      class: qaClass,
       timestamp: Date.now()
     });
     setQaName(''); setQaLink(''); setQaKey(''); setQaMarks(''); setQaNeg('0'); setQaGuest(false);
@@ -306,6 +329,7 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
                   <div className="flex items-center gap-3">
                     <div className={`w-2 h-2 rounded-full flex-shrink-0 ${item.isPublished ? 'bg-green-500 animate-pulse' : 'bg-slate-700'}`}></div>
                     <span className="text-xs font-black uppercase italic text-white break-words">{index + 1}. {item.name}</span>
+                    <span className="text-[7px] bg-blue-600 px-1.5 py-0.5 rounded text-white font-black">CLS {item.class}</span>
                     {item.isGuestEnabled && <span className="text-[7px] bg-green-600 px-1.5 py-0.5 rounded text-white font-black italic">GUEST ON</span>}
                   </div>
                   <p className="text-[8px] font-bold text-slate-500 uppercase italic ml-5 mt-1">
@@ -321,9 +345,17 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
             </div>
             {expandedId === item.id && (
               <div className="p-5 border-t border-white/5 bg-black/40 space-y-4 animate-in slide-in-from-top-2">
-                <div className="flex items-center gap-2 mb-2">
-                   <input type="checkbox" checked={item.isGuestEnabled} onChange={(e) => updateField(item.id, type, 'isGuestEnabled', e.target.checked)} className="accent-green-500 w-4 h-4" />
-                   <p className="text-[10px] font-black text-green-400 uppercase italic">Enable Guest Mode (MCQ Only + No Save)</p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                   <div className="flex items-center gap-2">
+                      <input type="checkbox" checked={item.isGuestEnabled} onChange={(e) => updateField(item.id, type, 'isGuestEnabled', e.target.checked)} className="accent-green-500 w-4 h-4" />
+                      <p className="text-[10px] font-black text-green-400 uppercase italic">Guest Mode</p>
+                   </div>
+                   <div>
+                      <p className="text-[8px] font-black text-blue-400 uppercase mb-1 ml-1">Class</p>
+                      <select value={item.class || '10'} onChange={(e) => updateField(item.id, type, 'class', e.target.value)} className="w-full p-2 bg-black border border-white/10 rounded-xl text-white text-xs font-black">
+                        {[5,6,7,8,9,10,11,12].map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -377,9 +409,17 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
            </div>
         </div>
         <div className="space-y-6">
-          <div className="flex items-center gap-2">
-             <input type="checkbox" checked={qaGuest} onChange={(e) => setQaGuest(e.target.checked)} className="accent-blue-500" />
-             <p className="text-[9px] font-black text-slate-400 uppercase italic">Enable Guest Access (No Code Needed)</p>
+          <div className="grid grid-cols-2 gap-4">
+             <div className="flex items-center gap-2">
+                <input type="checkbox" checked={qaGuest} onChange={(e) => setQaGuest(e.target.checked)} className="accent-blue-500" />
+                <p className="text-[9px] font-black text-slate-400 uppercase italic">Enable Guest Access</p>
+             </div>
+             <div>
+                <p className="text-[8px] font-black text-blue-400 uppercase mb-1 ml-1">Class</p>
+                <select value={qaClass} onChange={(e) => setQaClass(e.target.value)} className="w-full p-2 bg-black border border-white/10 rounded-xl text-white text-[10px] font-black outline-none">
+                  {[5,6,7,8,9,10,11,12].map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+             </div>
           </div>
           <div><p className="text-[8px] font-black text-slate-500 uppercase mb-1 ml-1 italic leading-none">Exam Name</p><input type="text" value={qaName} onChange={(e) => setQaName(e.target.value)} className="w-full p-3.5 bg-black border border-white/10 rounded-2xl text-[10px] font-black outline-none shadow-inner focus:border-blue-500 text-white transition-all uppercase" placeholder="New Slot" /></div>
           <div className="flex flex-col md:flex-row gap-4">
@@ -388,7 +428,7 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
              <div className="bg-black p-3 rounded-2xl border border-white/10 shadow-inner"><p className="text-[9px] font-black text-blue-400 uppercase mb-1 italic">Correct Key</p><input type="text" value={qaKey} onChange={(e) => setQaKey(e.target.value)} className="w-full bg-transparent outline-none font-black text-[10px] uppercase text-white" placeholder="e.g. A,B,W,D" /></div>
-             <div className="bg-black p-3 rounded-2xl border border-white/10 shadow-inner"><p className="text-[9px] font-black text-yellow-500 uppercase mb-1 italic">Marks/Q</p><input type="text" value={qaKey} onChange={(e) => setQaKey(e.target.value)} className="w-full bg-transparent outline-none font-black text-[10px] text-white" placeholder="e.g. 1,1,5,1" /></div>
+             <div className="bg-black p-3 rounded-2xl border border-white/10 shadow-inner"><p className="text-[9px] font-black text-yellow-500 uppercase mb-1 italic">Marks/Q</p><input type="text" value={qaMarks} onChange={(e) => setQaMarks(e.target.value)} className="w-full bg-transparent outline-none font-black text-[10px] text-white" placeholder="e.g. 1,1,5,1" /></div>
           </div>
           <div className="bg-black p-3 rounded-2xl border border-white/10 shadow-inner">
              <p className="text-[8px] font-black text-slate-500 uppercase mb-1 ml-1 italic tracking-widest">Google Drive Link</p>
