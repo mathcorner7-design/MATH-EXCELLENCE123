@@ -10,7 +10,7 @@ const APP_BACKGROUND_URL = "https://i.gifer.com/4RNk.gif";
 
 // --- 🟢 Firebase Configuration --- 
 const firebaseConfig = { 
-  apiKey: "AIzaSyCTk1csUI0HeZhZvy6dOFwmLr-YVswPACyY", 
+  apiKey: "AIzaSyCTk1csUI0HeZhZvy6dOFwmLr-YVsWPAcY", 
   authDomain: "math-excellence-6d2b8.firebaseapp.com", 
   projectId: "math-excellence-6d2b8", 
   storageBucket: "math-excellence-6d2b8.firebasestorage.app", 
