@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, setDoc, deleteDoc, getDocs, writeBatch } from "firebase/firestore";
-import { Trophy, BookOpen, TrendingUp, User, Clock, ChevronRight, GraduationCap, PlusCircle, FileText, Lock, Award, Timer, Settings2, CheckCircle, PenTool, ShieldAlert, Loader2, ChevronLeft, Trash2, UserPlus, History, UserCheck, X, CheckSquare, AlertCircle, ListChecks, Eye, Camera, Send, Link, Zap, Download, Unlock, Phone, SignalHigh } from 'lucide-react';
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "firebase/auth";
+import { Trophy, BookOpen, TrendingUp, User, Clock, ChevronRight, GraduationCap, PlusCircle, FileText, Lock, Award, Timer, Settings2, CheckCircle, PenTool, ShieldAlert, Loader2, ChevronLeft, Trash2, UserPlus, History, UserCheck, X, CheckSquare, AlertCircle, ListChecks, Eye, Camera, Send, Link, Zap, Download, Unlock, Phone, LogIn, LogOut } from 'lucide-react';
 
 // --- 🖼️ CONFIGURATION ---
 const APP_BACKGROUND_URL = "https://i.gifer.com/4RNk.gif";
@@ -19,6 +20,8 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
 
 // --- 🔵 Countdown Component for Live Mocks ---
 const LiveCountdown = ({ timestamp, onExpire }) => {
@@ -86,8 +89,10 @@ const App = () => {
   const [showNameModal, setShowNameModal] = useState(false);
   const [studentNameInput, setStudentNameInput] = useState('');
   const [studentCodeInput, setStudentCodeInput] = useState('');
-  const [teacherPin, setTeacherPin] = useState('1234567890');
-  const [isTeacherAuthenticated, setIsTeacherAuthenticated] = useState(false);
+  
+  // Security Change: States for Login
+  const [currentUser, setCurrentUser] = useState(null);
+
   const [liveMocks, setLiveMocks] = useState([]);
   const [practiceSets, setPracticeSets] = useState([]);
   const [students, setStudents] = useState([]);
@@ -95,6 +100,11 @@ const App = () => {
   const [activityLogs, setActivityLogs] = useState([]);
 
   useEffect(() => {
+    // Security Change: Monitor Authentication State
+    onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+    });
+
     onSnapshot(collection(db, "liveMocks"), (s) => {
       const data = s.docs.map(d => ({ id: d.id, source: 'live', ...d.data() }));
       setLiveMocks(data.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)));
@@ -105,11 +115,21 @@ const App = () => {
     });
     onSnapshot(collection(db, "results"), (s) => setStudentResults(s.docs.map(d => ({ id: d.id, ...d.data() }))));
     onSnapshot(collection(db, "students"), (s) => setStudents(s.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => a.name.localeCompare(b.name))));
-    onSnapshot(doc(db, "settings", "adminConfig"), (d) => {
-      if (d.exists()) setTeacherPin(d.data().pin);
-    });
     onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc")), (s) => setActivityLogs(s.docs.map(d => ({ id: d.id, ...d.data() }))));
   }, []);
+
+  // Security Change: Login/Logout Functions
+  const handleGoogleLogin = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (error) {
+      alert("Login Failed: " + error.message);
+    }
+  };
+
+  const handleLogout = async () => {
+    await signOut(auth);
+  };
 
   const handleStartExamFlow = (exam) => {
     const h = parseInt(exam.hours) || 0;
@@ -190,7 +210,10 @@ const App = () => {
 
       <header className="bg-black/60 backdrop-blur-xl border-b border-white/10 sticky top-0 z-50 shadow-2xl px-6 py-2 flex justify-between items-center w-full max-w-6xl print:hidden">
         <h1 className="text-lg font-black text-blue-400 uppercase italic tracking-tighter cursor-pointer" onClick={() => setActiveTab('home')}>MATH EXCELLENCE</h1>
-        <p className="text-[9px] font-bold text-slate-500 italic">ANSHU SIR</p>
+        <div className="text-right">
+          <p className="text-[9px] font-bold text-slate-500 italic">ANSHU SIR</p>
+          {currentUser && <button onClick={handleLogout} className="text-[7px] text-red-500 font-black uppercase flex items-center gap-1">Logout <LogOut size={8}/></button>}
+        </div>
       </header>
 
       <nav className="bg-blue-700/80 backdrop-blur-xl text-white w-full sticky top-[45px] z-40 flex justify-center shadow-lg print:hidden">
@@ -290,10 +313,22 @@ const App = () => {
           </div>
         )}
 
-        {activeTab === 'teacher' && (!isTeacherAuthenticated ? <div className="max-w-md w-full mx-auto mt-20 p-10 bg-slate-950 backdrop-blur-xl rounded-3xl shadow-2xl text-center border-t-8 border-blue-700 border-x border-b border-white/10 print:hidden">
-          <Lock size={40} className="text-blue-500 mx-auto mb-6" />
-          <input type="password" autoFocus onChange={(e) => { if (e.target.value === teacherPin) setIsTeacherAuthenticated(true); }} className="w-full py-4 bg-black border-2 border-slate-800 rounded-xl text-center text-4xl font-black outline-none text-white placeholder:text-slate-800" placeholder="••••" />
-        </div> : <TeacherZoneMainView liveMocks={liveMocks} practiceSets={practiceSets} students={students} teacherPin={teacherPin} studentResults={studentResults} setTeacherPin={async (v) => await setDoc(doc(db, "settings", "adminConfig"), { pin: v }, { merge: true })} />)}
+        {activeTab === 'teacher' && (
+          <div className="w-full flex flex-col items-center">
+            {!currentUser ? (
+              <div className="max-w-md w-full mx-auto mt-20 p-10 bg-slate-950 backdrop-blur-xl rounded-3xl shadow-2xl text-center border-t-8 border-blue-700 border-x border-b border-white/10 print:hidden">
+                <Lock size={40} className="text-blue-500 mx-auto mb-6" />
+                <h3 className="font-black text-white uppercase italic mb-6 tracking-widest text-xs">Admin Access Point</h3>
+                <button onClick={handleGoogleLogin} className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-[10px] flex items-center justify-center gap-3 hover:bg-blue-400 transition-all shadow-xl active:scale-95">
+                  <LogIn size={20}/> Authenticate with Google
+                </button>
+                <p className="text-[8px] text-slate-500 mt-6 uppercase italic">Only Anshu Sir's authorized account can penetrate</p>
+              </div>
+            ) : (
+              <TeacherZoneMainView liveMocks={liveMocks} practiceSets={practiceSets} students={students} studentResults={studentResults} />
+            )}
+          </div>
+        )}
 
         {activeTab === 'growth' && <GrowthSectionView results={studentResults} students={students} />}
 
@@ -335,10 +370,8 @@ const App = () => {
   );
 };
 
-const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, setTeacherPin, studentResults }) => {
+const TeacherZoneMainView = ({ liveMocks, practiceSets, students, studentResults }) => {
   const [selectedStudent, setSelectedStudent] = useState(null);
-  const [isChangingPin, setIsChangingPin] = useState(false);
-  const [pinVal, setPinVal] = useState('');
   const [expandedId, setExpandedId] = useState(null);
   const [quickAddType, setQuickAddType] = useState('live');
   const [qaName, setQaName] = useState('');
@@ -478,20 +511,6 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
             <input type="text" value={qaLink} onChange={(e) => setQaLink(e.target.value)} className="w-full bg-transparent outline-none text-[9px] font-bold text-white" placeholder="Paste PDF/Doc Link" />
           </div>
           <button onClick={handleQuickAdd} className="w-full bg-blue-700 text-white py-4 rounded-[1.5rem] font-black text-[11px] uppercase shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-3 border-b-4 border-blue-900 hover:bg-blue-600 italic tracking-tighter"><Send size={18} /> Deploy to Registry</button>
-        </div>
-      </div>
-      <div className="bg-black/60 backdrop-blur-xl p-4 rounded-2xl flex justify-between items-center w-full mb-8 border border-white/10 shadow-sm print:hidden">
-        <div className="flex gap-2">
-          {isChangingPin ? (
-            <div className="flex gap-2 animate-in slide-in-from-left-2">
-              <input type="password" value={pinVal} onChange={(e) => setPinVal(e.target.value)} className="bg-black border border-white/10 rounded-full px-4 text-xs font-black outline-none text-white w-24" placeholder="NEW" />
-              <button onClick={async () => { if (pinVal.length >= 4) { await setTeacherPin(pinVal); setIsChangingPin(false); setPinVal(''); alert("PIN UPDATED"); } }} className="bg-green-600 text-white px-3 py-1.5 rounded-full text-[8px] font-black uppercase">Save</button>
-              <button onClick={() => setIsChangingPin(false)} className="text-slate-500 text-[8px] font-black uppercase">X</button>
-            </div>
-          ) : (
-            <button onClick={() => setIsChangingPin(true)} className="px-5 py-2 rounded-full bg-blue-900/40 text-blue-400 text-[10px] font-black uppercase border border-blue-800/50">PIN</button>
-          )}
-          <button onClick={async () => { if (window.confirm("Clear Logs?")) { const q = query(collection(db, "logs")); const snapshot = await getDocs(q); const batch = writeBatch(db); snapshot.docs.forEach((d) => batch.delete(d.ref)); await batch.commit(); } }} className="px-5 py-2 rounded-full bg-red-900/40 text-red-400 text-[10px] font-black uppercase border border-red-800/50">Clear Activity</button>
         </div>
       </div>
       <AdminPaperManager title="Live Mock Exam" items={adminLive} color="text-red-500" />
