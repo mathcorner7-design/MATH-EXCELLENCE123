@@ -1,20 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { initializeApp } from "firebase/app";
-import {
-  getFirestore, collection, addDoc, onSnapshot, query,
-  orderBy, doc, setDoc, deleteDoc, getDocs, writeBatch
-} from "firebase/firestore";
-import {
-  Trophy, BookOpen, TrendingUp, User, Clock, ChevronRight, GraduationCap,
-  PlusCircle, FileText, Lock, Award, Timer, Settings2, CheckCircle,
-  PenTool, ShieldAlert, Loader2, ChevronLeft, Trash2, UserPlus,
-  History, UserCheck, X, CheckSquare, AlertCircle, ListChecks,
-  Eye, Camera, Send, Link, Zap, Download, Unlock, Phone, MessageCircle
-} from 'lucide-react';
+import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, setDoc, deleteDoc, getDocs, writeBatch } from "firebase/firestore";
+import { Trophy, BookOpen, TrendingUp, User, Clock, ChevronRight, GraduationCap, PlusCircle, FileText, Lock, Award, Timer, Settings2, CheckCircle, PenTool, ShieldAlert, Loader2, ChevronLeft, Trash2, UserPlus, History, UserCheck, X, CheckSquare, AlertCircle, ListChecks, Eye, Camera, Send, Link, Zap, Download, Unlock, Phone, MessageCircle } from 'lucide-react';
 
 // --- 🖼️ CONFIGURATION ---
 const APP_BACKGROUND_URL = "https://i.gifer.com/4RNk.gif";
 
+// --- 🟢 Firebase Configuration ---
 const firebaseConfig = {
   apiKey: "AIzaSyCTk1csUI0HeZhZvy6dOFwmLr-YVswPACyY",
   authDomain: "math-excellence-6d2b8.firebaseapp.com",
@@ -28,6 +20,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// --- 🔵 Countdown Component for Live Mocks ---
 const LiveCountdown = ({ timestamp, onExpire }) => {
   const [timeLeft, setTimeLeft] = useState("");
   useEffect(() => {
@@ -49,23 +42,25 @@ const LiveCountdown = ({ timestamp, onExpire }) => {
   return <p className="text-[9px] font-black text-yellow-400 uppercase italic mt-1 animate-pulse">Ends in: {timeLeft}</p>;
 };
 
+// --- 🔵 Modal for Image Preview ---
 const ImagePreviewModal = ({ src, onClose }) => {
   if (!src) return null;
   return (
     <div className="fixed inset-0 bg-black/95 z-[3000] flex flex-col items-center justify-center p-4 backdrop-blur-md animate-in fade-in print:hidden">
-      <button onClick={onClose} className="absolute top-10 right-10 text-white p-3 bg-red-600 rounded-full shadow-2xl"><X size={32} /></button>
+      <button onClick={onClose} className="absolute top-10 right-10 text-white p-3 bg-red-600 rounded-full shadow-2xl"><X size={32}/></button>
       <img src={src} alt="Student Solution" className="max-w-full max-h-[80vh] rounded-xl shadow-2xl border-4 border-white animate-in zoom-in" />
     </div>
   );
 };
 
+// --- 🔵 Review Display Component ---
 const ReviewResultModal = ({ result, onClose }) => {
   if (!result) return null;
   return (
     <div className="fixed inset-0 bg-slate-950 z-[2500] flex flex-col items-center overflow-y-auto p-10 text-center animate-in zoom-in duration-300 print:hidden text-white">
       <div className="w-full max-w-lg flex justify-between items-center mb-10 border-b-4 border-slate-800 pb-5">
         <h2 className="text-2xl font-black uppercase italic tracking-tighter text-blue-400">Review: {result.exam}</h2>
-        <button onClick={onClose} className="p-2 bg-slate-800 rounded-full hover:bg-red-900 transition-all text-white"><X size={28} /></button>
+        <button onClick={onClose} className="p-2 bg-slate-800 rounded-full hover:bg-red-900 transition-all text-white"><X size={28}/></button>
       </div>
       <div className="w-full max-w-lg space-y-3 mb-14 text-left">
         {result.details && result.details.map((item, idx) => {
@@ -74,12 +69,9 @@ const ReviewResultModal = ({ result, onClose }) => {
             <div key={idx} className={`p-4 rounded-2xl border-2 flex justify-between items-center transition-all ${item.pending ? 'bg-orange-900/40 border-orange-700 text-orange-200' : (isCorrect ? 'bg-green-900/40 border-green-700 text-green-200 shadow-sm' : 'bg-red-900/40 border-red-700 text-red-200 shadow-sm')}`}>
               <div>
                 <p className="font-black text-xs uppercase italic tracking-tighter">Question Q{item.qNum} <span className="text-[9px] opacity-60 ml-1">({item.mark} Marks)</span></p>
-                <p className="text-[10px] font-bold opacity-80 mt-1 uppercase italic">
-                  Choice: {Array.isArray(item.selected) ? `IMAGE (${item.selected.length} Pgs)` : (item.selected?.startsWith('data:image') ? 'IMAGE' : item.selected)} • Correct: {item.correct}
-                  {item.pending && <span className="ml-2 bg-orange-600 px-2 py-0.5 rounded text-[8px] text-white">U GET: PENDING</span>}
-                </p>
+                <p className="text-[10px] font-bold opacity-80 mt-1 uppercase italic"> Choice: {Array.isArray(item.selected) ? `IMAGE (${item.selected.length} Pgs)` : (item.selected?.startsWith('data:image') ? 'IMAGE' : item.selected)} • Correct: {item.correct} {item.pending && <span className="ml-2 bg-orange-600 px-2 py-0.5 rounded text-[8px] text-white">U GET: PENDING</span>} </p>
               </div>
-              {item.pending ? <Clock size={18} className="animate-pulse" /> : (isCorrect ? <CheckSquare size={18} /> : <AlertCircle size={18} />)}
+              {item.pending ? <Clock size={18} className="animate-pulse" /> : (isCorrect ? <CheckSquare size={18}/> : <AlertCircle size={18}/>)}
             </div>
           );
         })}
@@ -106,17 +98,17 @@ const App = () => {
 
   useEffect(() => {
     onSnapshot(collection(db, "liveMocks"), (s) => {
-      const data = s.docs.map(d => ({ id: d.id, source: 'live', ...d.data() }));
+      const data = s.docs.map(d => ({id: d.id, ...d.data()}));
       setLiveMocks(data.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)));
     });
     onSnapshot(collection(db, "practiceSets"), (s) => {
-      const data = s.docs.map(d => ({ id: d.id, source: 'practice', ...d.data() }));
+      const data = s.docs.map(d => ({id: d.id, ...d.data()}));
       setPracticeSets(data.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)));
     });
-    onSnapshot(collection(db, "results"), (s) => setStudentResults(s.docs.map(d => ({ id: d.id, ...d.data() }))));
-    onSnapshot(collection(db, "students"), (s) => setStudents(s.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => a.name.localeCompare(b.name))));
+    onSnapshot(collection(db, "results"), (s) => setStudentResults(s.docs.map(d => ({id: d.id, ...d.data()}))));
+    onSnapshot(collection(db, "students"), (s) => setStudents(s.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => a.name.localeCompare(b.name))));
     onSnapshot(doc(db, "settings", "adminConfig"), (d) => { if (d.exists()) setTeacherPin(d.data().pin); });
-    onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc")), (s) => setActivityLogs(s.docs.map(d => ({ id: d.id, ...d.data() }))));
+    onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc")), (s) => setActivityLogs(s.docs.map(d => ({id: d.id, ...d.data()}))));
   }, []);
 
   const handleStartExamFlow = (exam) => {
@@ -150,19 +142,7 @@ const App = () => {
 
   return (
     <div className="min-h-screen font-sans text-white select-none flex flex-col items-center overflow-x-hidden transition-all duration-700 bg-black" style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url(${APP_BACKGROUND_URL})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' }} >
-      <style>{`
-        @media print {
-          body { background: white !important; overflow: visible !important; }
-          header, nav, .print-hide, button, .lucide { display: none !important; }
-          .min-h-screen { min-height: auto !important; background: none !important; }
-          main { padding: 0 !important; width: 100% !important; max-width: 100% !important; color: black !important; }
-          .print-full-report { display: block !important; position: static !important; width: 100% !important; height: auto !important; overflow: visible !important; }
-          .print-card { border: 2px solid #ddd !important; break-inside: avoid; page-break-inside: avoid; margin-bottom: 15px !important; color: black !important; background: white !important; }
-          .text-white { color: black !important; }
-        }
-        main { overflow-anchor: none; }
-      `}</style>
-      
+      <style>{` @media print { body { background: white !important; overflow: visible !important; } header, nav, .print-hide, button, .lucide { display: none !important; } .min-h-screen { min-height: auto !important; background: none !important; } main { padding: 0 !important; width: 100% !important; max-width: 100% !important; color: black !important; } .print-full-report { display: block !important; position: static !important; width: 100% !important; height: auto !important; overflow: visible !important; } .print-card { border: 2px solid #ddd !important; break-inside: avoid; page-break-inside: avoid; margin-bottom: 15px !important; color: black !important; background: white !important; } .text-white { color: black !important; } } main { overflow-anchor: none; } `}</style>
       {showNameModal && (
         <div className="fixed inset-0 bg-black/90 z-[1000] flex items-center justify-center p-6 backdrop-blur-md print:hidden">
           <div className="bg-slate-900 rounded-3xl p-8 max-sm w-full text-center shadow-2xl border-2 border-slate-800">
@@ -171,7 +151,9 @@ const App = () => {
             <p className="text-[9px] text-slate-500 mb-6 uppercase">{currentExam?.isGuestEnabled ? 'No code required for guests' : 'Private Exam: Code Required'}</p>
             <div className="space-y-4">
               <input autoFocus type="text" value={studentNameInput} onChange={(e) => setStudentNameInput(e.target.value)} className="w-full p-3 rounded-xl border-2 border-slate-700 bg-black text-white font-bold text-center outline-none focus:border-blue-500 uppercase" placeholder="NAME" />
-              {!currentExam?.isGuestEnabled && ( <input type="text" value={studentCodeInput} onChange={(e) => setStudentCodeInput(e.target.value)} className="w-full p-3 rounded-xl border-2 border-slate-700 bg-black text-white font-bold text-center outline-none focus:border-blue-500" placeholder="ENTER UNIQUE CODE" /> )}
+              {!currentExam?.isGuestEnabled && (
+                <input type="text" value={studentCodeInput} onChange={(e) => setStudentCodeInput(e.target.value)} className="w-full p-3 rounded-xl border-2 border-slate-700 bg-black text-white font-bold text-center outline-none focus:border-blue-500" placeholder="ENTER UNIQUE CODE" />
+              )}
             </div>
             <div className="flex gap-4 mt-8">
               <button onClick={() => setShowNameModal(false)} className="flex-1 py-3 rounded-xl bg-slate-800 text-white font-bold text-[10px] uppercase">Cancel</button>
@@ -180,129 +162,105 @@ const App = () => {
           </div>
         </div>
       )}
-
       <header className="bg-black/60 backdrop-blur-xl border-b border-white/10 sticky top-0 z-50 shadow-2xl px-6 py-2 flex justify-between items-center w-full max-w-6xl print:hidden">
         <h1 className="text-lg font-black text-blue-400 uppercase italic tracking-tighter cursor-pointer" onClick={() => setActiveTab('home')}>MATH EXCELLENCE</h1>
         <p className="text-[9px] font-bold text-slate-500 italic">ANSHU SIR</p>
       </header>
-
       <nav className="bg-blue-700/80 backdrop-blur-xl text-white w-full sticky top-[45px] z-40 flex justify-center shadow-lg print:hidden">
         <div className="max-w-6xl w-full flex overflow-x-auto no-scrollbar">
-          {[{ id: 'home', label: 'Home', icon: <History size={14} /> }, { id: 'live', label: 'Live Mock', icon: <Clock size={14} /> }, { id: 'practice', label: 'Practice', icon: <BookOpen size={14} /> }, { id: 'growth', label: 'Growth', icon: <TrendingUp size={14} /> }, { id: 'teacher', label: 'Admin', icon: <User size={14} /> }].map((item) => (
-            <button key={item.id} onClick={() => setActiveTab(item.id)} className={`flex-1 flex items-center justify-center gap-1.5 px-4 py-3.5 font-bold text-[9px] uppercase border-b-4 transition-all ${activeTab === item.id ? 'border-yellow-400 bg-white/10' : 'border-transparent'}`}>{item.icon} {item.label}</button> ))}
+          {[{ id: 'home', label: 'Home', icon: <History size={14}/> }, { id: 'live', label: 'Live Mock', icon: <Clock size={14}/> }, { id: 'practice', label: 'Practice', icon: <BookOpen size={14}/> }, { id: 'growth', label: 'Growth', icon: <TrendingUp size={14}/> }, { id: 'teacher', label: 'Admin', icon: <User size={14}/> }].map((item) => (
+            <button key={item.id} onClick={() => setActiveTab(item.id)} className={`flex-1 flex items-center justify-center gap-1.5 px-4 py-3.5 font-bold text-[9px] uppercase border-b-4 transition-all ${activeTab === item.id ? 'border-yellow-400 bg-white/10' : 'border-transparent'}`}>{item.icon} {item.label}</button>
+          ))}
         </div>
       </nav>
-
       <main className="w-full max-w-5xl p-4 mb-20 flex flex-col items-center">
         {activeTab === 'home' && (
-          <div className="space-y-6 animate-in fade-in w-full text-center print:hidden">
+          <div className="space-y-8 animate-in fade-in w-full text-center print:hidden">
             <div className="bg-black/60 backdrop-blur-xl p-8 rounded-[2.5rem] shadow-2xl border-2 border-white/10">
               <GraduationCap size={48} className="text-blue-400 mx-auto mb-3 animate-bounce-slow" />
-              <h2 className="text-xl md:text-3xl font-black uppercase italic tracking-tight leading-tight text-white">Elevate Your Mathematics <br /> <span className="text-blue-400 underline decoration-yellow-400 decoration-2 underline-offset-8">with Anshu Sir</span></h2>
-              
+              <h2 className="text-xl md:text-3xl font-black uppercase italic tracking-tight leading-tight text-white">Elevate Your Mathematics <br/> <span className="text-blue-400 underline decoration-yellow-400 decoration-2 underline-offset-8">with Anshu Sir</span></h2>
               <div className="mt-10 p-6 bg-white/5 rounded-3xl border border-white/10 shadow-inner">
-                <p className="text-slate-400 font-bold uppercase italic text-[11px] mb-4 tracking-widest leading-relaxed">Please Contact Anshu Sir on WhatsApp to become a Registered Student</p>
+                <p className="text-slate-400 font-bold uppercase italic text-[11px] mb-2 tracking-widest">Contact Anshu Sir on WhatsApp to become a Registered Student</p>
                 <div className="flex items-center justify-center gap-4">
-                   <a href="tel:9002892918" className="text-3xl md:text-5xl font-black text-yellow-400 italic tracking-tighter flex items-center gap-3 drop-shadow-xl hover:scale-105 transition-transform">
-                     <Phone size={32} className="text-blue-500 animate-pulse" /> 9002892918
-                   </a>
-                   <div className="p-2 bg-green-600 rounded-full shadow-lg border-2 border-white/20">
-                     <MessageCircle size={30} className="text-white" />
-                   </div>
+                  <a href="tel:9002892918" className="text-3xl md:text-5xl font-black text-yellow-400 italic tracking-tighter flex items-center justify-center gap-3 drop-shadow-xl hover:scale-105 transition-transform"> <Phone size={32} className="text-blue-500 animate-pulse"/> 9002892918 </a>
+                  <MessageCircle size={36} className="text-green-500 animate-bounce" />
                 </div>
               </div>
-
-              {/* Membership Benefits Comparison Table */}
-              <div className="mt-12 bg-slate-900/80 rounded-[2.5rem] border border-white/10 overflow-hidden shadow-2xl">
-                 <div className="bg-blue-700 py-4 px-6 text-left border-b border-white/10">
-                    <h3 className="font-black uppercase italic text-xs tracking-widest text-white flex items-center gap-2">
-                       <Award size={16}/> Student Membership Benefits
-                    </h3>
-                 </div>
-                 <div className="p-4 overflow-x-auto">
-                    <table className="w-full text-[10px] text-left border-separate border-spacing-y-2">
-                       <thead>
-                          <tr className="text-slate-500 uppercase italic">
-                             <th className="px-4 py-2 font-black">Feature</th>
-                             <th className="px-4 py-2 font-black">Guest Student</th>
-                             <th className="px-4 py-2 font-black text-blue-400">Registered</th>
-                          </tr>
-                       </thead>
-                       <tbody className="font-bold">
-                          <tr className="bg-white/5 rounded-xl overflow-hidden">
-                             <td className="px-4 py-3 rounded-l-xl text-white">Mock Access</td>
-                             <td className="px-4 py-3 text-slate-500">Limited Mocks</td>
-                             <td className="px-4 py-3 rounded-r-xl text-green-400">Unlimited Mocks</td>
-                          </tr>
-                          <tr className="bg-white/5">
-                             <td className="px-4 py-3 text-white">Exam Mode</td>
-                             <td className="px-4 py-3 text-slate-500">MCQ Only</td>
-                             <td className="px-4 py-3 text-green-400">MCQ + Written</td>
-                          </tr>
-                          <tr className="bg-white/5">
-                             <td className="px-4 py-3 text-white">Anshu Sir's Review</td>
-                             <td className="px-4 py-3 text-slate-500">No Review</td>
-                             <td className="px-4 py-3 text-green-400">Manual Check</td>
-                          </tr>
-                          <tr className="bg-white/5">
-                             <td className="px-4 py-3 text-white">Live Exam Entry</td>
-                             <td className="px-4 py-3 text-slate-500">Not Allowed</td>
-                             <td className="px-4 py-3 text-green-400">Exclusive Entry</td>
-                          </tr>
-                          <tr className="bg-white/5 rounded-xl">
-                             <td className="px-4 py-3 rounded-l-xl text-white">Features Access</td>
-                             <td className="px-4 py-3 text-slate-500">Basic Tools</td>
-                             <td className="px-4 py-3 rounded-r-xl text-green-400">All Features</td>
-                          </tr>
-                       </tbody>
-                    </table>
-                 </div>
+              
+              {/* Comparison Section */}
+              <div className="mt-10 bg-white rounded-3xl overflow-hidden shadow-2xl border-4 border-blue-600">
+                <div className="bg-blue-600 p-3"><h3 className="font-black uppercase italic text-white text-xs tracking-widest">Membership Comparison</h3></div>
+                <div className="overflow-x-auto p-2">
+                  <table className="w-full text-[10px] text-left border-collapse text-slate-800">
+                    <thead>
+                      <tr className="border-b-2 border-slate-100 uppercase font-black text-slate-400 italic">
+                        <th className="p-3">Features</th>
+                        <th className="p-3">Guest Student</th>
+                        <th className="p-3 text-blue-600">Registered</th>
+                      </tr>
+                    </thead>
+                    <tbody className="font-bold uppercase italic">
+                      <tr className="border-b border-slate-50"><td className="p-3">Mock Access</td><td className="p-3 text-slate-400">Limited Mocks</td><td className="p-3 text-green-600">Unlimited Mocks</td></tr>
+                      <tr className="border-b border-slate-50"><td className="p-3">Exam Type</td><td className="p-3 text-slate-400">Only MCQ</td><td className="p-3 text-green-600">MCQ + Written Checked by Anshu Sir</td></tr>
+                      <tr className="border-b border-slate-50"><td className="p-3">Transcript</td><td className="p-3 text-slate-400">No Transcript</td><td className="p-3 text-green-600">Full Performance Transcript</td></tr>
+                      <tr className="border-b border-slate-50"><td className="p-3">Live Session</td><td className="p-3 text-slate-400">Not Live Mock</td><td className="p-3 text-green-600">Live Mock Benefits</td></tr>
+                      <tr><td className="p-3">Application</td><td className="p-3 text-slate-400">Limited Features</td><td className="p-3 text-green-600">Unlimited Features</td></tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
-
             <div className="bg-black/60 backdrop-blur-xl p-5 rounded-3xl shadow-md border border-white/10 text-left w-full">
-              <h3 className="font-bold text-xs uppercase mb-3 border-b border-white/10 pb-2 flex items-center gap-2 italic text-blue-300"><History size={16} className="text-blue-400" /> Activity Stream</h3>
+              <h3 className="font-bold text-xs uppercase mb-3 border-b border-white/10 pb-2 flex items-center gap-2 italic text-blue-300"><History size={16} className="text-blue-400"/> Activity Stream</h3>
               <div className="space-y-3">
                 {activityLogs.slice(0, 10).map(log => (
                   <div key={log.id} className="p-2.5 bg-white/5 rounded-xl flex justify-between items-center border-l-4 border-blue-600 shadow-sm transition-all hover:bg-white/10">
-                    <div><p className="text-[10px] font-black uppercase text-white">{log.studentName}</p><p className="text-[8px] font-bold text-slate-400 uppercase italic">{log.examTitle} • {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {new Date(log.timestamp).toLocaleDateString('en-GB')}</p></div>
-                    <div className="text-right text-[7px] font-bold text-slate-500 uppercase leading-tight">RECENT <br /> ACTIVITY</div>
-                  </div> ))}
+                    <div><p className="text-[10px] font-black uppercase text-white">{log.studentName}</p><p className="text-[8px] font-bold text-slate-400 uppercase italic">{log.examTitle} • {new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} • {new Date(log.timestamp).toLocaleDateString('en-GB')}</p></div>
+                    <div className="text-right text-[7px] font-bold text-slate-500 uppercase leading-tight">RECENT <br/> ACTIVITY</div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         )}
         {activeTab === 'live' && (
           <div className="space-y-4 w-full text-left print:hidden">
-            <h2 className="font-bold uppercase text-blue-300 border-b border-white/10 pb-2 text-[10px] flex items-center gap-2 bg-black/40 p-2 rounded-lg backdrop-blur-md"><Clock size={14} className="text-red-500" /> Ongoing Live Mocks</h2>
+            <h2 className="font-bold uppercase text-blue-300 border-b border-white/10 pb-2 text-[10px] flex items-center gap-2 bg-black/40 p-2 rounded-lg backdrop-blur-md"><Clock size={14} className="text-red-500"/> Ongoing Live Mocks</h2>
             {ongoingLive.length > 0 ? ongoingLive.map((m, i) => (
               <div key={m.id} className="bg-black/60 backdrop-blur-xl p-4 rounded-2xl shadow-xl flex justify-between items-center border border-white/10">
-                <div className="flex-1 pr-4"> <h3 className="text-sm font-black uppercase italic tracking-tighter text-white break-words">{i + 1}. {m.name}</h3> <LiveCountdown timestamp={m.timestamp} /> </div>
-                <button onClick={() => handleStartExamFlow(m)} className={`px-6 py-2 rounded-full font-black text-[9px] uppercase shadow-lg h-fit flex items-center gap-2 ${m.isGuestEnabled ? 'bg-red-600 text-white' : 'bg-slate-800 text-blue-400 border border-blue-900/50'}`}> {!m.isGuestEnabled && <Lock size={12} />} {m.isGuestEnabled ? 'Attend' : 'Protected'} </button>
-              </div> )) : <p className="text-[10px] text-slate-500 italic p-4 text-center">No active sessions at the moment.</p>}
+                <div className="flex-1 pr-4">
+                  <h3 className="text-sm font-black uppercase italic tracking-tighter text-white break-words">{i + 1}. {m.name}</h3>
+                  <LiveCountdown timestamp={m.timestamp} />
+                </div>
+                <button onClick={() => handleStartExamFlow(m)} className={`px-6 py-2 rounded-full font-black text-[9px] uppercase shadow-lg h-fit flex items-center gap-2 ${m.isGuestEnabled ? 'bg-red-600 text-white' : 'bg-slate-800 text-blue-400 border border-blue-900/50'}`}> {!m.isGuestEnabled && <Lock size={12}/>} {m.isGuestEnabled ? 'Attend' : 'Protected'} </button>
+              </div>
+            )) : <p className="text-[10px] text-slate-500 italic p-4 text-center">No active sessions at the moment.</p>}
           </div>
         )}
-        {activeTab === 'teacher' && (!isTeacherAuthenticated ? <div className="max-w-md w-full mx-auto mt-20 p-10 bg-slate-950 backdrop-blur-xl rounded-3xl shadow-2xl text-center border-t-8 border-blue-700 border-x border-b border-white/10 print:hidden">
-          <Lock size={40} className="text-blue-500 mx-auto mb-6" /> <input type="password" autoFocus onChange={(e) => { if (e.target.value === teacherPin) setIsTeacherAuthenticated(true); }} className="w-full py-4 bg-black border-2 border-slate-800 rounded-xl text-center text-4xl font-black outline-none text-white placeholder:text-slate-800" placeholder="••••" />
-        </div> : <TeacherZoneMainView liveMocks={liveMocks} practiceSets={practiceSets} students={students} teacherPin={teacherPin} studentResults={studentResults} setTeacherPin={async (v) => await setDoc(doc(db, "settings", "adminConfig"), { pin: v }, { merge: true })} />)}
+        {activeTab === 'teacher' && (!isTeacherAuthenticated ? <div className="max-w-md w-full mx-auto mt-20 p-10 bg-slate-950 backdrop-blur-xl rounded-3xl shadow-2xl text-center border-t-8 border-blue-700 border-x border-b border-white/10 print:hidden"> <Lock size={40} className="text-blue-500 mx-auto mb-6" /> <input type="password" onChange={(e) => { if(e.target.value === teacherPin) setIsTeacherAuthenticated(true); }} className="w-full py-4 bg-black border-2 border-slate-800 rounded-xl text-center text-4xl font-black outline-none text-white placeholder:text-slate-800" placeholder="••••" /> </div> : <TeacherZoneMainView liveMocks={liveMocks} practiceSets={practiceSets} students={students} teacherPin={teacherPin} studentResults={studentResults} setTeacherPin={async (v) => await setDoc(doc(db, "settings", "adminConfig"), { pin: v }, { merge: true })} /> )}
         {activeTab === 'growth' && <GrowthSectionView results={studentResults} students={students} />}
         {activeTab === 'practice' && (
           <div className="w-full space-y-8 print:hidden">
             {(() => {
               const allMocks = [...practiceSets.filter(p => p.isPublished), ...shiftedLive];
-              const classes = [...new Set(allMocks.map(m => m.class || 'Other'))].sort((a, b) => parseInt(a) - parseInt(b));
+              const classes = [...new Set(allMocks.map(m => m.class || 'Other'))].sort((a,b) => parseInt(a) - parseInt(b));
               if (allMocks.length === 0) return <p className="text-center text-slate-500 italic text-[10px]">No practice sets available.</p>;
               return classes.map(cls => (
                 <div key={cls} className="space-y-4">
-                  <h2 className="font-black uppercase text-blue-400 border-b-2 border-blue-900/50 pb-2 text-xs flex items-center gap-2 italic tracking-widest pl-2"> <BookOpen size={16} /> Class {cls} </h2>
+                  <h2 className="font-black uppercase text-blue-400 border-b-2 border-blue-900/50 pb-2 text-xs flex items-center gap-2 italic tracking-widest pl-2"> <BookOpen size={16}/> Class {cls} </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {allMocks.filter(m => (m.class || 'Other') === cls).map((p, i) => (
                       <div key={p.id} className="bg-black/60 backdrop-blur-xl p-4 rounded-2xl shadow flex justify-between items-center border border-white/10 hover:border-blue-500/50 transition-all">
-                        <div className="flex-1 pr-4"> <h3 className="font-bold uppercase text-xs italic text-white break-words">{i + 1}. {p.name}</h3> <p className="text-[9px] font-bold text-slate-500 uppercase italic mt-1">Time: {p.hours || 0}h {p.minutes || 0}m</p> </div>
-                        <button onClick={() => handleStartExamFlow(p)} className={`px-6 py-2 rounded-full font-black text-[9px] uppercase shadow-md h-fit flex items-center gap-2 ${p.isGuestEnabled ? 'bg-red-600 text-white' : 'bg-slate-800 text-blue-400 border border-blue-900/50'}`}> {!p.isGuestEnabled && <Lock size={12} />} {p.isGuestEnabled ? 'Start' : 'Protected'} </button>
-                      </div> ))}
+                        <div className="flex-1 pr-4">
+                          <h3 className="font-bold uppercase text-xs italic text-white break-words">{i + 1}. {p.name}</h3>
+                          <p className="text-[9px] font-bold text-slate-500 uppercase italic mt-1">Time: {p.hours || 0}h {p.minutes || 0}m</p>
+                        </div>
+                        <button onClick={() => handleStartExamFlow(p)} className={`px-6 py-2 rounded-full font-black text-[9px] uppercase shadow-md h-fit flex items-center gap-2 ${p.isGuestEnabled ? 'bg-red-600 text-white' : 'bg-slate-800 text-blue-400 border border-blue-900/50'}`}> {!p.isGuestEnabled && <Lock size={12}/>} {p.isGuestEnabled ? 'Start' : 'Protected'} </button>
+                      </div>
+                    ))}
                   </div>
-                </div> ));
+                </div>
+              ));
             })()}
           </div>
         )}
@@ -313,8 +271,6 @@ const App = () => {
 
 const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, setTeacherPin, studentResults }) => {
   const [selectedStudent, setSelectedStudent] = useState(null);
-  const [isChangingPin, setIsChangingPin] = useState(false);
-  const [pinVal, setPinVal] = useState('');
   const [expandedId, setExpandedId] = useState(null);
   const [quickAddType, setQuickAddType] = useState('live');
   const [qaName, setQaName] = useState('');
@@ -326,121 +282,101 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
   const [qaNeg, setQaNeg] = useState('0');
   const [qaGuest, setQaGuest] = useState(false);
   const [qaClass, setQaClass] = useState('10');
+  const [qaLevel, setQaLevel] = useState('EASY');
 
   const updateField = async (id, type, field, value) => {
     const coll = type === 'live' ? 'liveMocks' : 'practiceSets';
-    const finalVal = (field === 'isPublished' && value === true) ? { [field]: value, timestamp: Date.now() } : { [field]: value };
-    await setDoc(doc(db, coll, id), finalVal, { merge: true });
+    await setDoc(doc(db, coll, id), { [field]: value }, { merge: true });
   };
 
   const handleQuickAdd = async () => {
     if (!qaName.trim()) return alert("Exam Name Required!");
     const coll = quickAddType === 'live' ? 'liveMocks' : 'practiceSets';
-    await addDoc(collection(db, coll), { name: qaName.toUpperCase(), hours: qaHours, minutes: qaMinutes, fileUrl: qaLink.trim(), answerKey: qaKey.toUpperCase(), questionMarks: qaMarks, negativeMark: qaNeg || "0", isPublished: false, isGuestEnabled: qaGuest, class: qaClass, timestamp: Date.now() });
+    await addDoc(collection(db, coll), { name: qaName.toUpperCase(), hours: qaHours, minutes: qaMinutes, fileUrl: qaLink.trim(), answerKey: qaKey.toUpperCase(), questionMarks: qaMarks, negativeMark: qaNeg || "0", isPublished: false, isGuestEnabled: qaGuest, class: qaClass, level: qaLevel, timestamp: Date.now() });
     setQaName(''); setQaLink(''); setQaKey(''); setQaMarks(''); setQaNeg('0'); setQaGuest(false);
     alert(`Success: Added to Registry`);
   };
 
-  const adminLive = liveMocks.filter(m => (Date.now() - (m.timestamp || 0) < 6 * 3600000));
-  const adminShifted = [...practiceSets, ...liveMocks.filter(m => (Date.now() - (m.timestamp || 0) >= 6 * 3600000))];
-
-  const AdminPaperManager = ({ title, items, color }) => {
-    const classes = [...new Set(items.map(m => m.class || 'Other'))].sort((a,b) => parseInt(a) - parseInt(b));
-    return (
-      <div className="bg-black/60 backdrop-blur-xl rounded-[2rem] shadow-2xl border-t-8 border-slate-900 mb-8 w-full overflow-hidden print:hidden border-x border-b border-white/5">
-        <div className="flex justify-between items-center p-6 border-b border-white/5">
-          <h3 className={`font-black uppercase text-xs italic ${color}`}>{title} Manager ({items.length})</h3>
-        </div>
-        <div className="max-h-[600px] overflow-y-auto p-4 space-y-6 bg-white/5 no-scrollbar">
-          {classes.map(cls => (
-            <div key={cls} className="space-y-3 text-left">
-               <h4 className="text-[10px] font-black text-blue-400 uppercase italic border-b border-white/5 pb-1 pl-2">Class {cls}</h4>
-               {items.filter(m => (m.class || 'Other') === cls).sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0)).map((item, index) => (
-                <div key={item.id} className="bg-slate-900/60 rounded-2xl border border-white/10 overflow-hidden transition-all">
-                  <div onClick={() => setExpandedId(expandedId === item.id ? null : item.id)} className="p-4 flex justify-between items-center cursor-pointer hover:bg-white/5 group">
-                    <div className="flex-1 pr-2">
-                      <div className="flex flex-col">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-2 h-2 rounded-full flex-shrink-0 ${item.isPublished ? 'bg-green-500 animate-pulse' : 'bg-slate-700'}`}></div>
-                          <span className="text-xs font-black uppercase italic text-white break-words">{item.name}</span>
-                          {item.isGuestEnabled && <span className="text-[7px] bg-green-600 px-1.5 py-0.5 rounded text-white font-black italic">GUEST ON</span>}
-                        </div>
-                        <p className="text-[8px] font-bold text-slate-500 uppercase italic ml-5 mt-1">
-                          Last Change: {item.timestamp ? `${new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} • ${new Date(item.timestamp).toLocaleDateString('en-GB')}` : 'N/A'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                       <button onClick={(e) => { e.stopPropagation(); updateField(item.id, item.source, 'isPublished', !item.isPublished); }} className={`px-4 py-1.5 rounded-full text-[8px] font-black shadow-sm ${item.isPublished ? 'bg-green-600 text-white' : 'bg-slate-800 text-slate-500'}`}>{item.isPublished ? 'LIVE' : 'HIDDEN'}</button>
-                       <button onClick={async (e) => { e.stopPropagation(); if(window.confirm("Permanent delete?")) { await deleteDoc(doc(db, item.source === 'live' ? 'liveMocks' : 'practiceSets', item.id)); } }} className="p-2 text-slate-600 hover:text-red-500 transition-colors"><Trash2 size={16}/></button>
-                       <ChevronRight size={18} className={`transition-transform text-slate-600 ${expandedId === item.id ? 'rotate-90 text-blue-400' : ''}`} />
-                    </div>
+  const PaperManager = ({ title, items, type, color }) => (
+    <div className="bg-black/60 backdrop-blur-xl rounded-[2rem] shadow-2xl border-t-8 border-slate-900 mb-8 w-full overflow-hidden print:hidden border-x border-b border-white/5">
+      <div className="flex justify-between items-center p-6 border-b border-white/5"> <h3 className={`font-black uppercase text-xs italic ${color}`}>{title} Manager</h3> </div>
+      <div className="max-h-[500px] overflow-y-auto p-4 space-y-3 bg-white/5 no-scrollbar">
+        {items.map((item, index) => (
+          <div key={item.id} className="bg-slate-900/60 rounded-2xl border border-white/10 overflow-hidden transition-all">
+            <div onClick={() => setExpandedId(expandedId === item.id ? null : item.id)} className="p-4 flex justify-between items-center cursor-pointer hover:bg-white/5 group">
+              <div className="flex-1 pr-2">
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-2 h-2 rounded-full flex-shrink-0 ${item.isPublished ? 'bg-green-500 animate-pulse' : 'bg-slate-700'}`}></div>
+                    <span className="text-xs font-black uppercase italic text-white break-words">{index + 1}. {item.name}</span>
+                    <span className="text-[7px] bg-blue-600 px-1.5 py-0.5 rounded text-white font-black">CLS {item.class}</span>
+                    <span className="text-[7px] bg-yellow-600 px-1.5 py-0.5 rounded text-white font-black">{item.level || 'EASY'}</span>
                   </div>
-                  {expandedId === item.id && (
-                    <div className="p-5 border-t border-white/5 bg-black/40 space-y-4 animate-in slide-in-from-top-2">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-                         <div className="flex items-center gap-2"><input type="checkbox" checked={item.isGuestEnabled} onChange={(e) => updateField(item.id, item.source, 'isGuestEnabled', e.target.checked)} className="accent-green-500 w-4 h-4" /><p className="text-[10px] font-black text-green-400 uppercase italic">Guest Mode</p></div>
-                         <div><p className="text-[8px] font-black text-blue-400 uppercase mb-1 ml-1">Class</p><select value={item.class || '10'} onChange={(e) => updateField(item.id, item.source, 'class', e.target.value)} className="w-full p-2 bg-black border border-white/10 rounded-xl text-white text-xs font-black">{[5,6,7,8,9,10,11,12].map(c => <option key={c} value={c}>{c}</option>)}</select></div>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><p className="text-[8px] font-black text-slate-500 uppercase mb-1 ml-1">Exam Name</p><input type="text" defaultValue={item.name} onBlur={(e) => updateField(item.id, item.source, 'name', e.target.value.toUpperCase())} className="w-full p-2.5 rounded-xl border border-white/10 bg-black text-white text-xs font-black outline-none focus:border-blue-500" /></div>
-                        <div><p className="text-[8px] font-black text-red-500 uppercase mb-1 ml-1">Negative Marking</p><input type="number" step="0.01" defaultValue={item.negativeMark || 0} onBlur={(e) => updateField(item.id, item.source, 'negativeMark', e.target.value)} className="w-full p-2.5 rounded-xl border border-white/10 bg-black text-white text-xs font-black outline-none" /></div>
-                      </div>
-                    </div>
-                  )}
                 </div>
-              ))}
+              </div>
+              <div className="flex items-center gap-3">
+                <button onClick={(e) => { e.stopPropagation(); updateField(item.id, type, 'isPublished', !item.isPublished); }} className={`px-4 py-1.5 rounded-full text-[8px] font-black shadow-sm ${item.isPublished ? 'bg-green-600 text-white' : 'bg-slate-800 text-slate-500'}`}>{item.isPublished ? 'LIVE' : 'HIDDEN'}</button>
+                <button onClick={async (e) => { e.stopPropagation(); if(window.confirm("Permanent delete?")) await deleteDoc(doc(db, type === 'live' ? 'liveMocks' : 'practiceSets', item.id)); }} className="p-2 text-slate-600 hover:text-red-500 transition-colors"><Trash2 size={16}/></button>
+                <ChevronRight size={18} className={`transition-transform text-slate-600 ${expandedId === item.id ? 'rotate-90 text-blue-400' : ''}`} />
+              </div>
             </div>
-          ))}
-        </div>
+            {expandedId === item.id && (
+              <div className="p-5 border-t border-white/5 bg-black/40 space-y-4 animate-in slide-in-from-top-2 text-left">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                  <div className="flex items-center gap-2"> <input type="checkbox" checked={item.isGuestEnabled} onChange={(e) => updateField(item.id, type, 'isGuestEnabled', e.target.checked)} className="accent-green-500 w-4 h-4" /> <p className="text-[10px] font-black text-green-400 uppercase italic">Guest Mode</p> </div>
+                  <div> <p className="text-[8px] font-black text-blue-400 uppercase mb-1">Class</p> <select value={item.class || '10'} onChange={(e) => updateField(item.id, type, 'class', e.target.value)} className="w-full p-2 bg-black border border-white/10 rounded-xl text-white text-xs font-black"> {[5,6,7,8,9,10,11,12].map(c => <option key={c} value={c}>{c}</option>)} </select> </div>
+                  <div> <p className="text-[8px] font-black text-yellow-400 uppercase mb-1">Difficulty</p> <select value={item.level || 'EASY'} onChange={(e) => updateField(item.id, type, 'level', e.target.value)} className="w-full p-2 bg-black border border-white/10 rounded-xl text-white text-xs font-black"> <option value="EASY">EASY</option> <option value="MODERATE">MODERATE</option> <option value="HARD">HARD</option> </select> </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div> <p className="text-[8px] font-black text-slate-500 uppercase mb-1 ml-1">Exam Name</p> <input type="text" defaultValue={item.name} onBlur={(e) => updateField(item.id, type, 'name', e.target.value.toUpperCase())} className="w-full p-2.5 rounded-xl border border-white/10 bg-black text-white text-xs font-black outline-none focus:border-blue-500" /> </div>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
       </div>
-    );
-  };
+    </div>
+  );
 
   return (
     <div className="w-full flex flex-col items-center">
       <div className="bg-slate-950/80 backdrop-blur-xl p-6 rounded-[2.5rem] shadow-2xl border-t-8 border-blue-700 w-full mb-8 text-left animate-in fade-in print:hidden border-x border-b border-white/5">
-        <div className="flex justify-between items-center mb-6"> <h3 className="font-black text-[10px] uppercase flex items-center gap-2 italic text-blue-400"><Zap size={20} /> KUI GET (Quick Add)</h3>
-          <div className="flex gap-1 p-1 bg-black rounded-xl border border-white/5"> <button onClick={() => setQuickAddType('live')} className={`px-4 py-1.5 rounded-lg font-black text-[8px] uppercase transition-all ${quickAddType === 'live' ? 'bg-red-600 text-white shadow-md' : 'text-slate-500'}`}>Live</button> <button onClick={() => setQuickAddType('practice')} className={`px-4 py-1.5 rounded-lg font-black text-[8px] uppercase transition-all ${quickAddType === 'practice' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500'}`}>Practice</button> </div> </div>
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="font-black text-[10px] uppercase flex items-center gap-2 italic text-blue-400"><Zap size={20}/> KUI GET (Quick Add)</h3>
+          <div className="flex gap-1 p-1 bg-black rounded-xl border border-white/5">
+            <button onClick={() => setQuickAddType('live')} className={`px-4 py-1.5 rounded-lg font-black text-[8px] uppercase transition-all ${quickAddType === 'live' ? 'bg-red-600 text-white shadow-md' : 'text-slate-500'}`}>Live</button>
+            <button onClick={() => setQuickAddType('practice')} className={`px-4 py-1.5 rounded-lg font-black text-[8px] uppercase transition-all ${quickAddType === 'practice' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500'}`}>Practice</button>
+          </div>
+        </div>
         <div className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-center gap-2"> <input type="checkbox" checked={qaGuest} onChange={(e) => setQaGuest(e.target.checked)} className="accent-blue-500" /> <p className="text-[9px] font-black text-slate-400 uppercase italic">Enable Guest Access</p> </div>
-            <div> <p className="text-[8px] font-black text-blue-400 uppercase mb-1 ml-1">Class</p> <select value={qaClass} onChange={(e) => setQaClass(e.target.value)} className="w-full p-2 bg-black border border-white/10 rounded-xl text-white text-[10px] font-black outline-none"> {[5, 6, 7, 8, 9, 10, 11, 12].map(c => <option key={c} value={c}>{c}</option>)} </select> </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex items-center gap-2"> <input type="checkbox" checked={qaGuest} onChange={(e) => setQaGuest(e.target.checked)} className="accent-blue-500" /> <p className="text-[9px] font-black text-slate-400 uppercase italic">Guest Mode</p> </div>
+            <div> <p className="text-[8px] font-black text-blue-400 uppercase mb-1">Class</p> <select value={qaClass} onChange={(e) => setQaClass(e.target.value)} className="w-full p-2 bg-black border border-white/10 rounded-xl text-white text-[10px] font-black outline-none"> {[5,6,7,8,9,10,11,12].map(c => <option key={c} value={c}>{c}</option>)} </select> </div>
+            <div> <p className="text-[8px] font-black text-yellow-400 uppercase mb-1">Level</p> <select value={qaLevel} onChange={(e) => setQaLevel(e.target.value)} className="w-full p-2 bg-black border border-white/10 rounded-xl text-white text-[10px] font-black outline-none"> <option value="EASY">EASY</option> <option value="MODERATE">MODERATE</option> <option value="HARD">HARD</option> </select> </div>
           </div>
-          <div><p className="text-[8px] font-black text-slate-500 uppercase mb-1 ml-1 italic leading-none">Exam Name</p><input type="text" value={qaName} onChange={(e) => setQaName(e.target.value)} className="w-full p-3.5 bg-black border border-white/10 rounded-2xl text-[10px] font-black outline-none shadow-inner focus:border-blue-500 text-white transition-all uppercase" placeholder="New Slot" /></div>
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="bg-black p-3 rounded-2xl border border-white/10 shadow-inner min-w-[120px]"><p className="text-[8px] font-black text-blue-400 uppercase mb-1 ml-1 italic">Time Limit</p><div className="flex items-center gap-1 font-black text-[10px] text-white"><input type="number" value={qaHours} onChange={(e) => setQaHours(e.target.value)} className="w-8 text-center bg-transparent outline-none" /> <span>H</span><input type="number" value={qaMinutes} onChange={(e) => setQaMinutes(e.target.value)} className="w-8 text-center bg-transparent outline-none" /> <span>M</span></div></div>
-            <div className="flex-1 bg-black p-3 rounded-2xl border border-white/10 shadow-inner"><p className="text-[8px] font-black text-red-400 uppercase mb-1 ml-1 italic tracking-widest">Negative Mark (Ex: 0.25)</p><input type="number" step="0.01" value={qaNeg} onChange={(e) => setQaNeg(e.target.value)} className="w-full bg-transparent outline-none text-[10px] font-bold text-white" placeholder="0 for no negative" /></div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-black p-3 rounded-2xl border border-white/10 shadow-inner"><p className="text-[9px] font-black text-blue-400 uppercase mb-1 italic">Correct Key</p><input type="text" value={qaKey} onChange={(e) => setQaKey(e.target.value)} className="w-full bg-transparent outline-none font-black text-[10px] uppercase text-white" placeholder="e.g. A,B,W,D" /></div>
-            <div className="bg-black p-3 rounded-2xl border border-white/10 shadow-inner"><p className="text-[9px] font-black text-yellow-500 uppercase mb-1 italic">Marks/Q</p><input type="text" value={qaMarks} onChange={(e) => setQaMarks(e.target.value)} className="w-full bg-transparent outline-none font-black text-[10px] text-white" placeholder="e.g. 1,1,5,1" /></div>
-          </div>
-          <div className="bg-black p-3 rounded-2xl border border-white/10 shadow-inner"> <p className="text-[8px] font-black text-slate-500 uppercase mb-1 ml-1 italic tracking-widest">Google Drive Link</p> <input type="text" value={qaLink} onChange={(e) => setQaLink(e.target.value)} className="w-full bg-transparent outline-none text-[9px] font-bold text-white" placeholder="Paste PDF/Doc Link" /> </div>
-          <button onClick={handleQuickAdd} className="w-full bg-blue-700 text-white py-4 rounded-[1.5rem] font-black text-[11px] uppercase shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-3 border-b-4 border-blue-900 hover:bg-blue-600 italic tracking-tighter"><Send size={18} /> Deploy to Registry</button>
+          <div><p className="text-[8px] font-black text-slate-500 uppercase mb-1 ml-1 italic leading-none">Exam Name</p><input type="text" value={qaName} onChange={(e) => setQaName(e.target.value)} className="w-full p-3.5 bg-black border border-white/10 rounded-2xl text-[10px] font-black outline-none shadow-inner focus:border-blue-500 text-white transition-all uppercase" placeholder="New Mock" /></div>
+          <button onClick={handleQuickAdd} className="w-full bg-blue-700 text-white py-4 rounded-[1.5rem] font-black text-[11px] uppercase shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-3 border-b-4 border-blue-900 hover:bg-blue-600 italic tracking-tighter"><Send size={18}/> Deploy to Registry</button>
         </div>
       </div>
-      <div className="bg-black/60 backdrop-blur-xl p-4 rounded-2xl flex justify-between items-center w-full mb-8 border border-white/10 shadow-sm print:hidden">
-        <div className="flex gap-2">
-          {isChangingPin ? (
-            <div className="flex gap-2 animate-in slide-in-from-left-2">
-              <input type="password" value={pinVal} onChange={(e) => setPinVal(e.target.value)} className="bg-black border border-white/10 rounded-full px-4 text-xs font-black outline-none text-white w-24" placeholder="NEW" />
-              <button onClick={async () => { if (pinVal.length >= 4) { await setTeacherPin(pinVal); setIsChangingPin(false); setPinVal(''); alert("PIN UPDATED"); } }} className="bg-green-600 text-white px-3 py-1.5 rounded-full text-[8px] font-black uppercase">Save</button>
-              <button onClick={() => setIsChangingPin(false)} className="text-slate-500 text-[8px] font-black uppercase">X</button>
-            </div>
-          ) : (
-            <button onClick={() => setIsChangingPin(true)} className="px-5 py-2 rounded-full bg-blue-900/40 text-blue-400 text-[10px] font-black uppercase border border-blue-800/50">PIN</button>
-          )}
-          <button onClick={async () => { if (window.confirm("Clear Logs?")) { const q = query(collection(db, "logs")); const snapshot = await getDocs(q); const batch = writeBatch(db); snapshot.docs.forEach((d) => batch.delete(d.ref)); await batch.commit(); } }} className="px-5 py-2 rounded-full bg-red-900/40 text-red-400 text-[10px] font-black uppercase border border-red-800/50">Clear Activity</button>
-        </div>
-      </div>
-      <AdminPaperManager title="Live Mock Exam" items={adminLive} color="text-red-500" />
-      <AdminPaperManager title="Practice Sets" items={adminShifted} color="text-blue-400" />
+      <PaperManager title="Live Mock Exam" items={liveMocks} type="live" color="text-red-500" />
+      <PaperManager title="Practice Sets" items={practiceSets} type="practice" color="text-blue-400" />
       <div className="bg-black/60 backdrop-blur-xl p-8 rounded-[2.5rem] shadow-2xl border-t-8 border-slate-900 w-full mb-20 text-center print:hidden border-x border-b border-white/5">
-        <h3 className="font-black text-xs uppercase mb-8 flex items-center justify-center gap-3 italic text-blue-300"><Trophy size={28} className="text-yellow-500" /> Student Registry</h3>
+        <h3 className="font-black text-xs uppercase mb-8 flex items-center justify-center gap-3 italic text-blue-300"><Trophy size={28} className="text-yellow-500"/> Student Registry</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {students.map((std) => (
-            <div key={std.id} className="relative group p-5 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center shadow-lg hover:bg-white/10 transition-all"> <input type="text" defaultValue={std.name} onBlur={async (e) => { if (e.target.value !== std.name) await setDoc(doc(db, "students", std.id), { name: e.target.value.toUpperCase() }, { merge: true }); }} className="bg-transparent text-center text-md font-black uppercase italic tracking-tighter text-white outline-none focus:bg-white/10 rounded-lg px-2" /> <div className="mt-2 flex items-center gap-2 bg-blue-950 px-3 py-1 rounded-full border border-blue-900"> <Lock size={10} className="text-blue-400" /> <input type="text" defaultValue={std.studentCode} onBlur={async (e) => { if (e.target.value !== std.studentCode) await setDoc(doc(db, "students", std.id), { studentCode: e.target.value }, { merge: true }); }} className="bg-transparent text-[10px] font-black text-blue-400 uppercase tracking-widest outline-none w-20 text-center" /> </div> <div className="flex gap-3 mt-6"> <button onClick={() => setSelectedStudent(std)} className="px-5 py-1.5 bg-slate-800 border border-slate-700 rounded-full text-[10px] font-black uppercase hover:bg-blue-600 hover:text-white transition-all shadow-sm italic">Reports</button> <button onClick={async (e) => { if (window.confirm(`Delete ${std.name}?`)) await deleteDoc(doc(db, "students", std.id)); }} className="p-2 bg-red-950/40 text-red-500 rounded-full border border-red-900/50 active:scale-90"><Trash2 size={16} /></button> </div> </div> ))} <button onClick={async () => { const n = prompt("Student Name:"); const c = prompt("Unique Code:"); if(n) await addDoc(collection(db, "students"), { name: n.toUpperCase(), studentCode: c || "" }); }} className="p-8 border-4 border-dashed border-white/10 rounded-[2.5rem] text-[12px] font-black text-slate-600 uppercase hover:text-blue-500 transition-all">+ REGISTER</button>
+            <div key={std.id} className="relative group p-5 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center shadow-lg hover:bg-white/10 transition-all">
+              <input type="text" defaultValue={std.name} onBlur={async (e) => { if(e.target.value !== std.name) await setDoc(doc(db, "students", std.id), { name: e.target.value.toUpperCase() }, { merge: true }); }} className="bg-transparent text-center text-md font-black uppercase italic tracking-tighter text-white outline-none focus:bg-white/10 rounded-lg px-2" />
+              <div className="mt-2 flex items-center gap-2 bg-blue-950 px-3 py-1 rounded-full border border-blue-900">
+                <Lock size={10} className="text-blue-400"/>
+                <input type="text" defaultValue={std.studentCode} onBlur={async (e) => { if(e.target.value !== std.studentCode) await setDoc(doc(db, "students", std.id), { studentCode: e.target.value }, { merge: true }); }} className="bg-transparent text-[10px] font-black text-blue-400 uppercase tracking-widest outline-none w-20 text-center" />
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button onClick={() => setSelectedStudent(std)} className="px-5 py-1.5 bg-slate-800 border border-slate-700 rounded-full text-[10px] font-black uppercase hover:bg-blue-600 hover:text-white transition-all shadow-sm italic">Reports</button>
+                <button onClick={async (e) => { if(window.confirm(`Delete ${std.name}?`)) await deleteDoc(doc(db, "students", std.id)); }} className="p-2 bg-red-950/40 text-red-500 rounded-full border border-red-900/50 active:scale-90"><Trash2 size={16}/></button>
+              </div>
+            </div>
+          ))}
+          <button onClick={async () => { const n = prompt("Student Name:"); const c = prompt("Unique Code:"); if(n) await addDoc(collection(db, "students"), {name: n.toUpperCase(), studentCode: c || ""}); }} className="p-8 border-4 border-dashed border-white/10 rounded-[2.5rem] text-[12px] font-black text-slate-600 uppercase hover:text-blue-500 transition-all">+ REGISTER</button>
         </div>
       </div>
       {selectedStudent && <AdminMarksheetModal student={selectedStudent} results={studentResults} onClose={() => setSelectedStudent(null)} />}
@@ -454,14 +390,14 @@ const AdminMarksheetModal = ({ student, results, onClose }) => {
   return (
     <div className="fixed inset-0 bg-slate-950 z-[1200] p-6 overflow-y-auto animate-in slide-in-from-right-full duration-500 print:hidden text-white">
       {previewImg && <ImagePreviewModal src={previewImg} onClose={() => setPreviewImg(null)} />}
-      <button onClick={onClose} className="font-black text-blue-400 mb-10 flex items-center gap-3 border-b-4 border-blue-400 w-fit uppercase text-[11px] italic tracking-tighter hover:text-blue-200 transition-all print:hidden"><ChevronLeft size={24} /> Return to Registry</button>
+      <button onClick={onClose} className="font-black text-blue-400 mb-10 flex items-center gap-3 border-b-4 border-blue-400 w-fit uppercase text-[11px] italic tracking-tighter hover:text-blue-200 transition-all print:hidden"><ChevronLeft size={24}/> Return to Registry</button>
       <div className="bg-slate-900/60 backdrop-blur-md p-10 rounded-[3rem] border border-white/10 shadow-3xl max-w-xl mx-auto space-y-10">
         <div className="flex items-center gap-5 border-b border-white/10 pb-6"><div className="w-16 h-16 bg-blue-700 rounded-[1.5rem] flex items-center justify-center text-white shadow-xl italic font-black text-2xl">{student?.name?.charAt(0)}</div><div><h3 className="text-3xl font-black uppercase italic tracking-tighter text-white leading-none">{student?.name}</h3><p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-1 italic">Performance Logs</p></div></div>
-        <div className="p-8 bg-black rounded-[2.5rem] space-y-5 border border-white/10 print:hidden"><div className="grid grid-cols-1 gap-5 text-left"><input type="text" value={newRes.exam} onChange={(e) => setNewRes({ ...newRes, exam: e.target.value.toUpperCase() })} className="w-full p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-xs outline-none focus:border-blue-500" placeholder="Module Name" /><input type="date" value={newRes.date} onChange={(e) => setNewRes({ ...newRes, date: e.target.value })} className="w-full p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-xs outline-none" /><div className="flex gap-3"><input type="number" placeholder="Obt" value={newRes.obtained} onChange={(e) => setNewRes({ ...newRes, obtained: e.target.value })} className="w-1/2 p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-lg text-center outline-none focus:border-blue-500" /><input type="number" placeholder="Full" value={newRes.total} onChange={(e) => setNewRes({ ...newRes, total: e.target.value })} className="w-1/2 p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-lg text-center outline-none focus:border-blue-500" /></div></div><button onClick={async () => { if (newRes.exam && newRes.obtained && newRes.total && newRes.date) { const p = Math.round((parseFloat(newRes.obtained) / parseFloat(newRes.total)) * 100); await addDoc(collection(db, "results"), { ...newRes, name: student.name, percent: p, timestamp: Date.now() }); setNewRes({ exam: "", obtained: "", total: "", date: "" }); alert("Saved!"); } }} className="w-full py-5 bg-blue-700 text-white rounded-[1.5rem] font-black uppercase text-xs shadow-xl active:scale-95 transition-all">Manual Entry</button></div>
+        <div className="p-8 bg-black rounded-[2.5rem] space-y-5 border border-white/10 print:hidden"><div className="grid grid-cols-1 gap-5 text-left"><input type="text" value={newRes.exam} onChange={(e) => setNewRes({...newRes, exam: e.target.value.toUpperCase()})} className="w-full p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-xs outline-none focus:border-blue-500" placeholder="Module Name" /><input type="date" value={newRes.date} onChange={(e) => setNewRes({...newRes, date: e.target.value})} className="w-full p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-xs outline-none" /><div className="flex gap-3"><input type="number" placeholder="Obt" value={newRes.obtained} onChange={(e) => setNewRes({...newRes, obtained: e.target.value})} className="w-1/2 p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-lg text-center outline-none focus:border-blue-500" /><input type="number" placeholder="Full" value={newRes.total} onChange={(e) => setNewRes({...newRes, total: e.target.value})} className="w-1/2 p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-lg text-center outline-none focus:border-blue-500" /></div></div><button onClick={async () => { if(newRes.exam && newRes.obtained && newRes.total && newRes.date) { const p = Math.round((parseFloat(newRes.obtained)/parseFloat(newRes.total))*100); await addDoc(collection(db, "results"), { ...newRes, name: student.name, percent: p, timestamp: Date.now() }); setNewRes({exam: "", obtained: "", total: "", date: ""}); alert("Saved!"); } }} className="w-full py-5 bg-blue-700 text-white rounded-[1.5rem] font-black uppercase text-xs shadow-xl active:scale-95 transition-all">Manual Entry</button></div>
         <div className="space-y-8 pt-8 border-t border-white/10">
-          {results.filter(r => r.name === student?.name).sort((a, b) => b.timestamp - a.timestamp).map(r => (
+          {results.filter(r => r.name === student?.name).sort((a,b)=>b.timestamp-a.timestamp).map(r => (
             <div key={r.id} className="p-6 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col gap-6 shadow-sm hover:shadow-md transition-all group">
-              <div className="flex justify-between items-start w-full"><div className="flex items-center gap-4"><div className="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg bg-blue-900/40 text-blue-400 border border-blue-800/50 shadow-sm">{r.percent}%</div><div className="flex-1 min-w-0 pr-2"><p className="text-sm font-black uppercase italic tracking-tighter text-white leading-none break-words whitespace-normal">{r.exam}</p><p className="text-[10px] font-bold text-slate-500 mt-1 italic">{r.date} • Score: {r.obtained}/{r.total}</p></div></div><button onClick={async () => { if (window.confirm("Purge record?")) await deleteDoc(doc(db, "results", r.id)); }} className="text-slate-600 hover:text-red-500 active:scale-90 transition-all flex-shrink-0 print:hidden"><Trash2 size={24} /></button></div>
+              <div className="flex justify-between items-start w-full"><div className="flex items-center gap-4"><div className="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg bg-blue-900/40 text-blue-400 border border-blue-800/50 shadow-sm">{r.percent}%</div><div className="flex-1 min-w-0 pr-2"><p className="text-sm font-black uppercase italic tracking-tighter text-white leading-none break-words whitespace-normal">{r.exam}</p><p className="text-[10px] font-bold text-slate-500 mt-1 italic">{r.date} • Score: {r.obtained}/{r.total}</p></div></div><button onClick={async () => { if(window.confirm("Purge record?")) await deleteDoc(doc(db, "results", r.id)); }} className="text-slate-600 hover:text-red-500 active:scale-90 transition-all flex-shrink-0 print:hidden"><Trash2 size={24} /></button></div>
               {r.details && r.details.some(d => d.pending) && (
                 <div className="bg-orange-950/30 border border-orange-900/50 rounded-[2rem] p-4 flex flex-col gap-3 shadow-inner print:hidden"><p className="text-[10px] font-black text-orange-400 uppercase italic text-center animate-pulse tracking-widest">Action Required: Written Solutions</p><div className="flex overflow-x-auto gap-4 pb-4 no-scrollbar snap-x snap-mandatory">
                   {r.details.filter(d => d.pending).map((pendingQ, pIdx) => {
@@ -502,8 +438,7 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
   const handleImageUpload = (qNum, file) => {
     if (exam.isGuest) return alert("Guest users cannot upload images. Only MCQ is allowed.");
     if (!file) return;
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
+    const reader = new FileReader(); reader.readAsDataURL(file);
     reader.onload = (event) => {
       const img = new Image(); img.src = event.target.result;
       img.onload = () => {
@@ -601,12 +536,14 @@ const GrowthSectionView = ({ results, students }) => {
                   const hasPendingWritten = r.details && r.details.some(d => d.type === 'written' && d.pending === true);
                   return (
                     <div key={r.id} className="w-full bg-slate-900/60 rounded-[2rem] border border-white/10 shadow-sm flex items-center p-4 md:p-5 gap-3 md:gap-6 hover:shadow-md transition-all group print-card">
-                      <div className="flex-1 min-w-0 border-l-4 md:border-l-8 border-blue-600 pl-3 md:pl-5"><p className="text-[8px] md:text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Exam Unit {isMultiple && <span className="text-yellow-500 ml-2">| ATTEMPT {r.attemptNo}</span>}</p><h3 className="text-xs md:text-lg font-black uppercase italic text-white leading-tight whitespace-normal break-words">{r.exam}</h3>
+                      <div className="flex-1 min-w-0 border-l-4 md:border-l-8 border-blue-600 pl-3 md:pl-5"><p className="text-[8px] md:text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Exam Unit {isMultiple && <span className="text-yellow-500 ml-2">| ATTEMPT {r.attemptNo}</span>} </p><p className="text-xs md:text-lg font-black uppercase italic text-white leading-tight whitespace-normal break-words">{r.exam}</p>
                         {hasPendingWritten && <p className="text-[7px] md:text-[8px] font-black text-orange-400 uppercase italic mt-0.5 animate-pulse">Score may increase after Anshu Sir's review</p>}
-                        <p className="text-[8px] md:text-[9px] font-black text-blue-400 uppercase italic mt-1">{new Date(r.timestamp).toLocaleDateString('en-GB')} • {new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p></div>
+                        <p className="text-[8px] md:text-[9px] font-black text-blue-400 uppercase italic mt-1">{new Date(r.timestamp).toLocaleDateString('en-GB')} • {new Date(r.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p></div>
                       <div className="text-center px-2 md:px-4 border-l border-white/10 min-w-[70px] md:min-w-[100px]"><p className="text-[8px] md:text-[9px] font-bold text-slate-500 uppercase mb-0.5">Score</p><p className="text-xl md:text-3xl font-black italic text-blue-400 leading-none">{r.obtained}/{r.total}</p></div>
-                      <div className="flex-shrink-0 print:hidden"><button onClick={() => setSelectedReview(r)} className="bg-slate-800 text-blue-400 p-2 md:p-3 rounded-2xl border border-white/10 shadow-sm hover:bg-blue-600 hover:text-white transition-all"><Eye size={18} /></button></div>
-                    </div> ); });
+                      <div className="flex-shrink-0 print:hidden"><button onClick={() => setSelectedReview(r)} className="bg-slate-800 text-blue-400 p-2 md:p-3 rounded-2xl border border-white/10 shadow-sm hover:bg-blue-600 hover:text-white transition-all"><Eye size={18}/></button></div>
+                    </div>
+                  );
+                });
               })()}
             </div>
           </div>
