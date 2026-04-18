@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, setDoc, deleteDoc, getDocs, writeBatch } from "firebase/firestore";
-import { Trophy, BookOpen, TrendingUp, User, Clock, ChevronRight, GraduationCap, PlusCircle, FileText, Lock, Award, Timer, Settings2, CheckCircle, PenTool, ShieldAlert, Loader2, ChevronLeft, Trash2, UserPlus, History, UserCheck, X, CheckSquare, AlertCircle, ListChecks, Eye, Camera, Send, Link, Zap, Download, Unlock, Phone } from 'lucide-react';
+import { Trophy, BookOpen, TrendingUp, User, Clock, ChevronRight, GraduationCap, PlusCircle, FileText, Lock, Award, Timer, Settings2, CheckCircle, PenTool, ShieldAlert, Loader2, ChevronLeft, Trash2, UserPlus, History, UserCheck, X, CheckSquare, AlertCircle, ListChecks, Eye, Camera, Send, Link, Zap, Download, Unlock, Phone, SignalHigh } from 'lucide-react';
 
 // --- 🖼️ CONFIGURATION ---
 const APP_BACKGROUND_URL = "https://i.gifer.com/4RNk.gif";
@@ -143,6 +143,16 @@ const App = () => {
 
   if (isExamActive) return <InteractiveExamHall exam={currentExam} onFinish={() => setIsExamActive(false)} studentsList={students} />;
 
+  const LevelBadge = ({ level }) => {
+    if (!level) return null;
+    const colors = {
+      'Easy': 'bg-green-900/40 text-green-400 border-green-800',
+      'Moderate': 'bg-yellow-900/40 text-yellow-400 border-yellow-800',
+      'Hard': 'bg-red-900/40 text-red-400 border-red-800'
+    };
+    return <span className={`text-[7px] px-1.5 py-0.5 rounded border font-black uppercase italic ml-2 ${colors[level] || 'bg-slate-800 text-slate-400 border-slate-700'}`}>{level}</span>;
+  };
+
   return (
     <div className="min-h-screen font-sans text-white select-none flex flex-col items-center overflow-x-hidden transition-all duration-700 bg-black" style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url(${APP_BACKGROUND_URL})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' }} >
       <style>{`
@@ -265,7 +275,10 @@ const App = () => {
             {ongoingLive.length > 0 ? ongoingLive.map((m, i) => (
               <div key={m.id} className="bg-black/60 backdrop-blur-xl p-4 rounded-2xl shadow-xl flex justify-between items-center border border-white/10">
                 <div className="flex-1 pr-4">
-                  <h3 className="text-sm font-black uppercase italic tracking-tighter text-white break-words">{i + 1}. {m.name}</h3>
+                  <div className="flex items-center flex-wrap">
+                    <h3 className="text-sm font-black uppercase italic tracking-tighter text-white break-words">{i + 1}. {m.name}</h3>
+                    <LevelBadge level={m.level} />
+                  </div>
                   <LiveCountdown timestamp={m.timestamp} />
                 </div>
                 <button onClick={() => handleStartExamFlow(m)} className={`px-6 py-2 rounded-full font-black text-[9px] uppercase shadow-lg h-fit flex items-center gap-2 ${m.isGuestEnabled ? 'bg-red-600 text-white' : 'bg-slate-800 text-blue-400 border border-blue-900/50'}`}>
@@ -299,7 +312,10 @@ const App = () => {
                     {allMocks.filter(m => (m.class || 'Other') === cls).map((p, i) => (
                       <div key={p.id} className="bg-black/60 backdrop-blur-xl p-4 rounded-2xl shadow flex justify-between items-center border border-white/10 hover:border-blue-500/50 transition-all">
                         <div className="flex-1 pr-4">
-                          <h3 className="font-bold uppercase text-xs italic text-white break-words">{i + 1}. {p.name}</h3>
+                          <div className="flex items-center flex-wrap">
+                            <h3 className="font-bold uppercase text-xs italic text-white break-words">{i + 1}. {p.name}</h3>
+                            <LevelBadge level={p.level} />
+                          </div>
                           <p className="text-[9px] font-bold text-slate-500 uppercase italic mt-1">Time: {p.hours || 0}h {p.minutes || 0}m</p>
                         </div>
                         <button onClick={() => handleStartExamFlow(p)} className={`px-6 py-2 rounded-full font-black text-[9px] uppercase shadow-md h-fit flex items-center gap-2 ${p.isGuestEnabled ? 'bg-blue-600 text-white' : 'bg-slate-800 text-blue-400 border border-blue-900/50'}`}>
@@ -334,6 +350,7 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
   const [qaNeg, setQaNeg] = useState('0');
   const [qaGuest, setQaGuest] = useState(false);
   const [qaClass, setQaClass] = useState('10');
+  const [qaLevel, setQaLevel] = useState('Moderate');
 
   const updateField = async (id, type, field, value) => {
     const coll = type === 'live' ? 'liveMocks' : 'practiceSets';
@@ -344,7 +361,7 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
   const handleQuickAdd = async () => {
     if (!qaName.trim()) return alert("Exam Name Required!");
     const coll = quickAddType === 'live' ? 'liveMocks' : 'practiceSets';
-    await addDoc(collection(db, coll), { name: qaName.toUpperCase(), hours: qaHours, minutes: qaMinutes, fileUrl: qaLink.trim(), answerKey: qaKey.toUpperCase(), questionMarks: qaMarks, negativeMark: qaNeg || "0", isPublished: false, isGuestEnabled: qaGuest, class: qaClass, timestamp: Date.now() });
+    await addDoc(collection(db, coll), { name: qaName.toUpperCase(), hours: qaHours, minutes: qaMinutes, fileUrl: qaLink.trim(), answerKey: qaKey.toUpperCase(), questionMarks: qaMarks, negativeMark: qaNeg || "0", isPublished: false, isGuestEnabled: qaGuest, class: qaClass, level: qaLevel, timestamp: Date.now() });
     setQaName(''); setQaLink(''); setQaKey(''); setQaMarks(''); setQaNeg('0'); setQaGuest(false);
     alert(`Success: Added to Registry`);
   };
@@ -372,6 +389,7 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
                           <div className={`w-2 h-2 rounded-full flex-shrink-0 ${item.isPublished ? 'bg-green-500 animate-pulse' : 'bg-slate-700'}`}></div>
                           <span className="text-xs font-black uppercase italic text-white break-words">{item.name}</span>
                           {item.isGuestEnabled && <span className="text-[7px] bg-green-600 px-1.5 py-0.5 rounded text-white font-black italic">GUEST ON</span>}
+                          {item.level && <span className="text-[7px] bg-blue-900 px-1.5 py-0.5 rounded text-blue-300 font-black italic">{item.level}</span>}
                         </div>
                         <p className="text-[8px] font-bold text-slate-500 uppercase italic ml-5 mt-1"> Last Change: {item.timestamp ? `${new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} • ${new Date(item.timestamp).toLocaleDateString('en-GB')}` : 'N/A'} </p>
                       </div>
@@ -384,9 +402,15 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
                   </div>
                   {expandedId === item.id && (
                     <div className="p-5 border-t border-white/5 bg-black/40 space-y-4 animate-in slide-in-from-top-2">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                         <div className="flex items-center gap-2"><input type="checkbox" checked={item.isGuestEnabled} onChange={(e) => updateField(item.id, item.source, 'isGuestEnabled', e.target.checked)} className="accent-green-500 w-4 h-4" /><p className="text-[10px] font-black text-green-400 uppercase italic">Guest Mode</p></div>
                         <div><p className="text-[8px] font-black text-blue-400 uppercase mb-1 ml-1">Class</p><select value={item.class || '10'} onChange={(e) => updateField(item.id, item.source, 'class', e.target.value)} className="w-full p-2 bg-black border border-white/10 rounded-xl text-white text-xs font-black">{[5,6,7,8,9,10,11,12].map(c => <option key={c} value={c}>{c}</option>)}</select></div>
+                        <div className="md:col-span-2">
+                          <p className="text-[8px] font-black text-yellow-500 uppercase mb-1 ml-1">Complexity Level</p>
+                          <select value={item.level || 'Moderate'} onChange={(e) => updateField(item.id, item.source, 'level', e.target.value)} className="w-full p-2 bg-black border border-white/10 rounded-xl text-white text-xs font-black">
+                            {['Easy', 'Moderate', 'Hard'].map(lvl => <option key={lvl} value={lvl}>{lvl}</option>)}
+                          </select>
+                        </div>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div><p className="text-[8px] font-black text-slate-500 uppercase mb-1 ml-1">Exam Name</p><input type="text" defaultValue={item.name} onBlur={(e) => updateField(item.id, item.source, 'name', e.target.value.toUpperCase())} className="w-full p-2.5 rounded-xl border border-white/10 bg-black text-white text-xs font-black outline-none focus:border-blue-500" /></div>
@@ -422,7 +446,7 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
           </div>
         </div>
         <div className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div className="flex items-center gap-2">
               <input type="checkbox" checked={qaGuest} onChange={(e) => setQaGuest(e.target.checked)} className="accent-blue-500" />
               <p className="text-[9px] font-black text-slate-400 uppercase italic">Enable Guest Access</p>
@@ -431,6 +455,12 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
               <p className="text-[8px] font-black text-blue-400 uppercase mb-1 ml-1">Class</p>
               <select value={qaClass} onChange={(e) => setQaClass(e.target.value)} className="w-full p-2 bg-black border border-white/10 rounded-xl text-white text-[10px] font-black outline-none">
                 {[5, 6, 7, 8, 9, 10, 11, 12].map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <p className="text-[8px] font-black text-yellow-500 uppercase mb-1 ml-1">Level</p>
+              <select value={qaLevel} onChange={(e) => setQaLevel(e.target.value)} className="w-full p-2 bg-black border border-white/10 rounded-xl text-white text-[10px] font-black outline-none">
+                {['Easy', 'Moderate', 'Hard'].map(lvl => <option key={lvl} value={lvl}>{lvl}</option>)}
               </select>
             </div>
           </div>
