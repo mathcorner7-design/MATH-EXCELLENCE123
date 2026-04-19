@@ -545,69 +545,256 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
   ); 
 }; 
 
-const AdminMarksheetModal = ({ student, results, onClose }) => { 
-  const [newRes, setNewRes] = useState({ exam: "", obtained: "", total: "", date: "" }); 
-  const [previewImg, setPreviewImg] = useState(null); 
-  return ( 
-    <div className="fixed inset-0 bg-slate-950 z-[1200] p-6 overflow-y-auto animate-in slide-in-from-right-full duration-500 print:hidden text-white"> 
-      {previewImg && <ImagePreviewModal src={previewImg} onClose={() => setPreviewImg(null)} />} 
-      <button onClick={onClose} className="font-black text-blue-400 mb-10 flex items-center gap-3 border-b-4 border-blue-400 w-fit uppercase text-[11px] italic tracking-tighter hover:text-blue-200 transition-all print:hidden"><ChevronLeft size={24} /> Return to Registry</button> 
-      <div className="bg-slate-900/60 backdrop-blur-md p-10 rounded-[3rem] border border-white/10 shadow-3xl max-w-xl mx-auto space-y-10"> 
-        <div className="flex items-center gap-5 border-b border-white/10 pb-6"><div className="w-16 h-16 bg-blue-700 rounded-[1.5rem] flex items-center justify-center text-white shadow-xl italic font-black text-2xl">{student?.name?.charAt(0)}</div><div><h3 className="text-3xl font-black uppercase italic tracking-tighter text-white leading-none">{student?.name}</h3><p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-1 italic">Performance Logs</p></div></div> 
-        <div className="p-8 bg-black rounded-[2.5rem] space-y-5 border border-white/10 print:hidden"><div className="grid grid-cols-1 gap-5 text-left"><input type="text" value={newRes.exam} onChange={(e) => setNewRes({ ...newRes, exam: e.target.value.toUpperCase() })} className="w-full p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-xs outline-none focus:border-blue-500" placeholder="Module Name" /><input type="date" value={newRes.date} onChange={(e) => setNewRes({ ...newRes, date: e.target.value })} className="w-full p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-xs outline-none" /><div className="flex gap-3"><input type="number" placeholder="Obt" value={newRes.obtained} onChange={(e) => setNewRes({ ...newRes, obtained: e.target.value })} className="w-1/2 p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-lg text-center outline-none focus:border-blue-500" /><input type="number" placeholder="Full" value={newRes.total} onChange={(e) => setNewRes({ ...newRes, total: e.target.value })} className="w-1/2 p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-lg text-center outline-none focus:border-blue-500" /></div></div><button onClick={async () => { if (newRes.exam && newRes.obtained && newRes.total && newRes.date) { const p = Math.round((parseFloat(newRes.obtained) / parseFloat(newRes.total)) * 100); await addDoc(collection(db, "results"), { ...newRes, name: student.name, percent: p, timestamp: Date.now() }); setNewRes({ exam: "", obtained: "", total: "", date: "" }); alert("Saved!"); } }} className="w-full py-5 bg-blue-700 text-white rounded-[1.5rem] font-black uppercase text-xs shadow-xl active:scale-95 transition-all">Manual Entry</button></div> 
-        <div className="space-y-8 pt-8 border-t border-white/10"> 
-          {results.filter(r => r.name === student?.name).sort((a, b) => b.timestamp - a.timestamp).map(r => ( 
-            <div key={r.id} className="p-6 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col gap-6 shadow-sm hover:shadow-md transition-all group"> 
+const AdminMarksheetModal = ({ student, results, onClose }) => {
+  const [newRes, setNewRes] = useState({ exam: "", obtained: "", total: "", date: "" });
+  const [previewImg, setPreviewImg] = useState(null);
+
+  return (
+    <div className="fixed inset-0 bg-slate-950 z-[1200] p-6 overflow-y-auto animate-in slide-in-from-right-full duration-500 print:hidden text-white">
+      {previewImg && <ImagePreviewModal src={previewImg} onClose={() => setPreviewImg(null)} />}
+      <button onClick={onClose} className="font-black text-blue-400 mb-10 flex items-center gap-3 border-b-4 border-blue-400 w-fit uppercase text-[11px] italic tracking-tighter hover:text-blue-200 transition-all print:hidden"><ChevronLeft size={24} /> Return to Registry</button>
+      <div className="bg-slate-900/60 backdrop-blur-md p-10 rounded-[3rem] border border-white/10 shadow-3xl max-w-xl mx-auto space-y-10">
+        <div className="flex items-center gap-5 border-b border-white/10 pb-6"><div className="w-16 h-16 bg-blue-700 rounded-[1.5rem] flex items-center justify-center text-white shadow-xl italic font-black text-2xl">{student?.name?.charAt(0)}</div><div><h3 className="text-3xl font-black uppercase italic tracking-tighter text-white leading-none">{student?.name}</h3><p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-1 italic">Performance Logs</p></div></div>
+        <div className="p-8 bg-black rounded-[2.5rem] space-y-5 border border-white/10 print:hidden"><div className="grid grid-cols-1 gap-5 text-left"><input type="text" value={newRes.exam} onChange={(e) => setNewRes({ ...newRes, exam: e.target.value.toUpperCase() })} className="w-full p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-xs outline-none focus:border-blue-500" placeholder="Module Name" /><input type="date" value={newRes.date} onChange={(e) => setNewRes({ ...newRes, date: e.target.value })} className="w-full p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-xs outline-none" /><div className="flex gap-3"><input type="number" placeholder="Obt" value={newRes.obtained} onChange={(e) => setNewRes({ ...newRes, obtained: e.target.value })} className="w-1/2 p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-lg text-center outline-none focus:border-blue-500" /><input type="number" placeholder="Full" value={newRes.total} onChange={(e) => setNewRes({ ...newRes, total: e.target.value })} className="w-1/2 p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-lg text-center outline-none focus:border-blue-500" /></div></div><button onClick={async () => { if (newRes.exam && newRes.obtained && newRes.total && newRes.date) { const p = Math.round((parseFloat(newRes.obtained) / parseFloat(newRes.total)) * 100); await addDoc(collection(db, "results"), { ...newRes, name: student.name, percent: p, timestamp: Date.now() }); setNewRes({ exam: "", obtained: "", total: "", date: "" }); alert("Saved!"); } }} className="w-full py-5 bg-blue-700 text-white rounded-[1.5rem] font-black uppercase text-xs shadow-xl active:scale-95 transition-all">Manual Entry</button></div>
+        <div className="space-y-8 pt-8 border-t border-white/10">
+          {results.filter(r => r.name === student?.name).sort((a, b) => b.timestamp - a.timestamp).map(r => (
+            <div key={r.id} className="p-6 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col gap-6 shadow-sm hover:shadow-md transition-all group">
               <div className="flex justify-between items-start w-full">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg bg-blue-900/40 text-blue-400 border border-blue-800/50 shadow-sm">{r.percent}%</div>
                   <div className="flex-1 min-w-0 pr-2">
                     <p className="text-sm font-black uppercase italic tracking-tighter text-white leading-none break-words whitespace-normal">{r.exam}</p>
-                    <p className="text-[10px] font-bold text-slate-500 mt-1 italic">
-                      {r.date} • Score: {r.obtained}/{r.total} {r.timeTaken && `• Time: ${r.timeTaken}`}
-                    </p>
+                    <p className="text-[10px] font-bold text-slate-500 mt-1 italic"> {r.date} • Score: {r.obtained}/{r.total} {r.timeTaken && `• Time: ${r.timeTaken}`} </p>
                   </div>
                 </div>
                 <button onClick={async () => { if (window.confirm("Purge record?")) await deleteDoc(doc(db, "results", r.id)); }} className="text-slate-600 hover:text-red-500 active:scale-90 transition-all flex-shrink-0 print:hidden"><Trash2 size={24} /></button>
-              </div> 
-              {/* বাকি কোড একই আছে ... */}
-              {r.details && r.details.some(d => d.pending) && ( 
-                <div className="bg-orange-950/30 border border-orange-900/50 rounded-[2rem] p-4 flex flex-col gap-3 shadow-inner print:hidden"><p className="text-[10px] font-black text-orange-400 uppercase italic text-center animate-pulse tracking-widest">Action Required: Written Solutions</p><div className="flex overflow-x-auto gap-4 pb-4 no-scrollbar snap-x snap-mandatory"> 
-                  {r.details.filter(d => d.pending).map((pendingQ, pIdx) => { 
-                    const photoList = Array.isArray(pendingQ.selected) ? pendingQ.selected : [pendingQ.selected]; 
-                    return photoList.map((photoUrl, imgIdx) => ( 
-                      <div key={`${pIdx}-${imgIdx}`} className="min-w-[200px] bg-black border border-white/10 shadow-md rounded-2xl p-4 flex flex-col items-center gap-3 snap-center"><p className="text-[9px] font-black text-slate-500 uppercase italic">Q{pendingQ.qNum} - Page {imgIdx + 1}</p><button onClick={() => setPreviewImg(photoUrl)} className="w-full py-2 bg-blue-600 text-white rounded-xl font-black text-[9px] uppercase shadow-sm">View Page</button> 
-                        {imgIdx === photoList.length - 1 && (<div className="flex gap-2 w-full mt-2"><input id={`mark-input-${r.id}-${pendingQ.qNum}`} type="number" placeholder="Marks" className="w-1/2 p-2 border border-slate-700 rounded-xl text-center font-black text-[10px] outline-none focus:border-orange-500 bg-black text-white" /><button onClick={async () => { const markVal = document.getElementById(`mark-input-${r.id}-${pendingQ.qNum}`).value; if (!markVal) return alert("Enter marks!"); const updatedDetails = r.details.map(d => (d.pending && d.qNum === pendingQ.qNum) ? { ...d, status: true, mark: parseFloat(markVal), pending: false, selected: "PHOTO_DELETED" } : d); const newObt = updatedDetails.reduce((sum, d) => sum + (d.status ? d.mark : 0), 0); await setDoc(doc(db, "results", r.id), { details: updatedDetails, obtained: newObt, percent: Math.round((newObt / r.total) * 100) }, { merge: true }); alert(`Q${pendingQ.qNum} Marks Updated!`); }} className="w-1/2 py-2 bg-orange-600 text-white rounded-xl font-black text-[9px] uppercase shadow-sm">Save</button></div>)}</div>)); 
-                  })}</div></div>)}</div>))}</div></div></div> 
-  ); 
-}; 
+              </div>
+              {r.details && r.details.some(d => d.pending) && (
+                <div className="bg-orange-950/30 border border-orange-900/50 rounded-[2rem] p-4 flex flex-col gap-3 shadow-inner print:hidden"><p className="text-[10px] font-black text-orange-400 uppercase italic text-center animate-pulse tracking-widest">Action Required: Written Solutions</p><div className="flex overflow-x-auto gap-4 pb-4 no-scrollbar snap-x snap-mandatory">
+                  {r.details.filter(d => d.pending).map((pendingQ, pIdx) => {
+                    const photoList = Array.isArray(pendingQ.selected) ? pendingQ.selected : [pendingQ.selected];
+                    return photoList.map((photoUrl, imgIdx) => (
+                      <div key={`${pIdx}-${imgIdx}`} className="min-w-[200px] bg-black border border-white/10 shadow-md rounded-2xl p-4 flex flex-col items-center gap-3 snap-center"><p className="text-[9px] font-black text-slate-500 uppercase italic">Q{pendingQ.qNum} - Page {imgIdx + 1}</p><button onClick={() => setPreviewImg(photoUrl)} className="w-full py-2 bg-blue-600 text-white rounded-xl font-black text-[9px] uppercase shadow-sm">View Page</button>
+                        {imgIdx === photoList.length - 1 && (<div className="flex gap-2 w-full mt-2"><input id={`mark-input-${r.id}-${pendingQ.qNum}`} type="number" placeholder="Marks" className="w-1/2 p-2 border border-slate-700 rounded-xl text-center font-black text-[10px] outline-none focus:border-orange-500 bg-black text-white" /><button onClick={async () => { const markVal = document.getElementById(`mark-input-${r.id}-${pendingQ.qNum}`).value; if (!markVal) return alert("Enter marks!"); const updatedDetails = r.details.map(d => (d.pending && d.qNum === pendingQ.qNum) ? { ...d, status: true, mark: parseFloat(markVal), pending: false, selected: "PHOTO_DELETED" } : d); const newObt = updatedDetails.reduce((sum, d) => sum + (d.status ? d.mark : 0), 0); await setDoc(doc(db, "results", r.id), { details: updatedDetails, obtained: newObt, percent: Math.round((newObt / r.total) * 100) }, { merge: true }); alert(`Q${pendingQ.qNum} Marks Updated!`); }} className="w-1/2 py-2 bg-orange-600 text-white rounded-xl font-black text-[9px] uppercase shadow-sm">Save</button></div>)}</div>));
+                  })}</div></div>)}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
 
-// ... InteractiveExamHall অংশটি আপনি অলরেডি আপডেট করেছেন তাই এখানে আর দিচ্ছি না ...
+const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
+  const recoveryKey = `exam_recovery_${exam.studentCode}_${exam.id}`;
+  const timerKey = `timer_end_${exam.studentCode}_${exam.id}`;
+  const [timeLeft, setTimeLeft] = useState(() => {
+    const savedEnd = localStorage.getItem(timerKey);
+    if (savedEnd) {
+      const remaining = Math.floor((parseInt(savedEnd) - Date.now()) / 1000);
+      return remaining > 0 ? remaining : 0;
+    }
+    const initialDuration = parseInt(exam?.duration) || 3600;
+    localStorage.setItem(timerKey, (Date.now() + initialDuration * 1000).toString());
+    return initialDuration;
+  });
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [answers, setAnswers] = useState(() => {
+    const savedAnswers = localStorage.getItem(recoveryKey);
+    return savedAnswers ? JSON.parse(savedAnswers) : {};
+  });
+  const [activeQuestion, setActiveQuestion] = useState(null);
+  const [scoreData, setScoreData] = useState(null);
 
-// --- GrowthSectionView এর নিচের অংশ যেখানে সময়টা দেখাবে ---
-                return resultsWithAttempts.reverse().map((r) => { 
-                  const isMultiple = studentResults.filter(sr => sr.exam === r.exam).length > 1; 
-                  const hasPendingWritten = r.details && r.details.some(d => d.type === 'written' && d.pending === true); 
-                  return ( 
-                    <div key={r.id} className="w-full bg-slate-900/60 rounded-[2rem] border border-white/10 shadow-sm flex items-center p-4 md:p-5 gap-3 md:gap-6 hover:shadow-md transition-all group print-card"> 
-                      <div className="flex-1 min-w-0 border-l-4 md:border-l-8 border-blue-600 pl-3 md:pl-5"><p className="text-[8px] md:text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Exam Unit {isMultiple && <span className="text-yellow-500 ml-2">| ATTEMPT {r.attemptNo}</span>}</p><p className="text-xs md:text-lg font-black uppercase italic text-white leading-tight whitespace-normal break-words">{r.exam}</p> {hasPendingWritten && <p className="text-[7px] md:text-[8px] font-black text-orange-400 uppercase italic mt-0.5 animate-pulse">Score may increase after Anshu Sir's review</p>} <p className="text-[8px] md:text-[9px] font-black text-blue-400 uppercase italic mt-1">{new Date(r.timestamp).toLocaleDateString('en-GB')} • {new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p></div> 
+  useEffect(() => {
+    localStorage.setItem(recoveryKey, JSON.stringify(answers));
+  }, [answers, recoveryKey]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (!isSubmitted) { e.preventDefault(); e.returnValue = ''; }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isSubmitted]);
+
+  const handleImageUpload = (qNum, file) => {
+    if (exam.isGuest) return alert("Guest users cannot upload images. Only MCQ is allowed.");
+    if (!file) return;
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 800;
+        canvas.width = MAX_WIDTH;
+        canvas.height = img.height * (MAX_WIDTH / img.width);
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.5);
+        setAnswers(prev => {
+          const existingPhotos = Array.isArray(prev[qNum]) ? prev[qNum] : [];
+          return { ...prev, [qNum]: [...existingPhotos, compressedBase64] };
+        });
+      };
+    };
+  };
+
+  const removeImage = (qNum, indexToRemove) => {
+    setAnswers(prev => {
+      const existingPhotos = Array.isArray(prev[qNum]) ? prev[qNum] : [];
+      const updatedPhotos = existingPhotos.filter((_, idx) => idx !== indexToRemove);
+      if (updatedPhotos.length === 0) { const newAnswers = { ...prev }; delete newAnswers[qNum]; return newAnswers; }
+      return { ...prev, [qNum]: updatedPhotos };
+    });
+  };
+
+  const handleOptionSelect = (qNum, opt) => {
+    setAnswers(prev => {
+      const newAnswers = { ...prev };
+      if (prev[qNum] === opt) { delete newAnswers[qNum]; } else { newAnswers[qNum] = opt; }
+      return newAnswers;
+    });
+  };
+
+  const answerKeyArray = exam?.answerKey ? exam.answerKey.split(',').map(k => k.trim().toUpperCase()) : [];
+  const marksArray = exam?.questionMarks ? exam.questionMarks.split(',').map(m => parseFloat(m.trim()) || 1) : [];
+  const negVal = parseFloat(exam?.negativeMark) || 0;
+
+  useEffect(() => {
+    let t;
+    if (!isSubmitted && timeLeft > 0) t = setInterval(() => setTimeLeft(p => p - 1), 1000);
+    else if (timeLeft <= 0 && !isSubmitted) submitExam();
+    return () => clearInterval(t);
+  }, [timeLeft, isSubmitted]);
+
+  const submitExam = async () => {
+    try {
+      const examStartTimeLocal = localStorage.getItem(`start_time_${exam.id}`) || Date.now();
+      const timeDiff = Date.now() - examStartTimeLocal;
+      const minutesTaken = Math.floor(timeDiff / 60000);
+      const secondsTaken = Math.floor((timeDiff % 60000) / 1000);
+      const timeDuration = `${minutesTaken}m ${secondsTaken}s`;
+
+      let totalObtainedMarks = 0;
+      let totalPossibleMarks = 0;
+      const detailResults = answerKeyArray.map((key, index) => {
+        const qNum = index + 1;
+        const qMark = marksArray[index] !== undefined ? marksArray[index] : 1;
+        const studentAns = answers[qNum] || 'None';
+        const isCorrect = studentAns === key;
+        const isWrong = studentAns !== 'None' && studentAns !== key;
+        totalPossibleMarks += qMark;
+        if (key !== 'W') { if (isCorrect) totalObtainedMarks += qMark; else if (isWrong) totalObtainedMarks -= negVal; }
+        return { qNum, selected: studentAns, correct: key, status: isCorrect, mark: qMark, type: key === 'W' ? 'written' : 'mcq', pending: key === 'W' };
+      });
+      const percent = totalPossibleMarks > 0 ? Math.round((totalObtainedMarks / totalPossibleMarks) * 100) : 0;
+      const d = new Date();
+      let finalStudentName = exam.studentName.toUpperCase();
+
+      await addDoc(collection(db, "logs"), {
+        studentName: exam.isGuest ? `(Guest) ${finalStudentName}` : finalStudentName,
+        examTitle: exam.name,
+        timestamp: Date.now()
+      });
+
+      if (!exam.isGuest) {
+        await addDoc(collection(db, "results"), {
+          name: finalStudentName,
+          exam: exam.name,
+          percent,
+          obtained: totalObtainedMarks,
+          total: totalPossibleMarks,
+          date: d.toLocaleDateString('en-GB'),
+          timestamp: Date.now(),
+          details: detailResults,
+          timeTaken: timeDuration
+        });
+      }
+
+      setScoreData({ correct: totalObtainedMarks, total: totalPossibleMarks, percent, details: detailResults });
+      localStorage.removeItem(recoveryKey);
+      localStorage.removeItem(timerKey);
+      localStorage.removeItem(`start_time_${exam.id}`);
+      setIsSubmitted(true);
+    } catch (e) {
+      console.error(e);
+      setIsSubmitted(true);
+    }
+  };
+
+  const formatTime = (s) => `${Math.floor(s / 60)}:${s % 60 < 10 ? '0' + (s % 60) : s % 60}`;
+
+  if (isSubmitted) return (
+    <div className="fixed inset-0 bg-slate-950 z-[2000] flex flex-col items-center overflow-y-auto p-10 text-center animate-in zoom-in duration-500 text-white"><CheckCircle size={80} className="text-green-500 mb-6 animate-bounce shadow-2xl rounded-full" /><h2 className="text-3xl font-black uppercase italic mb-8 tracking-tighter leading-none">Session Completed</h2><div className="bg-slate-900 p-10 rounded-[3rem] border-4 border-slate-800 mb-10 w-full max-sm shadow-2xl text-center"><p className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2 opacity-60">Result Transcript</p><h3 className="text-5xl font-black text-blue-400 italic tracking-tighter leading-none">{scoreData?.correct} / {scoreData?.total}</h3>{exam.isGuest && <p className="text-orange-400 text-[10px] font-black mt-4 uppercase italic">Notice: Guest data is not saved permanentally.</p>}</div><button onClick={onFinish} className="bg-blue-700 text-white px-16 py-4 rounded-full font-black uppercase text-[12px] shadow-2xl">Close Arena</button></div>
+  );
+
+  return (
+    <div className="fixed inset-0 bg-black z-[100] flex flex-col overflow-hidden animate-in fade-in duration-500">
+      <div className="bg-slate-900 p-2 md:p-3 flex justify-between items-center border-b-4 border-yellow-500 shadow-2xl relative z-50 text-white"><div className="flex-1 min-w-0 pr-2"><h2 className="font-black text-[10px] uppercase italic tracking-tighter leading-none truncate max-w-[150px]">{exam?.name}</h2><p className="text-[8px] md:text-[9px] text-blue-400 font-black uppercase mt-1 tracking-widest italic leading-none">{exam?.studentName} {exam.isGuest && '(GUEST)'}</p></div><div className="flex items-center gap-6"><div className="px-5 py-1.5 rounded-xl font-black text-2xl border-4 text-white border-slate-800 bg-black">{formatTime(timeLeft)}</div><button onClick={() => { if (window.confirm("SUBMIT EXAM?")) submitExam(); }} className="bg-green-600 text-white px-6 py-2 rounded-full font-black text-[10px] uppercase shadow-lg">SUBMIT</button></div></div>
+      <div className="flex-1 bg-slate-950 overflow-hidden relative"><iframe src={exam?.fileUrl?.replace('/view?usp=sharing', '/preview').replace('/view', '/preview')} className="w-full h-full border-none opacity-90" title="Paper" /><div className="absolute bottom-0 left-0 right-0 z-50 bg-slate-900/98 border-t-2 border-white/10 backdrop-blur-xl p-3 md:p-4 shadow-2xl"><div className="max-w-4xl mx-auto"><div className="flex items-center justify-between mb-2 px-2"><span className="text-[9px] font-black text-blue-400 uppercase italic flex items-center gap-3"><PenTool size={16} /> RESPONSE INTERFACE</span>{activeQuestion && <button onClick={() => setActiveQuestion(null)} className="text-white bg-slate-700 px-3 py-1 rounded-lg font-black text-[10px] uppercase shadow-lg">Close</button>}</div>
+        {activeQuestion ? (
+          <div className="flex flex-col items-center animate-in slide-in-from-bottom-2 pb-2"><p className="text-slate-400 font-black text-xs mb-4 italic uppercase">{answerKeyArray[activeQuestion - 1] === 'W' ? `Page Capturing Q${activeQuestion}:` : `Choice for Q${activeQuestion}:`}</p>
+            {answerKeyArray[activeQuestion - 1] === 'W' ? (
+              <div className="flex flex-col items-center gap-4">{exam.isGuest ? (<div className="p-4 bg-orange-900/20 border-2 border-orange-800 rounded-2xl text-center"><AlertCircle className="text-orange-500 mx-auto mb-2" /><p className="text-[9px] font-black text-orange-200 uppercase">Guest users can't upload. Skip this question.</p></div>) : (<> <div className="flex gap-2 flex-wrap justify-center">{Array.isArray(answers[activeQuestion]) && answers[activeQuestion].map((_, i) => (<div key={i} className="relative"><div className="bg-green-600 text-white text-[8px] font-black px-2 py-1 rounded-lg uppercase">Page {i + 1} ✓</div><button onClick={() => removeImage(activeQuestion, i)} className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-0.5 shadow-lg active:scale-75 transition-all"><X size={12} /></button></div>))}</div> <div className="flex gap-4"><label className="bg-blue-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase cursor-pointer shadow-xl flex items-center gap-2 active:scale-95 transition-all"><Camera size={16} /> {Array.isArray(answers[activeQuestion]) && answers[activeQuestion].length > 0 ? 'ADD ANOTHER' : 'CAPTURE'}<input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => { handleImageUpload(activeQuestion, e.target.files[0]); e.target.value = null; }} /></label>{Array.isArray(answers[activeQuestion]) && answers[activeQuestion].length > 0 && (<button onClick={() => setActiveQuestion(null)} className="bg-green-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase shadow-xl">DONE</button>)}</div></>)}</div>
+            ) : (
+              <div className="flex gap-5">{['A', 'B', 'C', 'D'].map(opt => (<button key={opt} onClick={() => handleOptionSelect(activeQuestion, opt)} className={`w-12 h-12 rounded-xl font-black text-xl flex items-center justify-center border-b-8 transition-all active:scale-90 ${answers[activeQuestion] === opt ? 'bg-blue-600 text-white border-blue-900 shadow-[0_0_20px_rgba(37,99,235,0.5)]' : 'bg-slate-800 text-slate-400 border-black hover:bg-slate-700'}`}>{opt}</button>))}</div>)}</div>
+        ) : (
+          <div className="flex overflow-x-auto gap-3 pb-2 no-scrollbar snap-x items-center justify-start">{answerKeyArray.map((_, index) => { const num = index + 1; return (<button key={num} onClick={() => setActiveQuestion(num)} className={`min-w-[42px] h-[42px] rounded-xl font-black text-xs flex items-center justify-center transition-all snap-center border-b-4 shadow-lg ${answers[num] ? 'bg-green-600 text-white border-green-900' : 'bg-slate-800 text-slate-500 border-black hover:bg-slate-700 hover:text-white'}`}>{num}</button>); })}</div>)}</div></div></div></div>
+  );
+};
+
+const GrowthSectionView = ({ results, students }) => {
+  const [sel, setSel] = useState(null);
+  const [selectedReview, setSelectedReview] = useState(null);
+  const [vCode, setVCode] = useState('');
+  const [isVerified, setIsVerified] = useState(false);
+  const handlePrint = () => { window.print(); };
+  const handleVerify = () => {
+    const student = students.find(s => s.name === sel);
+    if (student && student.studentCode?.toString().trim() === vCode.trim()) { setIsVerified(true); } else { alert("INVALID CODE! ACCESS DENIED."); }
+  };
+  return (
+    <div className="max-w-2xl mx-auto w-full animate-in fade-in duration-500 text-left px-2">
+      {selectedReview && <ReviewResultModal result={selectedReview} onClose={() => setSelectedReview(null)} />}
+      {!sel ? (
+        <div className="grid gap-4 print:hidden">{students.map((std) => (<button key={std.id} onClick={() => { setSel(std.name); setIsVerified(false); setVCode(''); }} className="w-full bg-black/60 backdrop-blur-xl p-5 rounded-[2rem] shadow-lg border border-white/10 flex justify-between items-center group active:scale-95 transition-all"><div className="flex items-center gap-4"><div className="w-10 h-10 bg-blue-900/30 rounded-xl flex items-center justify-center text-blue-400 shadow-inner group-hover:bg-blue-600 group-hover:text-white transition-all"><User size={18} /></div> <span className="font-black text-white uppercase text-[14px] italic tracking-tight break-words">{std.name}</span></div><ChevronRight size={24} className="text-slate-600 group-hover:text-blue-400" /></button>))}</div>
+      ) : !isVerified ? (
+        <div className="bg-slate-900/80 p-10 rounded-[3rem] border border-white/10 text-center animate-in zoom-in"><Lock size={48} className="text-blue-500 mx-auto mb-4" /><h3 className="font-black text-white uppercase italic mb-6">Verify Access: {sel}</h3><input type="password" value={vCode} onChange={(e) => setVCode(e.target.value)} placeholder="ENTER YOUR UNIQUE CODE" className="w-full p-4 bg-black border-2 border-slate-700 rounded-2xl text-center font-black text-white outline-none focus:border-blue-500 mb-6" /><div className="flex gap-4"><button onClick={() => setSel(null)} className="flex-1 py-4 bg-slate-800 rounded-2xl font-black uppercase text-[10px]">Back</button><button onClick={handleVerify} className="flex-1 py-4 bg-blue-700 rounded-2xl font-black uppercase text-[10px] shadow-lg">Verify</button></div></div>
+      ) : (
+        <div className="space-y-6 animate-in slide-in-from-right-20 duration-700 print-full-report">
+          <div className="flex justify-between items-center print:hidden"><button onClick={() => setSel(null)} className="flex items-center gap-2 text-[12px] font-black text-blue-400 uppercase italic hover:underline ml-2"><ChevronLeft size={24} /> Return</button><button onClick={handlePrint} className="bg-white text-black px-5 py-2 rounded-full font-black text-[10px] uppercase flex items-center gap-2 shadow-xl"><Download size={16} /> PDF</button></div>
+          <div className="bg-black/90 rounded-[3rem] shadow-2xl overflow-hidden border-2 border-white/10 flex flex-col print-full-report">
+            <div className="bg-blue-700 p-8 text-white text-center relative overflow-hidden flex-shrink-0 print:border-b-4 print:border-blue-900"><Trophy className="absolute -top-10 -right-10 opacity-10 rotate-12 print:hidden" size={150} /><h2 className="text-2xl font-black uppercase italic tracking-tighter mb-2 leading-none break-words px-4 text-white">Performance Transcript</h2><div className="inline-block bg-white/20 px-6 py-1.5 rounded-full border border-white/30 max-w-[90%] overflow-hidden"><p className="text-sm font-black uppercase italic break-words text-white">{sel}</p></div></div>
+            <div className="p-4 md:p-6 space-y-4 bg-white/5 print:bg-white print:overflow-visible h-auto">
+              {(() => {
+                const studentResults = results.filter(r => r.name === sel).sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+                const examAttemptsMap = {};
+                const resultsWithAttempts = studentResults.map(r => { examAttemptsMap[r.exam] = (examAttemptsMap[r.exam] || 0) + 1; return { ...r, attemptNo: examAttemptsMap[r.exam] }; });
+                return resultsWithAttempts.reverse().map((r) => {
+                  const isMultiple = studentResults.filter(sr => sr.exam === r.exam).length > 1;
+                  const hasPendingWritten = r.details && r.details.some(d => d.type === 'written' && d.pending === true);
+                  return (
+                    <div key={r.id} className="w-full bg-slate-900/60 rounded-[2rem] border border-white/10 shadow-sm flex items-center p-4 md:p-5 gap-3 md:gap-6 hover:shadow-md transition-all group print-card">
+                      <div className="flex-1 min-w-0 border-l-4 md:border-l-8 border-blue-600 pl-3 md:pl-5"><p className="text-[8px] md:text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Exam Unit {isMultiple && <span className="text-yellow-500 ml-2">| ATTEMPT {r.attemptNo}</span>}</p><p className="text-xs md:text-lg font-black uppercase italic text-white leading-tight whitespace-normal break-words">{r.exam}</p> {hasPendingWritten && <p className="text-[7px] md:text-[8px] font-black text-orange-400 uppercase italic mt-0.5 animate-pulse">Score may increase after Anshu Sir's review</p>} <p className="text-[8px] md:text-[9px] font-black text-blue-400 uppercase italic mt-1">{new Date(r.timestamp).toLocaleDateString('en-GB')} • {new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p></div>
                       <div className="text-center px-2 md:px-4 border-l border-white/10 min-w-[70px] md:min-w-[100px]">
                         <p className="text-[8px] md:text-[9px] font-bold text-slate-500 uppercase mb-0.5">Score</p>
                         <p className="text-xl md:text-3xl font-black italic text-blue-400 leading-none">{r.obtained}/{r.total}</p>
-                        {/* গ্রোথ সেকশনে সময় ডিসপ্লে */}
                         {r.timeTaken && <p className="text-[9px] font-black text-yellow-500 uppercase italic mt-1 border-t border-white/5 pt-1">Time: {r.timeTaken}</p>}
-                      </div> 
-                      <div className="flex-shrink-0 print:hidden"><button onClick={() => setSelectedReview(r)} className="bg-slate-800 text-blue-400 p-2 md:p-3 rounded-2xl border border-white/10 shadow-sm hover:bg-blue-600 hover:text-white transition-all"><Eye size={18} /></button></div> 
+                      </div>
+                      <div className="flex-shrink-0 print:hidden"><button onClick={() => setSelectedReview(r)} className="bg-slate-800 text-blue-400 p-2 md:p-3 rounded-2xl border border-white/10 shadow-sm hover:bg-blue-600 hover:text-white transition-all"><Eye size={18} /></button></div>
                     </div>
                   );
-                }); 
-              })()} 
-            </div> 
-          </div> 
-        </div> 
-      )} 
-    </div> 
-  ); 
-}; 
+                });
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default App;
