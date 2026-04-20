@@ -242,23 +242,44 @@ const App = () => {
                 <h1 className="text-lg font-black text-blue-400 uppercase italic tracking-tighter cursor-pointer" onClick={() => setActiveTab('home')}>MATH EXCELLENCE</h1>
                 <p className="text-[9px] font-bold text-slate-500 italic">ANSHU SIR</p>
             </header>
-            <nav className="bg-blue-700/90 backdrop-blur-2xl text-white w-full sticky top-[45px] z-40 flex justify-center shadow-[0_10px_30px_rgba(0,0,0,0.5)] print:hidden border-b border-blue-500/30">
-                <div className="max-w-6xl w-full flex overflow-x-auto no-scrollbar">
-                    {[
-                        { id: 'home', label: 'Home', icon: <History size={16} /> },
-                        { id: 'live', label: 'Live Mock', icon: <Clock size={16} /> },
-                        { id: 'practice', label: 'Practice', icon: <BookOpen size={16} /> },
-                        { id: 'growth', label: 'Growth', icon: <TrendingUp size={16} /> },
-                        { id: 'teacher', label: 'Admin', icon: <User size={16} /> }
-                    ].map((item) => (
-                        <button key={item.id} onClick={() => setActiveTab(item.id)} className={`flex-1 flex flex-col items-center justify-center gap-1 px-4 py-3 font-black text-[9px] uppercase transition-all duration-300 relative group ${activeTab === item.id ? 'text-yellow-400' : 'text-blue-100 hover:text-white'}`} >
-                            <span className={`transition-transform duration-300 ${activeTab === item.id ? 'scale-125' : 'group-hover:scale-110'}`}>{item.icon}</span> {item.label}
-                            {activeTab === item.id && <div className="absolute bottom-0 left-2 right-2 h-1 bg-yellow-400 rounded-t-full shadow-[0_0_10px_#facc15]"></div>}
-                        </button>
-                    ))}
-                </div>
-            </nav>
-            <main className="w-full max-w-5xl p-4 mb-20 flex flex-col items-center">
+            <nav className="fixed top-[55px] left-1/2 -translate-x-1/2 z-40 w-[94%] max-w-[600px] px-1 py-2 print:hidden">
+    <div className="bg-black/60 backdrop-blur-2xl border border-white/20 rounded-[1.5rem] shadow-[0_15px_40px_rgba(0,0,0,0.8)] flex justify-between items-center p-1.5 gap-1.5">
+        {[
+            { id: 'home', label: 'Home', icon: <History size={20} /> },
+            { id: 'live', label: 'Live', icon: <Clock size={20} /> },
+            { id: 'practice', label: 'Practice', icon: <BookOpen size={20} /> },
+            { id: 'growth', label: 'Growth', icon: <TrendingUp size={20} /> },
+            { id: 'teacher', label: 'Admin', icon: <User size={20} /> }
+        ].map((item) => (
+            <button 
+                key={item.id} 
+                onClick={() => setActiveTab(item.id)} 
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl transition-all duration-500 ease-out relative group ${
+                    activeTab === item.id 
+                    ? 'bg-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.6)] scale-105' 
+                    : 'text-slate-400 hover:text-white hover:bg-white/10 hover:-translate-y-1'
+                }`}
+            >
+                <span className={`flex-shrink-0 transition-transform duration-500 ${
+                    activeTab === item.id ? 'scale-125 animate-pulse' : 'group-hover:rotate-12 group-hover:scale-110'
+                }`}>
+                    {item.icon}
+                </span>
+                
+                <span className={`text-[11px] font-black uppercase italic tracking-tighter whitespace-nowrap transition-all duration-500 ${
+                    activeTab === item.id ? 'block translate-x-0 opacity-100' : 'hidden md:block opacity-70 group-hover:opacity-100'
+                }`}>
+                    {item.label}
+                </span>
+
+                {activeTab === item.id && (
+                    <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-white rounded-full shadow-[0_0_10px_white]"></span>
+                )}
+            </button>
+        ))}
+    </div>
+</nav>
+            <main className="w-full max-w-5xl pt-24 mb-20 flex flex-col items-center">
                 {activeTab === 'home' && (
                     <div className="space-y-6 animate-in fade-in w-full text-center print:hidden">
                         <div className="bg-black/60 backdrop-blur-xl p-8 rounded-[2.5rem] shadow-2xl border-2 border-white/10">
