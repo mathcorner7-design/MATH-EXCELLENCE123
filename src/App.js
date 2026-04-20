@@ -766,7 +766,7 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
         ))}
     </div>
 </div>
-<button onClick={onFinish} className="bg-blue-700 text-white px-16 py-4 rounded-full font-black uppercase text-[12px] shadow-2xl">Close Arena</button></div>
+</div><button onClick={onFinish} className="bg-blue-700 text-white px-16 py-4 rounded-full font-black uppercase text-[12px] shadow-2xl">Close Arena</button></div>
     );
 
     return (
