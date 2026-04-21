@@ -637,57 +637,148 @@ const AdminMarksheetModal = ({ student, results, onClose }) => {
     };
 
     return (
-        <>
+        <div>
+            {previewImg && (
+                <ImagePreviewModal 
+                    src={previewImg} 
+                    onClose={() => setPreviewImg(null)} 
+                />
+            )}
+
             <div className="fixed inset-0 bg-slate-950 z-[1200] p-6 overflow-y-auto animate-in slide-in-from-right-full duration-500 print:hidden text-white">
-                {previewImg && <ImagePreviewModal src={previewImg} onClose={() => setPreviewImg(null)} />}
                 
                 <button onClick={onClose} className="font-black text-blue-400 mb-10 flex items-center gap-3 border-b-4 border-blue-400 w-fit uppercase text-[11px] italic tracking-tighter hover:text-blue-200 transition-all print:hidden">
                     <ChevronLeft size={24} /> Return to Registry
                 </button>
 
                 <div className="bg-slate-900/60 backdrop-blur-md p-10 rounded-[3rem] border border-white/10 shadow-3xl max-w-xl mx-auto space-y-10">
+                    
                     <div className="flex items-center gap-5 border-b border-white/10 pb-6">
-                        <div className="w-16 h-16 bg-blue-700 rounded-[1.5rem] flex items-center justify-center text-white shadow-xl italic font-black text-2xl">{student?.name?.charAt(0)}</div>
+                        <div className="w-16 h-16 bg-blue-700 rounded-[1.5rem] flex items-center justify-center text-white shadow-xl italic font-black text-2xl">
+                            {student?.name?.charAt(0)}
+                        </div>
                         <div>
-                            <h3 className="text-3xl font-black uppercase italic tracking-tighter text-white leading-none">{student?.name}</h3>
-                            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-1 italic">Performance Logs</p>
+                            <h3 className="text-3xl font-black uppercase italic tracking-tighter text-white leading-none">
+                                {student?.name}
+                            </h3>
+                            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-1 italic">
+                                Performance Logs
+                            </p>
                         </div>
                     </div>
 
                     <div className="p-8 bg-black rounded-[2.5rem] space-y-5 border border-white/10 print:hidden">
                         <div className="grid grid-cols-1 gap-5 text-left">
-                            <input type="text" value={newRes.exam} onChange={(e) => setNewRes({ ...newRes, exam: e.target.value.toUpperCase() })} className="w-full p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-xs outline-none focus:border-blue-500" placeholder="Module Name" />
-                            <input type="date" value={newRes.date} onChange={(e) => setNewRes({ ...newRes, date: e.target.value })} className="w-full p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-xs outline-none" />
+                            
+                            <input
+                                type="text"
+                                value={newRes.exam}
+                                onChange={(e) => setNewRes({ ...newRes, exam: e.target.value.toUpperCase() })}
+                                className="w-full p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-xs outline-none focus:border-blue-500"
+                                placeholder="Module Name"
+                            />
+
+                            <input
+                                type="date"
+                                value={newRes.date}
+                                onChange={(e) => setNewRes({ ...newRes, date: e.target.value })}
+                                className="w-full p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-xs outline-none"
+                            />
+
                             <div className="flex gap-3">
-                                <input type="number" placeholder="Obt" value={newRes.obtained} onChange={(e) => setNewRes({ ...newRes, obtained: e.target.value })} className="w-1/2 p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-lg text-center outline-none focus:border-blue-500" />
-                                <input type="number" placeholder="Full" value={newRes.total} onChange={(e) => setNewRes({ ...newRes, total: e.target.value })} className="w-1/2 p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-lg text-center outline-none focus:border-blue-500" />
+                                <input
+                                    type="number"
+                                    placeholder="Obt"
+                                    value={newRes.obtained}
+                                    onChange={(e) => setNewRes({ ...newRes, obtained: e.target.value })}
+                                    className="w-1/2 p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-lg text-center outline-none focus:border-blue-500"
+                                />
+                                <input
+                                    type="number"
+                                    placeholder="Full"
+                                    value={newRes.total}
+                                    onChange={(e) => setNewRes({ ...newRes, total: e.target.value })}
+                                    className="w-1/2 p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-lg text-center outline-none focus:border-blue-500"
+                                />
                             </div>
                         </div>
-                        <button onClick={async () => { if (newRes.exam && newRes.obtained && newRes.total && newRes.date) { const p = Math.round((parseFloat(newRes.obtained) / parseFloat(newRes.total)) * 100); await addDoc(collection(db, "results"), { ...newRes, name: student.name, percent: p, timestamp: Date.now() }); setNewRes({ exam: "", obtained: "", total: "", date: "" }); alert("Saved!"); } }} className="w-full py-5 bg-blue-700 text-white rounded-[1.5rem] font-black uppercase text-xs shadow-xl active:scale-95 transition-all">Manual Entry</button>
+
+                        <button
+                            onClick={async () => {
+                                if (newRes.exam && newRes.obtained && newRes.total && newRes.date) {
+                                    const p = Math.round(
+                                        (parseFloat(newRes.obtained) / parseFloat(newRes.total)) * 100
+                                    );
+
+                                    await addDoc(collection(db, "results"), {
+                                        ...newRes,
+                                        name: student.name,
+                                        percent: p,
+                                        timestamp: Date.now()
+                                    });
+
+                                    setNewRes({ exam: "", obtained: "", total: "", date: "" });
+                                    alert("Saved!");
+                                }
+                            }}
+                            className="w-full py-5 bg-blue-700 text-white rounded-[1.5rem] font-black uppercase text-xs shadow-xl active:scale-95 transition-all"
+                        >
+                            Manual Entry
+                        </button>
                     </div>
 
                     <div className="space-y-8 pt-8 border-t border-white/10">
-                        {results.filter(r => r.name === student?.name).sort((a, b) => b.timestamp - a.timestamp).map(r => (
-                            <div key={r.id} className="p-6 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col gap-6 shadow-sm hover:shadow-md transition-all group">
-                                <div className="flex justify-between items-start w-full">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg bg-blue-900/40 text-blue-400 border border-blue-800/50 shadow-sm">{r.percent}%</div>
-                                        <div className="flex-1 min-w-0 pr-2">
-                                            <p className="text-sm font-black uppercase italic tracking-tighter text-white leading-none break-words whitespace-normal">{r.exam}</p>
-                                            <p className="text-[10px] font-bold text-slate-500 mt-1 italic"> {r.date} • Score: {r.obtained}/{r.total} {r.timeTaken && `• Time: ${r.timeTaken}`} </p>
+                        {results
+                            .filter(r => r.name === student?.name)
+                            .sort((a, b) => b.timestamp - a.timestamp)
+                            .map(r => (
+                                <div key={r.id} className="p-6 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col gap-6 shadow-sm hover:shadow-md transition-all group">
+                                    
+                                    <div className="flex justify-between items-start w-full">
+                                        
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg bg-blue-900/40 text-blue-400 border border-blue-800/50 shadow-sm">
+                                                {r.percent}%
+                                            </div>
+
+                                            <div className="flex-1 min-w-0 pr-2">
+                                                <p className="text-sm font-black uppercase italic tracking-tighter text-white leading-none break-words whitespace-normal">
+                                                    {r.exam}
+                                                </p>
+                                                <p className="text-[10px] font-bold text-slate-500 mt-1 italic">
+                                                    {r.date} • Score: {r.obtained}/{r.total} {r.timeTaken && `• Time: ${r.timeTaken}`}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-3 print:hidden">
+                                            <button
+                                                onClick={() => addBonusMarks(r)}
+                                                className="text-yellow-500 hover:text-yellow-400 active:scale-90 transition-all"
+                                            >
+                                                🎁
+                                            </button>
+
+                                            <button
+                                                onClick={async () => {
+                                                    if (window.confirm("Purge record?")) {
+                                                        await deleteDoc(doc(db, "results", r.id));
+                                                    }
+                                                }}
+                                                className="text-slate-600 hover:text-red-500 active:scale-90 transition-all flex-shrink-0"
+                                            >
+                                                <Trash2 size={24} />
+                                            </button>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3 print:hidden">
-                                        <button onClick={() => addBonusMarks(r)} className="text-yellow-500 hover:text-yellow-400 active:scale-90 transition-all">🎁</button>
-                                        <button onClick={async () => { if (window.confirm("Purge record?")) await deleteDoc(doc(db, "results", r.id)); }} className="text-slate-600 hover:text-red-500 active:scale-90 transition-all flex-shrink-0"><Trash2 size={24} /></button>
-                                    </div>
+
                                 </div>
-                            </div>
-                        ))}
+                            ))}
                     </div>
+
                 </div>
             </div>
-        </>
+        </div>
     );
 };
 const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
