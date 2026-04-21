@@ -4,10 +4,10 @@ import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, setD
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "firebase/auth";
 import { Trophy, BookOpen, TrendingUp, User, Clock, ChevronRight, GraduationCap, PlusCircle, FileText, Lock, Award, Timer, Settings2, CheckCircle, PenTool, ShieldAlert, Loader2, ChevronLeft, Trash2, UserPlus, History, UserCheck, X, CheckSquare, AlertCircle, ListChecks, Eye, Camera, Send, Link, Zap, Download, Unlock, Phone, SignalHigh, LogOut, UserX, Home, Radio } from 'lucide-react';
 
-// --- 🖼️ CONFIGURATION ---
+// --- CONFIGURATION ---
 const APP_BACKGROUND_URL = "https://i.gifer.com/4RNk.gif";
 
-// --- 🟢 Firebase Configuration ---
+// --- Firebase Configuration ---
 const firebaseConfig = {
   apiKey: "AIzaSyCTk1csUI0HeZhZvy6dOFwmLr-YVsWPAcY",
   authDomain: "math-excellence-6d2b8.firebaseapp.com",
@@ -31,7 +31,7 @@ const getRemainingDays = (expiryDate) => {
   return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
 };
 
-// --- 🔵 Countdown Component ---
+// --- Countdown Component ---
 const LiveCountdown = ({ timestamp, onExpire }) => {
   const [timeLeft, setTimeLeft] = useState("");
   useEffect(() => {
@@ -78,7 +78,9 @@ const ReviewResultModal = ({ result, onClose }) => {
             <div key={idx} className={`p-4 rounded-2xl border-2 flex justify-between items-center transition-all ${item.pending ? 'bg-orange-900/40 border-orange-700 text-orange-200' : (isCorrect ? 'bg-green-900/40 border-green-700 text-green-200 shadow-sm' : 'bg-red-900/40 border-red-700 text-red-200 shadow-sm')}`}>
               <div>
                 <p className="font-black text-xs uppercase italic tracking-tighter">Question Q{item.qNum} <span className="text-[9px] opacity-60 ml-1">({item.mark} Marks)</span></p>
-                <p className="text-[10px] font-bold opacity-80 mt-1 uppercase italic"> Choice: {Array.isArray(item.selected) ? `IMAGE (${item.selected.length} Pgs)` : (item.selected?.startsWith('data:image') ? 'IMAGE' : item.selected)} • Correct: {item.correct} {item.pending && <span className="ml-2 bg-orange-600 px-2 py-0.5 rounded text-[8px] text-white">U GET: PENDING</span>} </p>
+                <p className="text-[10px] font-bold opacity-80 mt-1 uppercase italic">
+                  Choice: {Array.isArray(item.selected) ? `IMAGE (${item.selected.length} Pgs)` : (item.selected?.startsWith('data:image') ? 'IMAGE' : item.selected)} • Correct: {item.correct} {item.pending && <span className="ml-2 bg-orange-600 px-2 py-0.5 rounded text-[8px] text-white">U GET: PENDING</span>}
+                </p>
               </div>
               {item.pending ? <Clock size={18} className="animate-pulse" /> : (isCorrect ? <CheckSquare size={18} /> : <AlertCircle size={18} />)}
             </div>
@@ -108,6 +110,7 @@ const App = () => {
   const [examStartTime, setExamStartTime] = useState(null);
   const [openClass, setOpenClass] = useState(null);
   const [ads, setAds] = useState([]);
+  const [qaChapter, setQaChapter] = useState('');
 
   useEffect(() => {
     const fetchPin = async () => {
@@ -143,8 +146,8 @@ const App = () => {
     });
     onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc")), (s) => setActivityLogs(s.docs.map(d => ({ id: d.id, ...d.data() }))));
     onSnapshot(collection(db, "advertisements"), (s) => {
-  setAds(s.docs.map(d => ({ id: d.id, ...d.data() })));
-});
+      setAds(s.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
     return () => unsubscribeAuth();
   }, []);
 
@@ -221,6 +224,7 @@ const App = () => {
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
+
       {showNameModal && (
         <div className="fixed inset-0 bg-black/90 z-[1000] flex items-center justify-center p-6 backdrop-blur-md print:hidden">
           <div className="bg-slate-900 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl border-2 border-slate-800">
@@ -243,12 +247,14 @@ const App = () => {
           </div>
         </div>
       )}
+
       <header className="fixed top-0 left-0 w-full z-50 h-[55px] bg-black/60 backdrop-blur-md border-b border-white/10 flex items-center justify-center overflow-hidden">
         <div className="relative">
           <h1 className="text-xl md:text-2xl font-black italic tracking-tighter uppercase text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-white to-blue-400 bg-[length:200%_auto] animate-pulse"> Math Excellence </h1>
           <div className="absolute -bottom-1 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-blue-500 to-transparent animate-pulse"></div>
         </div>
       </header>
+
       <nav className="fixed top-[50px] left-1/2 -translate-x-1/2 z-40 w-[96%] max-w-[600px] px-1 py-1 print:hidden">
         <div className="bg-black/70 backdrop-blur-2xl border border-white/20 rounded-[1.5rem] shadow-[0_15px_40px_rgba(0,0,0,0.8)] flex justify-between items-center p-1.5 gap-1">
           {[
@@ -261,33 +267,33 @@ const App = () => {
             <button key={item.id} onClick={() => setActiveTab(item.id)} className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all duration-300 relative group ${activeTab === item.id ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.6)] scale-105' : 'text-slate-400 hover:text-white hover:bg-white/10'}`} >
               <span className={`transition-all duration-500 ease-in-out ${activeTab === item.id ? 'scale-110 animate-bounce' : 'group-hover:rotate-[360deg] group-hover:scale-110'}`}> {item.icon} </span>
               <span className={`text-[9px] font-black uppercase italic tracking-tighter transition-all duration-300 ${activeTab === item.id ? 'opacity-100' : 'opacity-60 group-hover:opacity-100'}`}> {item.label} </span>
-              {activeTab === item.id && (
-                <span className="absolute bottom-0.5 w-4 h-0.5 bg-white rounded-full animate-pulse"></span>
-              )}
+              {activeTab === item.id && ( <span className="absolute bottom-0.5 w-4 h-0.5 bg-white rounded-full animate-pulse"></span> )}
             </button>
           ))}
         </div>
       </nav>
+
       <main className="w-full max-w-5xl pt-36 mb-20 flex flex-col items-center">
-          <div className="w-full mb-6">
-    <div className="bg-gradient-to-r from-blue-900/40 to-black p-1 rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl">
-        <div className="bg-black/40 backdrop-blur-xl p-6 rounded-[1.8rem] min-h-[120px] flex flex-col items-center justify-center text-center">
-            {ads.length > 0 ? (
+        <div className="w-full mb-6">
+          <div className="bg-gradient-to-r from-blue-900/40 to-black p-1 rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl">
+            <div className="bg-black/40 backdrop-blur-xl p-6 rounded-[1.8rem] min-h-[120px] flex flex-col items-center justify-center text-center">
+              {ads.length > 0 ? (
                 ads.map(ad => (
-                    <div key={ad.id} className="animate-in fade-in zoom-in duration-700 w-full">
-                        {ad.imageUrl && <img src={ad.imageUrl} alt="Ad" className="max-h-48 mx-auto rounded-xl mb-3 shadow-lg border border-white/5" />}
-                        {ad.text && <p className="text-sm font-black italic uppercase tracking-tighter text-blue-300">{ad.text}</p>}
-                    </div>
+                  <div key={ad.id} className="animate-in fade-in zoom-in duration-700 w-full">
+                    {ad.imageUrl && <img src={ad.imageUrl} alt="Ad" className="max-h-48 mx-auto rounded-xl mb-3 shadow-lg border border-white/5" />}
+                    {ad.text && <p className="text-sm font-black italic uppercase tracking-tighter text-blue-300">{ad.text}</p>}
+                  </div>
                 ))
-            ) : (
+              ) : (
                 <div className="flex flex-col items-center opacity-40">
-                    <Radio size={32} className="text-slate-500 mb-2 animate-pulse" />
-                    <p className="text-[10px] font-black uppercase tracking-widest italic text-slate-500">Advertisements Coming Soon</p>
+                  <Radio size={32} className="text-slate-500 mb-2 animate-pulse" />
+                  <p className="text-[10px] font-black uppercase tracking-widest italic text-slate-500">Advertisements Coming Soon</p>
                 </div>
-            )}
+              )}
+            </div>
+          </div>
         </div>
-    </div>
-</div>
+
         {activeTab === 'home' && (
           <div className="space-y-6 animate-in fade-in w-full text-center print:hidden">
             <div className="bg-black/60 backdrop-blur-xl p-8 rounded-[2.5rem] shadow-2xl border-2 border-white/10">
@@ -296,8 +302,12 @@ const App = () => {
               <div className="mt-10 p-6 bg-white/5 rounded-3xl border border-white/10 shadow-inner">
                 <p className="text-slate-400 font-bold uppercase italic text-[11px] mb-4 tracking-widest">To become a Registered Student, please contact Anshu Sir</p>
                 <div className="flex flex-col md:flex-row items-center justify-center gap-6">
-                  <a href="tel:9002892918" className="text-3xl font-black text-yellow-400 italic tracking-tighter flex items-center gap-3 drop-shadow-xl hover:scale-105 transition-transform"> <Phone size={28} className="text-blue-500 animate-pulse" /> 9002892918 </a>
-                  <a href="https://wa.me/919002892918" target="_blank" rel="noreferrer" className="text-3xl font-black text-green-400 italic tracking-tighter flex items-center gap-3 drop-shadow-xl hover:scale-105 transition-transform"> <Send size={28} className="text-green-500" /> WhatsApp </a>
+                  <a href="tel:9002892918" className="text-3xl font-black text-yellow-400 italic tracking-tighter flex items-center gap-3 drop-shadow-xl hover:scale-105 transition-transform">
+                    <Phone size={28} className="text-blue-500 animate-pulse" /> 9002892918
+                  </a>
+                  <a href="https://wa.me/919002892918" target="_blank" rel="noreferrer" className="text-3xl font-black text-green-400 italic tracking-tighter flex items-center gap-3 drop-shadow-xl hover:scale-105 transition-transform">
+                    <Send size={28} className="text-green-500" /> WhatsApp
+                  </a>
                 </div>
               </div>
               <div className="mt-10 overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
@@ -347,40 +357,30 @@ const App = () => {
             </div>
           </div>
         )}
+
         {activeTab === 'live' && (
           <div className="space-y-4 w-full text-left print:hidden">
             <h2 className="font-bold uppercase text-blue-300 border-b border-white/10 pb-2 text-[10px] flex items-center gap-2 bg-black/40 p-2 rounded-lg backdrop-blur-md"><Clock size={14} className="text-red-500" /> Ongoing Live Mocks</h2>
             {ongoingLive.length > 0 ? ongoingLive.map((m, i) => (
-  <div 
-    key={m.id} 
-    onClick={() => {
-      const s = m.status || (m.isGuestEnabled ? 'public' : 'premium');
-      if (s === 'locked') return; 
-      handleStartExamFlow(m);
-    }}
-    className={`w-full p-6 rounded-[2rem] shadow-xl flex justify-between items-center border transition-all cursor-pointer relative overflow-hidden group 
-      ${(m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'locked' ? 'bg-white/5 border-white/5 opacity-60 cursor-not-allowed' : 'bg-black/60 backdrop-blur-xl border-white/10 active:scale-95 hover:border-blue-500/50 shadow-[0_10px_30px_rgba(0,0,0,0.5)]'}`}
-  >
-    <div className="flex-1">
-      <div className="flex items-center gap-2 mb-1">
-        <h3 className="text-sm font-black uppercase italic tracking-tighter text-white">{i + 1}. {m.name}</h3>
-        <LevelBadge level={m.level} />
-      </div>
-      <LiveCountdown timestamp={m.timestamp} />
-      <p className={`text-[8px] font-black uppercase italic mt-2 tracking-widest ${
-        (m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'public' ? 'text-green-500' : 
-        (m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'premium' ? 'text-yellow-500' : 'text-red-500'
-      }`}>
-        {(m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'public' && "🌍 Public Exam"}
-        {(m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'premium' && "💎 Premium Access"}
-        {(m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'locked' && "🔒 Locked: Will open after specific time"}
-      </p>
-    </div>
-    <ChevronRight size={24} className="text-white/20 group-hover:text-blue-500 transition-colors" />
-  </div>
-)) : <p className="text-[10px] text-slate-500 italic p-4 text-center">No active sessions at the moment.</p>}
+              <div key={m.id} onClick={() => { const s = m.status || (m.isGuestEnabled ? 'public' : 'premium'); if (s === 'locked') return; handleStartExamFlow(m); }} className={`w-full p-6 rounded-[2rem] shadow-xl flex justify-between items-center border transition-all cursor-pointer relative overflow-hidden group ${(m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'locked' ? 'bg-white/5 border-white/5 opacity-60 cursor-not-allowed' : 'bg-black/60 backdrop-blur-xl border-white/10 active:scale-95 hover:border-blue-500/50 shadow-[0_10px_30px_rgba(0,0,0,0.5)]'}`} >
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-sm font-black uppercase italic tracking-tighter text-white">{i + 1}. {m.name}</h3>
+                    <LevelBadge level={m.level} />
+                  </div>
+                  <LiveCountdown timestamp={m.timestamp} />
+                  <p className={`text-[8px] font-black uppercase italic mt-2 tracking-widest ${ (m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'public' ? 'text-green-500' : (m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'premium' ? 'text-yellow-500' : 'text-red-500' }`}>
+                    {(m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'public' && "🌍 Public Exam"}
+                    {(m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'premium' && "💎 Premium Access"}
+                    {(m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'locked' && "🔒 Locked: Will open after specific time"}
+                  </p>
+                </div>
+                <ChevronRight size={24} className="text-white/20 group-hover:text-blue-500 transition-colors" />
+              </div>
+            )) : <p className="text-[10px] text-slate-500 italic p-4 text-center">No active sessions at the moment.</p>}
           </div>
         )}
+
         {activeTab === 'teacher' && (
           !currentUser ? (
             <div className="max-w-md w-full mx-auto mt-20 p-10 bg-slate-950 backdrop-blur-xl rounded-3xl shadow-2xl text-center border-t-8 border-blue-700 border-x border-b border-white/10 print:hidden">
@@ -409,12 +409,24 @@ const App = () => {
           ) : (
             <div className="w-full">
               <div className="flex justify-end p-2"><button onClick={() => signOut(auth)} className="text-[8px] font-black uppercase bg-red-950 text-red-500 px-3 py-1 rounded-full border border-red-900">Sign Out Admin</button></div>
-              <TeacherZoneMainView liveMocks={liveMocks} practiceSets={practiceSets} students={students} teacherPin={teacherPin} studentResults={studentResults} ads={ads} setTeacherPin={async (v) => await setDoc(doc(db, "settings", "adminConfig"), { pin: v }, { merge: true })} />
+              <TeacherZoneMainView 
+                liveMocks={liveMocks} 
+                practiceSets={practiceSets} 
+                students={students} 
+                teacherPin={teacherPin} 
+                studentResults={studentResults} 
+                ads={ads} 
+                qaChapter={qaChapter}
+                setQaChapter={setQaChapter}
+                setTeacherPin={async (v) => await setDoc(doc(db, "settings", "adminConfig"), { pin: v }, { merge: true })} 
+              />
             </div>
           )
         )}
+
         {activeTab === 'growth' && <GrowthSectionView results={studentResults} students={students} />}
-                {activeTab === 'practice' && (
+
+        {activeTab === 'practice' && (
           <div className="w-full space-y-8 print:hidden">
             {(() => {
               const allMocks = [...practiceSets.filter(p => p.isPublished), ...shiftedLive.filter(m => m.isPublished)];
@@ -422,6 +434,8 @@ const App = () => {
               if (allMocks.length === 0) return <p className="text-center text-slate-500 italic text-[10px]">No practice sets available.</p>;
               return classes.map(cls => {
                 const isOpen = openClass === cls;
+                const classExams = allMocks.filter(m => (m.class || 'Other') === cls);
+                const chapters = [...new Set(classExams.map(m => (m.chapter || 'GENERAL').toUpperCase()))];
                 return (
                   <div key={cls} className="space-y-2">
                     <div onClick={() => setOpenClass(isOpen ? null : cls)} className="cursor-pointer flex justify-between items-center font-black uppercase text-blue-400 border-b-2 border-blue-900/50 pb-2 text-xs italic tracking-widest pl-2" >
@@ -429,34 +443,32 @@ const App = () => {
                       <ChevronRight size={16} className={`transition-transform ${isOpen ? 'rotate-90' : ''}`} />
                     </div>
                     {isOpen && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-                        {allMocks.filter(m => (m.class || 'Other') === cls).map((p, i) => (
-                          <div 
-                            key={p.id} 
-                            onClick={() => {
-                              const s = p.status || (p.isGuestEnabled ? 'public' : 'premium');
-                              if (s === 'locked') return; 
-                              handleStartExamFlow(p);
-                            }}
-                            className={`w-full p-6 rounded-[2rem] shadow-xl flex justify-between items-center border transition-all cursor-pointer relative overflow-hidden group 
-                              ${(p.status || (p.isGuestEnabled ? 'public' : 'premium')) === 'locked' ? 'bg-white/5 border-white/5 opacity-60 cursor-not-allowed' : 'bg-black/60 backdrop-blur-xl border-white/10 active:scale-95 hover:border-blue-500/50 shadow-[0_10px_30px_rgba(0,0,0,0.5)]'}`}
-                          >
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h3 className="text-sm font-black uppercase italic tracking-tighter text-white">{i + 1}. {p.name}</h3>
-                                <LevelBadge level={p.level} />
-                              </div>
-                              <p className="text-[9px] font-bold text-slate-500 uppercase italic mt-1">Time: {p.hours || 0}h {p.minutes || 0}m</p>
-                              <p className={`text-[8px] font-black uppercase italic mt-2 tracking-widest ${
-                                (p.status || (p.isGuestEnabled ? 'public' : 'premium')) === 'public' ? 'text-green-500' : 
-                                (p.status || (p.isGuestEnabled ? 'public' : 'premium')) === 'premium' ? 'text-yellow-500' : 'text-red-500'
-                              }`}>
-                                {(p.status || (p.isGuestEnabled ? 'public' : 'premium')) === 'public' && "🌍 Public Exam"}
-                                {(p.status || (p.isGuestEnabled ? 'public' : 'premium')) === 'premium' && "💎 Premium Access"}
-                                {(p.status || (p.isGuestEnabled ? 'public' : 'premium')) === 'locked' && "🔒 Locked: Will open after specific time"}
-                              </p>
+                      <div className="space-y-6 mt-4 pl-2">
+                        {chapters.map(chName => (
+                          <div key={chName} className="space-y-3">
+                            <h4 className="text-[10px] font-black text-purple-400 uppercase italic flex items-center gap-2 tracking-widest">
+                              <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shadow-[0_0_8px_#a855f7]"></div>
+                              {chName}
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {classExams.filter(e => (e.chapter || 'GENERAL').toUpperCase() === chName).map((p, i) => (
+                                <div key={p.id} onClick={() => { const s = p.status || (p.isGuestEnabled ? 'public' : 'premium'); if (s === 'locked') return; handleStartExamFlow(p); }} className={`w-full p-6 rounded-[2rem] shadow-xl flex justify-between items-center border transition-all cursor-pointer relative overflow-hidden group ${(p.status || (p.isGuestEnabled ? 'public' : 'premium')) === 'locked' ? 'bg-white/5 border-white/5 opacity-60 cursor-not-allowed' : 'bg-black/60 backdrop-blur-xl border-white/10 active:scale-95 hover:border-blue-500/50 shadow-[0_10px_30px_rgba(0,0,0,0.5)]'}`} >
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <h3 className="text-sm font-black uppercase italic tracking-tighter text-white">{i + 1}. {p.name}</h3>
+                                      <LevelBadge level={p.level} />
+                                    </div>
+                                    <p className="text-[9px] font-bold text-slate-500 uppercase italic mt-1">Time: {p.hours || 0}h {p.minutes || 0}m</p>
+                                    <p className={`text-[8px] font-black uppercase italic mt-2 tracking-widest ${ (p.status || (p.isGuestEnabled ? 'public' : 'premium')) === 'public' ? 'text-green-500' : (p.status || (p.isGuestEnabled ? 'public' : 'premium')) === 'premium' ? 'text-yellow-500' : 'text-red-500' }`}>
+                                      {(p.status || (p.isGuestEnabled ? 'public' : 'premium')) === 'public' && "🌍 Public"}
+                                      {(p.status || (p.isGuestEnabled ? 'public' : 'premium')) === 'premium' && "💎 Premium"}
+                                      {(p.status || (p.isGuestEnabled ? 'public' : 'premium')) === 'locked' && "🔒 Locked"}
+                                    </p>
+                                  </div>
+                                  <ChevronRight size={24} className="text-white/20 group-hover:text-blue-500 transition-colors" />
+                                </div>
+                              ))}
                             </div>
-                            <ChevronRight size={24} className="text-white/20 group-hover:text-blue-500 transition-colors" />
                           </div>
                         ))}
                       </div>
@@ -472,7 +484,7 @@ const App = () => {
   );
 };
 
-const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, setTeacherPin, studentResults, ads }) => {
+const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, setTeacherPin, studentResults, ads, qaChapter, setQaChapter }) => {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isChangingPin, setIsChangingPin] = useState(false);
   const [pinVal, setPinVal] = useState('');
@@ -498,8 +510,22 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
   const handleQuickAdd = async () => {
     if (!qaName.trim()) return alert("Exam Name Required!");
     const coll = quickAddType === 'live' ? 'liveMocks' : 'practiceSets';
-    await addDoc(collection(db, coll), { name: qaName.toUpperCase(), hours: qaHours, minutes: qaMinutes, fileUrl: qaLink.trim(), answerKey: qaKey.toUpperCase(), questionMarks: qaMarks, negativeMark: qaNeg || "0", isPublished: false, status: qaStatus, class: qaClass, level: qaLevel, timestamp: Date.now() });
-    setQaName(''); setQaLink(''); setQaKey(''); setQaMarks(''); setQaNeg('0'); setQaStatus('public');
+    await addDoc(collection(db, coll), {
+      name: qaName.toUpperCase(),
+      hours: qaHours,
+      minutes: qaMinutes,
+      fileUrl: qaLink.trim(),
+      answerKey: qaKey.toUpperCase(),
+      questionMarks: qaMarks,
+      negativeMark: qaNeg || "0",
+      isPublished: false,
+      status: qaStatus,
+      class: qaClass,
+      level: qaLevel,
+      chapter: qaChapter.trim().toUpperCase() || 'GENERAL',
+      timestamp: Date.now()
+    });
+    setQaName(''); setQaLink(''); setQaKey(''); setQaMarks(''); setQaNeg('0'); setQaStatus('public'); setQaChapter('');
     alert(`Success: Added to Registry`);
   };
 
@@ -528,7 +554,10 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
                           {item.isGuestEnabled && <span className="text-[7px] bg-green-600 px-1.5 py-0.5 rounded text-white font-black italic">GUEST ON</span>}
                           {item.level && <span className="text-[7px] bg-blue-900 px-1.5 py-0.5 rounded text-blue-300 font-black italic">{item.level}</span>}
                         </div>
-                        <p className="text-[8px] font-bold text-slate-500 uppercase italic ml-5 mt-1"> Last Change: {item.timestamp ? `${new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} • ${new Date(item.timestamp).toLocaleDateString('en-GB')}` : 'N/A'} </p>
+                        <p className="text-[8px] font-black text-purple-400 uppercase italic ml-5 mt-1">Chapter: {item.chapter || 'GENERAL'}</p>
+                        <p className="text-[8px] font-bold text-slate-500 uppercase italic ml-5 mt-1">
+                          Last Change: {item.timestamp ? `${new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} • ${new Date(item.timestamp).toLocaleDateString('en-GB')}` : 'N/A'}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -540,23 +569,28 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
                   {expandedId === item.id && (
                     <div className="p-5 border-t border-white/5 bg-black/40 space-y-4 animate-in slide-in-from-top-2">
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                       <div>
-  <p className="text-[8px] font-black text-green-400 uppercase mb-1 ml-1 italic">Access Mode</p>
-  <select value={item.status || (item.isGuestEnabled ? 'public' : 'premium')} onChange={(e) => updateField(item.id, item.source, 'status', e.target.value)} className="w-full p-2 bg-black border border-white/10 rounded-xl text-white text-[9px] font-black outline-none">
-    <option value="public">🌍 Public</option>
-    <option value="premium">💎 Premium</option>
-    <option value="locked">🔒 Locked</option>
-  </select>
-</div>
+                        <div>
+                          <p className="text-[8px] font-black text-green-400 uppercase mb-1 ml-1 italic">Access Mode</p>
+                          <select value={item.status || (item.isGuestEnabled ? 'public' : 'premium')} onChange={(e) => updateField(item.id, item.source, 'status', e.target.value)} className="w-full p-2 bg-black border border-white/10 rounded-xl text-white text-[9px] font-black outline-none">
+                            <option value="public">🌍 Public</option>
+                            <option value="premium">💎 Premium</option>
+                            <option value="locked">🔒 Locked</option>
+                          </select>
+                        </div>
                         <div><p className="text-[8px] font-black text-blue-400 uppercase mb-1 ml-1">Class</p><select value={item.class || '10'} onChange={(e) => updateField(item.id, item.source, 'class', e.target.value)} className="w-full p-2 bg-black border border-white/10 rounded-xl text-white text-xs font-black">{[5,6,7,8,9,10,11,12].map(c => <option key={c} value={c}>{c}</option>)}</select></div>
-                        <div className="md:col-span-2"> <p className="text-[8px] font-black text-yellow-500 uppercase mb-1 ml-1">Complexity Level</p> <select value={item.level || 'Moderate'} onChange={(e) => updateField(item.id, item.source, 'level', e.target.value)} className="w-full p-2 bg-black border border-white/10 rounded-xl text-white text-xs font-black"> {['Easy', 'Moderate', 'Hard'].map(lvl => <option key={lvl} value={lvl}>{lvl}</option>)} </select> </div>
+                        <div className="md:col-span-2">
+                          <p className="text-[8px] font-black text-yellow-500 uppercase mb-1 ml-1">Complexity Level</p>
+                          <select value={item.level || 'Moderate'} onChange={(e) => updateField(item.id, item.source, 'level', e.target.value)} className="w-full p-2 bg-black border border-white/10 rounded-xl text-white text-xs font-black">
+                            {['Easy', 'Moderate', 'Hard'].map(lvl => <option key={lvl} value={lvl}>{lvl}</option>)}
+                          </select>
+                        </div>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div><p className="text-[8px] font-black text-slate-500 uppercase mb-1 ml-1">Exam Name</p><input type="text" defaultValue={item.name} onBlur={(e) => updateField(item.id, item.source, 'name', e.target.value.toUpperCase())} className="w-full p-2.5 rounded-xl border border-white/10 bg-black text-white text-xs font-black outline-none focus:border-blue-500" /></div>
-                        <div><p className="text-[8px] font-black text-red-500 uppercase mb-1 ml-1">Negative Marking</p><input type="number" step="0.01" defaultValue={item.negativeMark || 0} onBlur={(e) => updateField(item.id, item.source, 'negativeMark', e.target.value)} className="w-full p-2.5 rounded-xl border border-white/10 bg-black text-white text-xs font-black outline-none" /></div>
+                        <div><p className="text-[8px] font-black text-purple-400 uppercase mb-1 ml-1 italic tracking-widest">Dynamic Folder/Chapter Name</p><input type="text" defaultValue={item.chapter} onBlur={(e) => updateField(item.id, item.source, 'chapter', e.target.value.toUpperCase())} className="w-full p-2.5 rounded-xl border border-white/10 bg-black text-white text-xs font-black outline-none focus:border-purple-500" /></div>
                       </div>
                       <div className="flex flex-wrap gap-3">
-                       <div className="bg-black p-2.5 rounded-xl border border-white/10 shadow-sm min-w-[120px]"><p className="text-[8px] font-black text-blue-400 uppercase mb-1 ml-1">Time Limit</p><div className="flex items-center gap-1"><input type="number" defaultValue={item.hours} onBlur={(e) => updateField(item.id, item.source, 'hours', e.target.value)} className="w-10 text-center font-black bg-slate-900 rounded-lg outline-none text-white" /> <span className="font-bold text-[9px]">H</span><input type="number" defaultValue={item.minutes} onBlur={(e) => updateField(item.id, item.source, 'minutes', e.target.value)} className="w-10 text-center font-black bg-slate-900 rounded-lg outline-none text-white" /> <span className="font-bold text-[9px]">M</span></div></div>
+                        <div className="bg-black p-2.5 rounded-xl border border-white/10 shadow-sm min-w-[120px]"><p className="text-[8px] font-black text-blue-400 uppercase mb-1 ml-1">Time Limit</p><div className="flex items-center gap-1"><input type="number" defaultValue={item.hours} onBlur={(e) => updateField(item.id, item.source, 'hours', e.target.value)} className="w-10 text-center font-black bg-slate-900 rounded-lg outline-none text-white" /> <span className="font-bold text-[9px]">H</span><input type="number" defaultValue={item.minutes} onBlur={(e) => updateField(item.id, item.source, 'minutes', e.target.value)} className="w-10 text-center font-black bg-slate-900 rounded-lg outline-none text-white" /> <span className="font-bold text-[9px]">M</span></div></div>
                         <div className="flex-1 bg-black p-2.5 rounded-xl border border-white/10 shadow-sm"><p className="text-[8px] font-black text-slate-500 uppercase mb-1 ml-1">Google Drive Link</p><input type="text" defaultValue={item.fileUrl} onBlur={(e) => updateField(item.id, item.source, 'fileUrl', e.target.value)} className="w-full p-2 rounded-lg border border-white/5 bg-black text-white text-[10px] outline-none font-bold" /></div>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -587,17 +621,30 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
         <div className="space-y-6">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div>
-  <p className="text-[8px] font-black text-blue-400 uppercase mb-1 ml-1 italic">Access Mode</p>
-  <select value={qaStatus} onChange={(e) => setQaStatus(e.target.value)} className="w-full p-2 bg-black border border-white/10 rounded-xl text-white text-[10px] font-black outline-none">
-    <option value="public">🌍 Public Exam</option>
-    <option value="premium">💎 Premium Access</option>
-    <option value="locked">🔒 Locked Exam</option>
-  </select>
-</div>
-            <div> <p className="text-[8px] font-black text-blue-400 uppercase mb-1 ml-1">Class</p> <select value={qaClass} onChange={(e) => setQaClass(e.target.value)} className="w-full p-2 bg-black border border-white/10 rounded-xl text-white text-[10px] font-black outline-none"> {[5, 6, 7, 8, 9, 10, 11, 12].map(c => <option key={c} value={c}>{c}</option>)} </select> </div>
-            <div> <p className="text-[8px] font-black text-yellow-500 uppercase mb-1 ml-1">Level</p> <select value={qaLevel} onChange={(e) => setQaLevel(e.target.value)} className="w-full p-2 bg-black border border-white/10 rounded-xl text-white text-[10px] font-black outline-none"> {['Easy', 'Moderate', 'Hard'].map(lvl => <option key={lvl} value={lvl}>{lvl}</option>)} </select> </div>
+              <p className="text-[8px] font-black text-blue-400 uppercase mb-1 ml-1 italic">Access Mode</p>
+              <select value={qaStatus} onChange={(e) => setQaStatus(e.target.value)} className="w-full p-2 bg-black border border-white/10 rounded-xl text-white text-[10px] font-black outline-none">
+                <option value="public">🌍 Public Exam</option>
+                <option value="premium">💎 Premium Access</option>
+                <option value="locked">🔒 Locked Exam</option>
+              </select>
+            </div>
+            <div>
+              <p className="text-[8px] font-black text-blue-400 uppercase mb-1 ml-1">Class</p>
+              <select value={qaClass} onChange={(e) => setQaClass(e.target.value)} className="w-full p-2 bg-black border border-white/10 rounded-xl text-white text-[10px] font-black outline-none">
+                {[5, 6, 7, 8, 9, 10, 11, 12].map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <p className="text-[8px] font-black text-yellow-500 uppercase mb-1 ml-1">Level</p>
+              <select value={qaLevel} onChange={(e) => setQaLevel(e.target.value)} className="w-full p-2 bg-black border border-white/10 rounded-xl text-white text-[10px] font-black outline-none">
+                {['Easy', 'Moderate', 'Hard'].map(lvl => <option key={lvl} value={lvl}>{lvl}</option>)}
+              </select>
+            </div>
           </div>
-          <div><p className="text-[8px] font-black text-slate-500 uppercase mb-1 ml-1 italic leading-none">Exam Name</p><input type="text" value={qaName} onChange={(e) => setQaName(e.target.value)} className="w-full p-3.5 bg-black border border-white/10 rounded-2xl text-[10px] font-black outline-none shadow-inner focus:border-blue-500 text-white transition-all uppercase" placeholder="New Slot" /></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div><p className="text-[8px] font-black text-slate-500 uppercase mb-1 ml-1 italic leading-none">Exam Name</p><input type="text" value={qaName} onChange={(e) => setQaName(e.target.value)} className="w-full p-3.5 bg-black border border-white/10 rounded-2xl text-[10px] font-black outline-none shadow-inner focus:border-blue-500 text-white transition-all uppercase" placeholder="New Slot" /></div>
+            <div><p className="text-[8px] font-black text-purple-400 uppercase mb-1 ml-1 italic leading-none">Folder/Chapter Name</p><input type="text" value={qaChapter} onChange={(e) => setQaChapter(e.target.value)} className="w-full p-3.5 bg-black border border-white/10 rounded-2xl text-[10px] font-black outline-none shadow-inner focus:border-purple-500 text-white transition-all uppercase" placeholder="e.g. CALCULUS" /></div>
+          </div>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="bg-black p-3 rounded-2xl border border-white/10 shadow-inner min-w-[120px]"><p className="text-[8px] font-black text-blue-400 uppercase mb-1 ml-1 italic">Time Limit</p><div className="flex items-center gap-1 font-black text-[10px] text-white"><input type="number" value={qaHours} onChange={(e) => setQaHours(e.target.value)} className="w-8 text-center bg-transparent outline-none" /> <span>H</span><input type="number" value={qaMinutes} onChange={(e) => setQaMinutes(e.target.value)} className="w-8 text-center bg-transparent outline-none" /> <span>M</span></div></div>
             <div className="flex-1 bg-black p-3 rounded-2xl border border-white/10 shadow-inner"><p className="text-[8px] font-black text-red-400 uppercase mb-1 ml-1 italic tracking-widest">Negative Mark (Ex: 0.25)</p><input type="number" step="0.01" value={qaNeg} onChange={(e) => setQaNeg(e.target.value)} className="w-full bg-transparent outline-none text-[10px] font-bold text-white" placeholder="0 for no negative" /></div>
@@ -629,29 +676,22 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
       </div>
       <AdminPaperManager title="Live Mock Exam" items={adminLive} color="text-red-500" />
       <AdminPaperManager title="Practice Sets" items={adminShifted} color="text-blue-400" />
-            <div className="bg-black/60 backdrop-blur-xl p-8 rounded-[2.5rem] border-t-8 border-yellow-600 w-full mb-8 text-left border-x border-b border-white/5">
-    <h3 className="font-black text-xs uppercase mb-6 flex items-center gap-2 italic text-yellow-500"><Radio size={20} /> Ad Manager</h3>
-    <div className="space-y-4">
-        <input id="ad-text" type="text" placeholder="Ad Message (Optional)" className="w-full p-3 bg-black border border-white/10 rounded-xl text-[10px] text-white outline-none" />
-        <input id="ad-url" type="text" placeholder="Image URL (Direct link)" className="w-full p-3 bg-black border border-white/10 rounded-xl text-[10px] text-white outline-none" />
-        <button onClick={async () => {
-            const txt = document.getElementById('ad-text').value;
-            const url = document.getElementById('ad-url').value;
-            if(!txt && !url) return alert("Fill at least one!");
-            await addDoc(collection(db, "advertisements"), { text: txt, imageUrl: url, timestamp: Date.now() });
-            document.getElementById('ad-text').value = '';
-            document.getElementById('ad-url').value = '';
-        }} className="w-full bg-yellow-600 py-3 rounded-xl font-black text-[10px] uppercase">Post Advertisement</button>
-    </div>
-    <div className="mt-6 space-y-2">
-        {ads.map(ad => (
+      <div className="bg-black/60 backdrop-blur-xl p-8 rounded-[2.5rem] border-t-8 border-yellow-600 w-full mb-8 text-left border-x border-b border-white/5">
+        <h3 className="font-black text-xs uppercase mb-6 flex items-center gap-2 italic text-yellow-500"><Radio size={20} /> Ad Manager</h3>
+        <div className="space-y-4">
+          <input id="ad-text" type="text" placeholder="Ad Message (Optional)" className="w-full p-3 bg-black border border-white/10 rounded-xl text-[10px] text-white outline-none" />
+          <input id="ad-url" type="text" placeholder="Image URL (Direct link)" className="w-full p-3 bg-black border border-white/10 rounded-xl text-[10px] text-white outline-none" />
+          <button onClick={async () => { const txt = document.getElementById('ad-text').value; const url = document.getElementById('ad-url').value; if(!txt && !url) return alert("Fill at least one!"); await addDoc(collection(db, "advertisements"), { text: txt, imageUrl: url, timestamp: Date.now() }); document.getElementById('ad-text').value = ''; document.getElementById('ad-url').value = ''; }} className="w-full bg-yellow-600 py-3 rounded-xl font-black text-[10px] uppercase">Post Advertisement</button>
+        </div>
+        <div className="mt-6 space-y-2">
+          {ads.map(ad => (
             <div key={ad.id} className="p-3 bg-white/5 rounded-xl flex justify-between items-center border border-white/10">
-                <p className="text-[9px] font-bold truncate max-w-[200px]">{ad.text || 'Image Only'}</p>
-                <button onClick={async () => await deleteDoc(doc(db, "advertisements", ad.id))} className="text-red-500"><X size={16}/></button>
+              <p className="text-[9px] font-bold truncate max-w-[200px]">{ad.text || 'Image Only'}</p>
+              <button onClick={async () => await deleteDoc(doc(db, "advertisements", ad.id))} className="text-red-500"><X size={16}/></button>
             </div>
-        ))}
-    </div>
-</div>
+          ))}
+        </div>
+      </div>
       <div className="bg-black/60 backdrop-blur-xl p-8 rounded-[2.5rem] shadow-2xl border-t-8 border-slate-900 w-full mb-20 text-center print:hidden border-x border-b border-white/5">
         <h3 className="font-black text-xs uppercase mb-8 flex items-center justify-center gap-3 italic text-blue-300"><Trophy size={28} className="text-yellow-500" /> Student Registry</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -668,7 +708,9 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
               <div className="mt-4 w-full px-2">
                 <p className="text-[8px] font-black text-slate-500 uppercase mb-1 italic text-left">Valid Until:</p>
                 <input type="date" defaultValue={std.subscriptionEnd || ""} onChange={async (e) => await setDoc(doc(db, "students", std.id), { subscriptionEnd: e.target.value }, { merge: true })} className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-1.5 text-[10px] font-bold text-white outline-none" />
-                <p className={`text-[9px] font-black mt-1 uppercase italic text-left ${getRemainingDays(std.subscriptionEnd) <= 5 ? 'text-red-500' : 'text-green-500'}`}> {getRemainingDays(std.subscriptionEnd)} Days Left </p>
+                <p className={`text-[9px] font-black mt-1 uppercase italic text-left ${getRemainingDays(std.subscriptionEnd) <= 5 ? 'text-red-500' : 'text-green-500'}`}>
+                  {getRemainingDays(std.subscriptionEnd)} Days Left
+                </p>
               </div>
               <div className="flex gap-3 mt-6">
                 <button onClick={() => setSelectedStudent(std)} className="px-5 py-1.5 bg-slate-800 border border-slate-700 rounded-full text-[10px] font-black uppercase hover:bg-blue-600 hover:text-white transition-all shadow-sm italic">Reports</button>
@@ -710,32 +752,12 @@ const AdminMarksheetModal = ({ student, results, onClose }) => {
                   </div>
                   <div className="flex items-center gap-2 print:hidden">
                     <input id={`bonus-in-${r.id}`} type="number" placeholder="+" className="w-12 p-2 bg-black border border-slate-700 rounded-xl text-[10px] font-black text-center text-yellow-400 outline-none focus:border-yellow-500" />
-                    <button onClick={async () => {
-                      const bVal = document.getElementById(`bonus-in-${r.id}`).value;
-                      if(!bVal) return alert("Enter marks");
-                      const newB = (parseFloat(r.bonus) || 0) + parseFloat(bVal);
-                      await setDoc(doc(db, "results", r.id), { bonus: newB }, { merge: true });
-                      document.getElementById(`bonus-in-${r.id}`).value = '';
-                      alert("Bonus Applied!");
-                    }} className="p-2 bg-yellow-600 text-white rounded-xl shadow-lg active:scale-90 transition-all"><PlusCircle size={18}/></button>
+                    <button onClick={async () => { const bVal = document.getElementById(`bonus-in-${r.id}`).value; if(!bVal) return alert("Enter marks"); const newB = (parseFloat(r.bonus) || 0) + parseFloat(bVal); await setDoc(doc(db, "results", r.id), { bonus: newB }, { merge: true }); document.getElementById(`bonus-in-${r.id}`).value = ''; alert("Bonus Applied!"); }} className="p-2 bg-yellow-600 text-white rounded-xl shadow-lg active:scale-90 transition-all"><PlusCircle size={18}/></button>
                     <button onClick={async () => { if (window.confirm("Purge record?")) await deleteDoc(doc(db, "results", r.id)); }} className="text-slate-600 hover:text-red-500 active:scale-90 transition-all flex-shrink-0"><Trash2 size={24} /></button>
                   </div>
                 </div>
                 {r.details && r.details.some(d => d.pending) && (
-                  <div className="bg-orange-950/30 border border-orange-900/50 rounded-[2rem] p-4 flex flex-col gap-3 shadow-inner print:hidden"><p className="text-[10px] font-black text-orange-400 uppercase italic text-center animate-pulse tracking-widest">Action Required: Written Solutions</p><div className="flex overflow-x-auto gap-4 pb-4 no-scrollbar snap-x snap-mandatory">
-                    {r.details.filter(d => d.pending).map((pendingQ, pIdx) => {
-                      const photoList = Array.isArray(pendingQ.selected) ? pendingQ.selected : [pendingQ.selected];
-                      return photoList.map((photoUrl, imgIdx) => (
-                        <div key={`${pIdx}-${imgIdx}`} className="min-w-[200px] bg-black border border-white/10 shadow-md rounded-2xl p-4 flex flex-col items-center gap-3 snap-center"><p className="text-[9px] font-black text-slate-500 uppercase italic">Q{pendingQ.qNum} - Page {imgIdx + 1}</p><button onClick={() => setPreviewImg(photoUrl)} className="w-full py-2 bg-blue-600 text-white rounded-xl font-black text-[9px] uppercase shadow-sm">View Page</button>
-                          {imgIdx === photoList.length - 1 && (<div className="flex gap-2 w-full mt-2"><input id={`mark-input-${r.id}-${pendingQ.qNum}`} type="number" placeholder="Marks" className="w-1/2 p-2 border border-slate-700 rounded-xl text-center font-black text-[10px] outline-none focus:border-orange-500 bg-black text-white" /><button onClick={async () => {
-                            const markVal = document.getElementById(`mark-input-${r.id}-${pendingQ.qNum}`).value;
-                            if (!markVal) return alert("Enter marks!");
-                            const updatedDetails = r.details.map(d => (d.pending && d.qNum === pendingQ.qNum) ? { ...d, status: true, mark: parseFloat(markVal), pending: false, selected: "PHOTO_DELETED" } : d);
-                            const newObt = updatedDetails.reduce((sum, d) => sum + (d.status ? d.mark : 0), 0);
-                            await setDoc(doc(db, "results", r.id), { details: updatedDetails, obtained: newObt, percent: Math.round((newObt / r.total) * 100) }, { merge: true });
-                            alert(`Q${pendingQ.qNum} Marks Updated!`);
-                          }} className="w-1/2 py-2 bg-orange-600 text-white rounded-xl font-black text-[9px] uppercase shadow-sm">Save</button></div>)}</div>));
-                    })}</div></div>)}
+                  <div className="bg-orange-950/30 border border-orange-900/50 rounded-[2rem] p-4 flex flex-col gap-3 shadow-inner print:hidden"><p className="text-[10px] font-black text-orange-400 uppercase italic text-center animate-pulse tracking-widest">Action Required: Written Solutions</p><div className="flex overflow-x-auto gap-4 pb-4 no-scrollbar snap-x snap-mandatory"> {r.details.filter(d => d.pending).map((pendingQ, pIdx) => { const photoList = Array.isArray(pendingQ.selected) ? pendingQ.selected : [pendingQ.selected]; return photoList.map((photoUrl, imgIdx) => ( <div key={`${pIdx}-${imgIdx}`} className="min-w-[200px] bg-black border border-white/10 shadow-md rounded-2xl p-4 flex flex-col items-center gap-3 snap-center"><p className="text-[9px] font-black text-slate-500 uppercase italic">Q{pendingQ.qNum} - Page {imgIdx + 1}</p><button onClick={() => setPreviewImg(photoUrl)} className="w-full py-2 bg-blue-600 text-white rounded-xl font-black text-[9px] uppercase shadow-sm">View Page</button> {imgIdx === photoList.length - 1 && (<div className="flex gap-2 w-full mt-2"><input id={`mark-input-${r.id}-${pendingQ.qNum}`} type="number" placeholder="Marks" className="w-1/2 p-2 border border-slate-700 rounded-xl text-center font-black text-[10px] outline-none focus:border-orange-500 bg-black text-white" /><button onClick={async () => { const markVal = document.getElementById(`mark-input-${r.id}-${pendingQ.qNum}`).value; if (!markVal) return alert("Enter marks!"); const updatedDetails = r.details.map(d => (d.pending && d.qNum === pendingQ.qNum) ? { ...d, status: true, mark: parseFloat(markVal), pending: false, selected: "PHOTO_DELETED" } : d); const newObt = updatedDetails.reduce((sum, d) => sum + (d.status ? d.mark : 0), 0); await setDoc(doc(db, "results", r.id), { details: updatedDetails, obtained: newObt, percent: Math.round((newObt / r.total) * 100) }, { merge: true }); alert(`Q${pendingQ.qNum} Marks Updated!`); }} className="w-1/2 py-2 bg-orange-600 text-white rounded-xl font-black text-[9px] uppercase shadow-sm">Save</button></div>)}</div>)); })}</div></div>)}
               </div>
             );
           })}
@@ -766,9 +788,17 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
   const [activeQuestion, setActiveQuestion] = useState(null);
   const [scoreData, setScoreData] = useState(null);
 
-  useEffect(() => { localStorage.setItem(recoveryKey, JSON.stringify(answers)); }, [answers, recoveryKey]);
   useEffect(() => {
-    const handleBeforeUnload = (e) => { if (!isSubmitted) { e.preventDefault(); e.returnValue = ''; } };
+    localStorage.setItem(recoveryKey, JSON.stringify(answers));
+  }, [answers, recoveryKey]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (!isSubmitted) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isSubmitted]);
@@ -779,13 +809,20 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onload = (event) => {
-      const img = new Image(); img.src = event.target.result;
+      const img = new Image();
+      img.src = event.target.result;
       img.onload = () => {
-        const canvas = document.createElement('canvas'); const MAX_WIDTH = 800;
-        canvas.width = MAX_WIDTH; canvas.height = img.height * (MAX_WIDTH / img.width);
-        const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 800;
+        canvas.width = MAX_WIDTH;
+        canvas.height = img.height * (MAX_WIDTH / img.width);
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         const compressedBase64 = canvas.toDataURL('image/jpeg', 0.5);
-        setAnswers(prev => { const existingPhotos = Array.isArray(prev[qNum]) ? prev[qNum] : []; return { ...prev, [qNum]: [...existingPhotos, compressedBase64] }; });
+        setAnswers(prev => {
+          const existingPhotos = Array.isArray(prev[qNum]) ? prev[qNum] : [];
+          return { ...prev, [qNum]: [...existingPhotos, compressedBase64] };
+        });
       };
     };
   };
@@ -794,13 +831,25 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
     setAnswers(prev => {
       const existingPhotos = Array.isArray(prev[qNum]) ? prev[qNum] : [];
       const updatedPhotos = existingPhotos.filter((_, idx) => idx !== indexToRemove);
-      if (updatedPhotos.length === 0) { const newAnswers = { ...prev }; delete newAnswers[qNum]; return newAnswers; }
+      if (updatedPhotos.length === 0) {
+        const newAnswers = { ...prev };
+        delete newAnswers[qNum];
+        return newAnswers;
+      }
       return { ...prev, [qNum]: updatedPhotos };
     });
   };
 
   const handleOptionSelect = (qNum, opt) => {
-    setAnswers(prev => { const newAnswers = { ...prev }; if (prev[qNum] === opt) { delete newAnswers[qNum]; } else { newAnswers[qNum] = opt; } return newAnswers; });
+    setAnswers(prev => {
+      const newAnswers = { ...prev };
+      if (prev[qNum] === opt) {
+        delete newAnswers[qNum];
+      } else {
+        newAnswers[qNum] = opt;
+      }
+      return newAnswers;
+    });
   };
 
   const answerKeyArray = exam?.answerKey ? exam.answerKey.split(',').map(k => k.trim().toUpperCase()) : [];
@@ -808,7 +857,8 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
   const negVal = parseFloat(exam?.negativeMark) || 0;
 
   useEffect(() => {
-    let t; if (!isSubmitted && timeLeft > 0) t = setInterval(() => setTimeLeft(p => p - 1), 1000);
+    let t;
+    if (!isSubmitted && timeLeft > 0) t = setInterval(() => setTimeLeft(p => p - 1), 1000);
     else if (timeLeft <= 0 && !isSubmitted) submitExam();
     return () => clearInterval(t);
   }, [timeLeft, isSubmitted]);
@@ -821,24 +871,37 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
       const minutesTaken = Math.floor((Date.now() - startTime) / 60000);
       const secondsTaken = Math.floor(((Date.now() - startTime) % 60000) / 1000);
       const timeDuration = `${minutesTaken}m ${secondsTaken}s`;
-      let totalObtainedMarks = 0; let totalPossibleMarks = 0;
+      let totalObtainedMarks = 0;
+      let totalPossibleMarks = 0;
       const detailResults = answerKeyArray.map((key, index) => {
-        const qNum = index + 1; const qMark = marksArray[index] !== undefined ? marksArray[index] : 1;
-        const studentAns = answers[qNum] || 'None'; const isCorrect = studentAns === key; const isWrong = studentAns !== 'None' && studentAns !== key;
+        const qNum = index + 1;
+        const qMark = marksArray[index] !== undefined ? marksArray[index] : 1;
+        const studentAns = answers[qNum] || 'None';
+        const isCorrect = studentAns === key;
+        const isWrong = studentAns !== 'None' && studentAns !== key;
         totalPossibleMarks += qMark;
-        if (key !== 'W') { if (isCorrect) totalObtainedMarks += qMark; else if (isWrong) totalObtainedMarks -= negVal; }
+        if (key !== 'W') {
+          if (isCorrect) totalObtainedMarks += qMark;
+          else if (isWrong) totalObtainedMarks -= negVal;
+        }
         return { qNum, selected: studentAns, correct: key, status: isCorrect, mark: qMark, type: key === 'W' ? 'written' : 'mcq', pending: key === 'W' };
       });
       const percent = totalPossibleMarks > 0 ? Math.round((totalObtainedMarks / totalPossibleMarks) * 100) : 0;
-      const d = new Date(); let finalName = exam.studentName.toUpperCase();
+      const d = new Date();
+      let finalName = exam.studentName.toUpperCase();
       await addDoc(collection(db, "logs"), { studentName: exam.isGuest ? `(Guest) ${finalName}` : finalName, examTitle: exam.name, timestamp: Date.now() });
-      if (!exam.isGuest) { await addDoc(collection(db, "results"), { name: finalName, exam: exam.name, percent, obtained: totalObtainedMarks, total: totalPossibleMarks, date: d.toLocaleDateString('en-GB'), timestamp: Date.now(), details: detailResults, timeTaken: timeDuration, bonus: 0 }); }
+      if (!exam.isGuest) {
+        await addDoc(collection(db, "results"), { name: finalName, exam: exam.name, percent, obtained: totalObtainedMarks, total: totalPossibleMarks, date: d.toLocaleDateString('en-GB'), timestamp: Date.now(), details: detailResults, timeTaken: timeDuration, bonus: 0 });
+      }
       setScoreData({ correct: totalObtainedMarks, total: totalPossibleMarks, percent, details: detailResults });
-      localStorage.removeItem(recoveryKey); localStorage.removeItem(timerKey); setIsSubmitted(true);
+      localStorage.removeItem(recoveryKey);
+      localStorage.removeItem(timerKey);
+      setIsSubmitted(true);
     } catch (e) { console.error(e); setIsSubmitted(true); }
   };
 
   const formatTime = (s) => `${Math.floor(s / 60)}:${s % 60 < 10 ? '0' + (s % 60) : s % 60}`;
+
   if (isSubmitted) return (
     <div className="fixed inset-0 bg-slate-950 z-[2000] flex flex-col items-center overflow-y-auto p-10 text-center animate-in zoom-in duration-500 text-white"><CheckCircle size={80} className="text-green-500 mb-6 animate-bounce shadow-2xl rounded-full" /><h2 className="text-3xl font-black uppercase italic mb-8 tracking-tighter leading-none">Session Completed</h2><div className="bg-slate-900 p-10 rounded-[3rem] border-4 border-slate-800 mb-10 w-full max-sm shadow-2xl text-center"><p className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2 opacity-60">Result Transcript</p><h3 className="text-5xl font-black text-blue-400 italic tracking-tighter leading-none">{scoreData?.correct} / {scoreData?.total}</h3>{exam.isGuest && <p className="text-orange-400 text-[10px] font-black mt-4 uppercase italic">Notice: Guest data is not saved permanentally.</p>}<div className="mt-8 space-y-2 max-h-60 overflow-y-auto no-scrollbar border-t border-slate-800 pt-4 w-full px-2"><p className="text-[9px] font-black text-slate-500 uppercase italic mb-3 text-center">Quick Review:</p><div className="grid grid-cols-5 gap-2">{scoreData?.details?.map((item, idx) => (<div key={idx} className={`p-2 rounded-lg border flex flex-col items-center ${item.type === 'written' ? 'bg-orange-900/20 border-orange-800 text-orange-400' : (item.status ? 'bg-green-900/20 border-green-800 text-green-400' : 'bg-red-900/20 border-red-800 text-red-400')}`}><span className="text-[8px] font-black">Q{item.qNum}</span>{item.type === 'written' ? <Clock size={10} /> : (item.status ? <CheckCircle size={10} /> : <X size={10} />)}</div>))}</div></div></div><button onClick={onFinish} className="bg-blue-700 text-white px-16 py-4 rounded-full font-black uppercase text-[12px] shadow-2xl">Close Arena</button></div>
   );
@@ -846,23 +909,30 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
   return (
     <div className="fixed inset-0 bg-black z-[100] flex flex-col overflow-hidden animate-in fade-in duration-500">
       <div className="bg-slate-900 p-2 md:p-3 flex justify-between items-center border-b-4 border-yellow-500 shadow-2xl relative z-50 text-white"><div className="flex-1 min-w-0 pr-2"><h2 className="font-black text-[10px] uppercase italic tracking-tighter leading-none truncate max-w-[150px]">{exam?.name}</h2><p className="text-[8px] md:text-[9px] text-blue-400 font-black uppercase mt-1 tracking-widest italic leading-none">{exam?.studentName} {exam.isGuest && '(GUEST)'}</p></div><div className="flex items-center gap-6"><div className="px-5 py-1.5 rounded-xl font-black text-2xl border-4 text-white border-slate-800 bg-black">{formatTime(timeLeft)}</div><button onClick={() => { if (window.confirm("SUBMIT EXAM?")) submitExam(); }} className="bg-green-600 text-white px-6 py-2 rounded-full font-black text-[10px] uppercase shadow-lg">SUBMIT</button></div></div>
-      <div className="flex-1 bg-slate-950 overflow-hidden relative"><iframe src={exam?.fileUrl?.replace('/view?usp=sharing', '/preview').replace('/view', '/preview')} className="w-full h-full border-none opacity-90" title="Paper" /><div className="absolute bottom-0 left-0 right-0 z-50 bg-slate-900/98 border-t-2 border-white/10 backdrop-blur-xl p-3 md:p-4 shadow-2xl"><div className="max-w-4xl mx-auto"><div className="flex items-center justify-between mb-2 px-2"><span className="text-[9px] font-black text-blue-400 uppercase italic flex items-center gap-3"><PenTool size={16} /> RESPONSE INTERFACE</span>{activeQuestion && <button onClick={() => setActiveQuestion(null)} className="text-white bg-slate-700 px-3 py-1 rounded-lg font-black text-[10px] uppercase shadow-lg">Close</button>}</div> {activeQuestion ? (
-        <div className="flex flex-col items-center animate-in slide-in-from-bottom-2 pb-2"><p className="text-slate-400 font-black text-xs mb-4 italic uppercase">{answerKeyArray[activeQuestion - 1] === 'W' ? `Page Capturing Q${activeQuestion}:` : `Choice for Q${activeQuestion}:`}</p> {answerKeyArray[activeQuestion - 1] === 'W' ? (<div className="flex flex-col items-center gap-4">{exam.isGuest ? (<div className="p-4 bg-orange-900/20 border-2 border-orange-800 rounded-2xl text-center"><AlertCircle className="text-orange-500 mx-auto mb-2" /><p className="text-[9px] font-black text-orange-200 uppercase">Guest users can't upload.</p></div>) : (<> <div className="flex gap-2 flex-wrap justify-center">{Array.isArray(answers[activeQuestion]) && answers[activeQuestion].map((_, i) => (<div key={i} className="relative"><div className="bg-green-600 text-white text-[8px] font-black px-2 py-1 rounded-lg uppercase">Page {i + 1} ✓</div><button onClick={() => removeImage(activeQuestion, i)} className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-0.5 shadow-lg active:scale-75 transition-all"><X size={12} /></button></div>))}</div> <div className="flex gap-4"><label className="bg-blue-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase cursor-pointer shadow-xl flex items-center gap-2 active:scale-95 transition-all"><Camera size={16} /> {Array.isArray(answers[activeQuestion]) && answers[activeQuestion].length > 0 ? 'ADD ANOTHER' : 'CAPTURE'}<input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => { handleImageUpload(activeQuestion, e.target.files[0]); e.target.value = null; }} /></label>{Array.isArray(answers[activeQuestion]) && answers[activeQuestion].length > 0 && (<button onClick={() => setActiveQuestion(null)} className="bg-green-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase shadow-xl">DONE</button>)}</div></>)}</div>) : (<div className="flex gap-5">{['A', 'B', 'C', 'D'].map(opt => (<button key={opt} onClick={() => handleOptionSelect(activeQuestion, opt)} className={`w-12 h-12 rounded-xl font-black text-xl flex items-center justify-center border-b-8 transition-all active:scale-90 ${answers[activeQuestion] === opt ? 'bg-blue-600 text-white border-blue-900 shadow-[0_0_20px_rgba(37,99,235,0.5)]' : 'bg-slate-800 text-slate-400 border-black hover:bg-slate-700'}`}>{opt}</button>))}</div>)}</div>
-      ) : (<div className="flex overflow-x-auto gap-3 pb-2 no-scrollbar snap-x items-center justify-start">{answerKeyArray.map((_, index) => { const num = index + 1; return (<button key={num} onClick={() => setActiveQuestion(num)} className={`min-w-[42px] h-[42px] rounded-xl font-black text-xs flex items-center justify-center transition-all snap-center border-b-4 shadow-lg ${answers[num] ? 'bg-green-600 text-white border-green-900' : 'bg-slate-800 text-slate-500 border-black hover:bg-slate-700 hover:text-white'}`}>{num}</button>); })}</div>)}</div></div></div></div>
+      <div className="flex-1 bg-slate-950 overflow-hidden relative"><iframe src={exam?.fileUrl?.replace('/view?usp=sharing', '/preview').replace('/view', '/preview')} className="w-full h-full border-none opacity-90" title="Paper" /><div className="absolute bottom-0 left-0 right-0 z-50 bg-slate-900/98 border-t-2 border-white/10 backdrop-blur-xl p-3 md:p-4 shadow-2xl"><div className="max-w-4xl mx-auto"><div className="flex items-center justify-between mb-2 px-2"><span className="text-[9px] font-black text-blue-400 uppercase italic flex items-center gap-3"><PenTool size={16} /> RESPONSE INTERFACE</span>{activeQuestion && <button onClick={() => setActiveQuestion(null)} className="text-white bg-slate-700 px-3 py-1 rounded-lg font-black text-[10px] uppercase shadow-lg">Close</button>}</div> {activeQuestion ? ( <div className="flex flex-col items-center animate-in slide-in-from-bottom-2 pb-2"><p className="text-slate-400 font-black text-xs mb-4 italic uppercase">{answerKeyArray[activeQuestion - 1] === 'W' ? `Page Capturing Q${activeQuestion}:` : `Choice for Q${activeQuestion}:`}</p> {answerKeyArray[activeQuestion - 1] === 'W' ? (<div className="flex flex-col items-center gap-4">{exam.isGuest ? (<div className="p-4 bg-orange-900/20 border-2 border-orange-800 rounded-2xl text-center"><AlertCircle className="text-orange-500 mx-auto mb-2" /><p className="text-[9px] font-black text-orange-200 uppercase">Guest users can't upload.</p></div>) : (<> <div className="flex gap-2 flex-wrap justify-center">{Array.isArray(answers[activeQuestion]) && answers[activeQuestion].map((_, i) => (<div key={i} className="relative"><div className="bg-green-600 text-white text-[8px] font-black px-2 py-1 rounded-lg uppercase">Page {i + 1} ✓</div><button onClick={() => removeImage(activeQuestion, i)} className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-0.5 shadow-lg active:scale-75 transition-all"><X size={12} /></button></div>))}</div> <div className="flex gap-4"><label className="bg-blue-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase cursor-pointer shadow-xl flex items-center gap-2 active:scale-95 transition-all"><Camera size={16} /> {Array.isArray(answers[activeQuestion]) && answers[activeQuestion].length > 0 ? 'ADD ANOTHER' : 'CAPTURE'}<input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => { handleImageUpload(activeQuestion, e.target.files[0]); e.target.value = null; }} /></label>{Array.isArray(answers[activeQuestion]) && answers[activeQuestion].length > 0 && (<button onClick={() => setActiveQuestion(null)} className="bg-green-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase shadow-xl">DONE</button>)}</div></>)}</div>) : (<div className="flex gap-5">{['A', 'B', 'C', 'D'].map(opt => (<button key={opt} onClick={() => handleOptionSelect(activeQuestion, opt)} className={`w-12 h-12 rounded-xl font-black text-xl flex items-center justify-center border-b-8 transition-all active:scale-90 ${answers[activeQuestion] === opt ? 'bg-blue-600 text-white border-blue-900 shadow-[0_0_20px_rgba(37,99,235,0.5)]' : 'bg-slate-800 text-slate-400 border-black hover:bg-slate-700'}`}>{opt}</button>))}</div>)}</div> ) : (<div className="flex overflow-x-auto gap-3 pb-2 no-scrollbar snap-x items-center justify-start">{answerKeyArray.map((_, index) => { const num = index + 1; return (<button key={num} onClick={() => setActiveQuestion(num)} className={`min-w-[42px] h-[42px] rounded-xl font-black text-xs flex items-center justify-center transition-all snap-center border-b-4 shadow-lg ${answers[num] ? 'bg-green-600 text-white border-green-900' : 'bg-slate-800 text-slate-500 border-black hover:bg-slate-700 hover:text-white'}`}>{num}</button>); })}</div>)}</div></div></div></div>
   );
 };
 
 const GrowthSectionView = ({ results, students }) => {
-  const [sel, setSel] = useState(null); const [selectedReview, setSelectedReview] = useState(null);
-  const [vCode, setVCode] = useState(''); const [isVerified, setIsVerified] = useState(false);
+  const [sel, setSel] = useState(null);
+  const [selectedReview, setSelectedReview] = useState(null);
+  const [vCode, setVCode] = useState('');
+  const [isVerified, setIsVerified] = useState(false);
   const handlePrint = () => { window.print(); };
-  const handleVerify = () => { const s = students.find(x => x.name === sel); if (s && s.studentCode?.toString().trim() === vCode.trim()) setIsVerified(true); else alert("INVALID CODE!"); };
-
+  const handleVerify = () => {
+    const s = students.find(x => x.name === sel);
+    if (s && s.studentCode?.toString().trim() === vCode.trim()) setIsVerified(true);
+    else alert("INVALID CODE!");
+  };
   return (
     <div className="max-w-2xl mx-auto w-full animate-in fade-in duration-500 text-left px-2">
       {selectedReview && <ReviewResultModal result={selectedReview} onClose={() => setSelectedReview(null)} />}
-      {!sel && ( <div className="mb-8 p-6 bg-yellow-500/10 border-2 border-yellow-500 rounded-[2rem] text-center animate-pulse print:hidden"><p className="text-yellow-400 font-black uppercase italic text-[14px] md:text-[16px] leading-tight tracking-tight"> This section is exclusively for registered students CONTACT ANSHU SIR FOR REGISTRATION. </p></div> )}
-      {!sel ? (<div className="grid gap-4 print:hidden">{students.map((std) => ( <button key={std.id} onClick={() => { setSel(std.name); setIsVerified(false); setVCode(''); }} className="w-full bg-black/60 backdrop-blur-xl p-5 rounded-[2rem] shadow-lg border border-white/10 flex justify-between items-center group active:scale-95 transition-all"><div className="flex items-center gap-4"><div className="w-10 h-10 bg-blue-900/30 rounded-xl flex items-center justify-center text-blue-400 group-hover:bg-blue-600 group-hover:text-white transition-all"><User size={18} /></div><span className="font-black text-white uppercase text-[14px] italic tracking-tight break-words">{std.name}</span></div><div className="flex items-center gap-3"><div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase italic ${getRemainingDays(std.subscriptionEnd) <= 5 ? 'bg-red-900/40 text-red-500' : 'bg-blue-950 text-blue-400'}`}> {getRemainingDays(std.subscriptionEnd)}D Left </div><ChevronRight size={24} className="text-slate-600 group-hover:text-blue-400" /></div></button> ))}</div>) : !isVerified ? (
+      {!sel && (
+        <div className="mb-8 p-6 bg-yellow-500/10 border-2 border-yellow-500 rounded-[2rem] text-center animate-pulse print:hidden"><p className="text-yellow-400 font-black uppercase italic text-[14px] md:text-[16px] leading-tight tracking-tight"> This section is exclusively for registered students CONTACT ANSHU SIR FOR REGISTRATION. </p></div>
+      )}
+      {!sel ? (
+        <div className="grid gap-4 print:hidden">{students.map((std) => ( <button key={std.id} onClick={() => { setSel(std.name); setIsVerified(false); setVCode(''); }} className="w-full bg-black/60 backdrop-blur-xl p-5 rounded-[2rem] shadow-lg border border-white/10 flex justify-between items-center group active:scale-95 transition-all"><div className="flex items-center gap-4"><div className="w-10 h-10 bg-blue-900/30 rounded-xl flex items-center justify-center text-blue-400 group-hover:bg-blue-600 group-hover:text-white transition-all"><User size={18} /></div><span className="font-black text-white uppercase text-[14px] italic tracking-tight break-words">{std.name}</span></div><div className="flex items-center gap-3"><div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase italic ${getRemainingDays(std.subscriptionEnd) <= 5 ? 'bg-red-900/40 text-red-500' : 'bg-blue-950 text-blue-400'}`}> {getRemainingDays(std.subscriptionEnd)}D Left </div><ChevronRight size={24} className="text-slate-600 group-hover:text-blue-400" /></div></button> ))}</div>
+      ) : !isVerified ? (
         <div className="bg-slate-900/80 p-10 rounded-[3rem] border border-white/10 text-center animate-in zoom-in"><Lock size={48} className="text-blue-500 mx-auto mb-4" /><h3 className="font-black text-white uppercase italic mb-6">Verify Access: {sel}</h3><input type="password" value={vCode} onChange={(e) => setVCode(e.target.value)} placeholder="ENTER UNIQUE CODE" className="w-full p-4 bg-black border-2 border-slate-700 rounded-2xl text-center font-black text-white outline-none focus:border-blue-500 mb-6" /><div className="flex gap-4"><button onClick={() => setSel(null)} className="flex-1 py-4 bg-slate-800 rounded-2xl font-black uppercase text-[10px]">Back</button><button onClick={handleVerify} className="flex-1 py-4 bg-blue-700 rounded-2xl font-black uppercase text-[10px] shadow-lg">Verify</button></div></div>
       ) : (
         <div className="space-y-6 animate-in slide-in-from-right-20 duration-700 print-full-report">
