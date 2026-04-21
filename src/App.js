@@ -409,7 +409,7 @@ const App = () => {
           ) : (
             <div className="w-full">
               <div className="flex justify-end p-2"><button onClick={() => signOut(auth)} className="text-[8px] font-black uppercase bg-red-950 text-red-500 px-3 py-1 rounded-full border border-red-900">Sign Out Admin</button></div>
-              <TeacherZoneMainView liveMocks={liveMocks} practiceSets={practiceSets} students={students} teacherPin={teacherPin} studentResults={studentResults} ads={ads} setTeacherPin={async (v) => await setDoc(doc(db, "settings", "adminConfig"), { pin: v }, { merge: true })} />
+              <TeacherZoneMainView liveMocks={liveMocks} practiceSets={practiceSets} students={students} teacherPin={teacherPin} studentResults={studentResults} ads={ads} qaStatus={qaStatus} setQaStatus={setQaStatus} qaChapter={qaChapter} setQaChapter={setQaChapter} setTeacherPin={async (v) => await setDoc(doc(db, "settings", "adminConfig"), { pin: v }, { merge: true })} />
             </div>
           )
         )}
