@@ -106,8 +106,6 @@ const App = () => {
     const [studentResults, setStudentResults] = useState([]);
     const [activityLogs, setActivityLogs] = useState([]);
     const [examStartTime, setExamStartTime] = useState(null);
-    
-    // NEW: State for Practice Accordion
     const [expandedPracticeClass, setExpandedPracticeClass] = useState(null);
 
     useEffect(() => {
@@ -617,7 +615,6 @@ const AdminMarksheetModal = ({ student, results, onClose }) => {
     const [newRes, setNewRes] = useState({ exam: "", obtained: "", total: "", date: "" });
     const [previewImg, setPreviewImg] = useState(null);
 
-    // NEW: Function to add bonus marks
     const addBonusMarks = async (res) => {
         const bonus = prompt("Enter Bonus Marks to add (use negative for deduction):");
         if (bonus === null || bonus === "") return;
