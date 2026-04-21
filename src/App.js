@@ -359,10 +359,35 @@ const App = () => {
                   </div>
                   <LiveCountdown timestamp={m.timestamp} />
                 </div>
-                <button onClick={() => handleStartExamFlow(m)} className={`px-6 py-2 rounded-full font-black text-[9px] uppercase shadow-lg h-fit flex items-center gap-2 flex-shrink-0 ${m.isGuestEnabled ? 'bg-red-600 text-white' : 'bg-slate-800 text-blue-400 border border-blue-900/50'}`}>
-                  {!m.isGuestEnabled && <Lock size={12} />}
-                  {m.isGuestEnabled ? 'Attend' : 'Protected'}
-                </button>
+                <div 
+  key={m.id} 
+  onClick={() => {
+    const s = m.status || (m.isGuestEnabled ? 'public' : 'premium');
+    if (s === 'locked') return; 
+    handleStartExamFlow(m);
+  }}
+  className={`w-full p-6 rounded-[2rem] shadow-xl flex justify-between items-center border transition-all cursor-pointer relative overflow-hidden group 
+    ${(m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'locked' ? 'bg-white/5 border-white/5 opacity-60 cursor-not-allowed' : 'bg-black/60 backdrop-blur-xl border-white/10 active:scale-95 hover:border-blue-500/50 shadow-[0_10px_30px_rgba(0,0,0,0.5)]'}`}
+>
+  <div className="flex-1">
+    <div className="flex items-center gap-2 mb-1">
+      <h3 className="text-sm font-black uppercase italic tracking-tighter text-white">{i + 1}. {m.name}</h3>
+      <LevelBadge level={m.level} />
+    </div>
+    <LiveCountdown timestamp={m.timestamp} />
+    
+    {/* স্ট্যাটাস ইন্ডিকেটর */}
+    <p className={`text-[8px] font-black uppercase italic mt-2 tracking-widest ${
+      (m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'public' ? 'text-green-500' : 
+      (m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'premium' ? 'text-yellow-500' : 'text-red-500'
+    }`}>
+      {(m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'public' && "🌍 Public Exam"}
+      {(m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'premium' && "💎 Premium Access"}
+      {(m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'locked' && "🔒 Locked: Will open after specific time"}
+    </p>
+  </div>
+  <ChevronRight size={24} className="text-white/20 group-hover:text-blue-500 transition-colors" />
+</div>
               </div>
             )) : <p className="text-[10px] text-slate-500 italic p-4 text-center">No active sessions at the moment.</p>}
           </div>
@@ -425,10 +450,35 @@ const App = () => {
                               </div>
                               <p className="text-[9px] font-bold text-slate-500 uppercase italic mt-1"> Time: {p.hours || 0}h {p.minutes || 0}m </p>
                             </div>
-                            <button onClick={() => handleStartExamFlow(p)} className={`px-6 py-2 rounded-full font-black text-[9px] uppercase shadow-md h-fit flex items-center gap-2 flex-shrink-0 ${p.isGuestEnabled ? 'bg-blue-600 text-white' : 'bg-slate-800 text-blue-400 border border-blue-900/50'}`} >
-                              {!p.isGuestEnabled && <Lock size={12} />}
-                              {p.isGuestEnabled ? 'Start' : 'Protected'}
-                            </button>
+                            <div 
+  key={m.id} 
+  onClick={() => {
+    const s = m.status || (m.isGuestEnabled ? 'public' : 'premium');
+    if (s === 'locked') return; 
+    handleStartExamFlow(m);
+  }}
+  className={`w-full p-6 rounded-[2rem] shadow-xl flex justify-between items-center border transition-all cursor-pointer relative overflow-hidden group 
+    ${(m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'locked' ? 'bg-white/5 border-white/5 opacity-60 cursor-not-allowed' : 'bg-black/60 backdrop-blur-xl border-white/10 active:scale-95 hover:border-blue-500/50 shadow-[0_10px_30px_rgba(0,0,0,0.5)]'}`}
+>
+  <div className="flex-1">
+    <div className="flex items-center gap-2 mb-1">
+      <h3 className="text-sm font-black uppercase italic tracking-tighter text-white">{i + 1}. {m.name}</h3>
+      <LevelBadge level={m.level} />
+    </div>
+    <LiveCountdown timestamp={m.timestamp} />
+    
+    {/* স্ট্যাটাস ইন্ডিকেটর */}
+    <p className={`text-[8px] font-black uppercase italic mt-2 tracking-widest ${
+      (m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'public' ? 'text-green-500' : 
+      (m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'premium' ? 'text-yellow-500' : 'text-red-500'
+    }`}>
+      {(m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'public' && "🌍 Public Exam"}
+      {(m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'premium' && "💎 Premium Access"}
+      {(m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'locked' && "🔒 Locked: Will open after specific time"}
+    </p>
+  </div>
+  <ChevronRight size={24} className="text-white/20 group-hover:text-blue-500 transition-colors" />
+</div>
                           </div>
                         ))}
                       </div>
@@ -457,7 +507,7 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
   const [qaKey, setQaKey] = useState('');
   const [qaMarks, setQaMarks] = useState('');
   const [qaNeg, setQaNeg] = useState('0');
-  const [qaGuest, setQaGuest] = useState(false);
+  const [qaStatus, setQaStatus] = useState('public');
   const [qaClass, setQaClass] = useState('10');
   const [qaLevel, setQaLevel] = useState('Moderate');
 
@@ -470,8 +520,8 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
   const handleQuickAdd = async () => {
     if (!qaName.trim()) return alert("Exam Name Required!");
     const coll = quickAddType === 'live' ? 'liveMocks' : 'practiceSets';
-    await addDoc(collection(db, coll), { name: qaName.toUpperCase(), hours: qaHours, minutes: qaMinutes, fileUrl: qaLink.trim(), answerKey: qaKey.toUpperCase(), questionMarks: qaMarks, negativeMark: qaNeg || "0", isPublished: false, isGuestEnabled: qaGuest, class: qaClass, level: qaLevel, timestamp: Date.now() });
-    setQaName(''); setQaLink(''); setQaKey(''); setQaMarks(''); setQaNeg('0'); setQaGuest(false);
+    await addDoc(collection(db, coll), { name: qaName.toUpperCase(), hours: qaHours, minutes: qaMinutes, fileUrl: qaLink.trim(), answerKey: qaKey.toUpperCase(), questionMarks: qaMarks, negativeMark: qaNeg || "0", isPublished: false, status: qaStatus, class: qaClass, level: qaLevel, timestamp: Date.now() });
+    setQaName(''); setQaLink(''); setQaKey(''); setQaMarks(''); setQaNeg('0'); setQaStatus('public');
     alert(`Success: Added to Registry`);
   };
 
@@ -512,7 +562,14 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
                   {expandedId === item.id && (
                     <div className="p-5 border-t border-white/5 bg-black/40 space-y-4 animate-in slide-in-from-top-2">
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                        <div className="flex items-center gap-2"><input type="checkbox" checked={item.isGuestEnabled} onChange={(e) => updateField(item.id, item.source, 'isGuestEnabled', e.target.checked)} className="accent-green-500 w-4 h-4" /><p className="text-[10px] font-black text-green-400 uppercase italic">Guest Mode</p></div>
+                       <div>
+  <p className="text-[8px] font-black text-green-400 uppercase mb-1 ml-1 italic">Access Mode</p>
+  <select value={item.status || (item.isGuestEnabled ? 'public' : 'premium')} onChange={(e) => updateField(item.id, item.source, 'status', e.target.value)} className="w-full p-2 bg-black border border-white/10 rounded-xl text-white text-[9px] font-black outline-none">
+    <option value="public">🌍 Public</option>
+    <option value="premium">💎 Premium</option>
+    <option value="locked">🔒 Locked</option>
+  </select>
+</div>
                         <div><p className="text-[8px] font-black text-blue-400 uppercase mb-1 ml-1">Class</p><select value={item.class || '10'} onChange={(e) => updateField(item.id, item.source, 'class', e.target.value)} className="w-full p-2 bg-black border border-white/10 rounded-xl text-white text-xs font-black">{[5,6,7,8,9,10,11,12].map(c => <option key={c} value={c}>{c}</option>)}</select></div>
                         <div className="md:col-span-2"> <p className="text-[8px] font-black text-yellow-500 uppercase mb-1 ml-1">Complexity Level</p> <select value={item.level || 'Moderate'} onChange={(e) => updateField(item.id, item.source, 'level', e.target.value)} className="w-full p-2 bg-black border border-white/10 rounded-xl text-white text-xs font-black"> {['Easy', 'Moderate', 'Hard'].map(lvl => <option key={lvl} value={lvl}>{lvl}</option>)} </select> </div>
                       </div>
@@ -521,7 +578,7 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
                         <div><p className="text-[8px] font-black text-red-500 uppercase mb-1 ml-1">Negative Marking</p><input type="number" step="0.01" defaultValue={item.negativeMark || 0} onBlur={(e) => updateField(item.id, item.source, 'negativeMark', e.target.value)} className="w-full p-2.5 rounded-xl border border-white/10 bg-black text-white text-xs font-black outline-none" /></div>
                       </div>
                       <div className="flex flex-wrap gap-3">
-                        <div className="bg-black p-2.5 rounded-xl border border-white/10 shadow-sm min-w-[120px]"><p className="text-[8px] font-black text-blue-400 uppercase mb-1 ml-1">Time Limit</p><div className="flex items-center gap-1"><input type="number" defaultValue={item.hours} onBlur={(e) => updateField(item.id, item.source, 'hours', e.target.value)} className="w-10 text-center font-black bg-slate-900 rounded-lg outline-none text-white" /> <span className="font-bold text-[9px]">H</span><input type="number" defaultValue={item.minutes} onBlur={(e) => updateField(item.id, item.source, 'minutes', e.target.value)} className="w-10 text-center font-black bg-slate-900 rounded-lg outline-none text-white" /> <span className="font-bold text-[9px]">M</span></div></div>
+                        <div className="bg-black p-2.5 rounded-xl border border-white/10 shadow-sm min-w-[120px]"><p className="text-[8px] font-black text-blue-400 uppercase mb-1 ml-1">Time Limit</p> gap-1"><input type="number" defaultValue={item.hours} onBlur={(e) => updateField(item.id, item.source, 'hours', e.target.value)} className="w-10 text-center font-black bg-slate-900 rounded-lg outline-none text-white" /> <span className="font-bold text-[9px]">H</span><input type="number" defaultValue={item.minutes} onBlur={(e) => updateField(item.id, item.source, 'minutes', e.target.value)} className="w-10 text-center font-black bg-slate-900 rounded-lg outline-none text-white" /> <span className="font-bold text-[9px]">M</span></div></div>
                         <div className="flex-1 bg-black p-2.5 rounded-xl border border-white/10 shadow-sm"><p className="text-[8px] font-black text-slate-500 uppercase mb-1 ml-1">Google Drive Link</p><input type="text" defaultValue={item.fileUrl} onBlur={(e) => updateField(item.id, item.source, 'fileUrl', e.target.value)} className="w-full p-2 rounded-lg border border-white/5 bg-black text-white text-[10px] outline-none font-bold" /></div>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -551,7 +608,14 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
         </div>
         <div className="space-y-6">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <div className="flex items-center gap-2"> <input type="checkbox" checked={qaGuest} onChange={(e) => setQaGuest(e.target.checked)} className="accent-blue-500" /> <p className="text-[9px] font-black text-slate-400 uppercase italic">Enable Guest Access</p> </div>
+            <div>
+  <p className="text-[8px] font-black text-blue-400 uppercase mb-1 ml-1 italic">Access Mode</p>
+  <select value={qaStatus} onChange={(e) => setQaStatus(e.target.value)} className="w-full p-2 bg-black border border-white/10 rounded-xl text-white text-[10px] font-black outline-none">
+    <option value="public">🌍 Public Exam</option>
+    <option value="premium">💎 Premium Access</option>
+    <option value="locked">🔒 Locked Exam</option>
+  </select>
+</div>
             <div> <p className="text-[8px] font-black text-blue-400 uppercase mb-1 ml-1">Class</p> <select value={qaClass} onChange={(e) => setQaClass(e.target.value)} className="w-full p-2 bg-black border border-white/10 rounded-xl text-white text-[10px] font-black outline-none"> {[5, 6, 7, 8, 9, 10, 11, 12].map(c => <option key={c} value={c}>{c}</option>)} </select> </div>
             <div> <p className="text-[8px] font-black text-yellow-500 uppercase mb-1 ml-1">Level</p> <select value={qaLevel} onChange={(e) => setQaLevel(e.target.value)} className="w-full p-2 bg-black border border-white/10 rounded-xl text-white text-[10px] font-black outline-none"> {['Easy', 'Moderate', 'Hard'].map(lvl => <option key={lvl} value={lvl}>{lvl}</option>)} </select> </div>
           </div>
