@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
+Import React, { useState, useEffect } from 'react';
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, setDoc, deleteDoc, getDocs, writeBatch, getDoc } from "firebase/firestore";
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "firebase/auth";
-import { Trophy, BookOpen, TrendingUp, User, Clock, ChevronRight, GraduationCap, PlusCircle, FileText, Lock, Award, Timer, Settings2, CheckCircle, PenTool, ShieldAlert, Loader2, ChevronLeft, Trash2, UserPlus, History, UserCheck, X, CheckSquare, AlertCircle, ListChecks, Eye, Camera, Send, Link, Zap, Download, Unlock, Phone, SignalHigh, LogOut, UserX, Home, Radio } from 'lucide-react';
+import { Trophy, BookOpen, TrendingUp, User, Clock, ChevronRight, GraduationCap, PlusCircle, FileText, Lock, Award, Timer, Settings2, CheckCircle, PenTool, ShieldAlert, Loader2, ChevronLeft, Trash2, UserPlus, History, UserCheck, X, CheckSquare, AlertCircle, ListChecks, Eye, Camera, Send, Link, Zap, Download, Unlock, Phone, SignalHigh, LogOut, UserX, Home, Radio, Gift } from 'lucide-react';
 
-// --- 🖼️ CONFIGURATION ---
+// --- CONFIGURATION ---
 const APP_BACKGROUND_URL = "https://i.gifer.com/4RNk.gif";
 
-// --- 🔥 Firebase Configuration ---
+// --- Firebase Configuration ---
 const firebaseConfig = {
     apiKey: "AIzaSyCTk1csUI0HeZhZvy6dOFwmLr-YVsWPAcY",
     authDomain: "math-excellence-6d2b8.firebaseapp.com",
@@ -31,7 +31,7 @@ const getRemainingDays = (expiryDate) => {
     return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
 };
 
-// --- ⏳ Countdown Component ---
+// --- Countdown Component ---
 const LiveCountdown = ({ timestamp, onExpire }) => {
     const [timeLeft, setTimeLeft] = useState("");
     useEffect(() => {
@@ -106,8 +106,6 @@ const App = () => {
     const [studentResults, setStudentResults] = useState([]);
     const [activityLogs, setActivityLogs] = useState([]);
     const [examStartTime, setExamStartTime] = useState(null);
-
-    // --- NEW: State for Practice Accordion ---
     const [expandedPracticeClass, setExpandedPracticeClass] = useState(null);
 
     useEffect(() => {
@@ -115,20 +113,14 @@ const App = () => {
             try {
                 const docRef = doc(db, 'settings', 'adminConfig');
                 const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    setTeacherPin(docSnap.data().pin);
-                }
-            } catch (error) {
-                console.error("Error fetching pin:", error);
-            }
+                if (docSnap.exists()) { setTeacherPin(docSnap.data().pin); }
+            } catch (error) { console.error("Error fetching pin:", error); }
         };
         fetchPin();
     }, []);
 
     useEffect(() => {
-        const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-            setCurrentUser(user);
-        });
+        const unsubscribeAuth = onAuthStateChanged(auth, (user) => { setCurrentUser(user); });
         onSnapshot(collection(db, "liveMocks"), (s) => {
             const data = s.docs.map(d => ({ id: d.id, source: 'live', ...d.data() }));
             setLiveMocks(data.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)));
@@ -139,9 +131,7 @@ const App = () => {
         });
         onSnapshot(collection(db, "results"), (s) => setStudentResults(s.docs.map(d => ({ id: d.id, ...d.data() }))));
         onSnapshot(collection(db, "students"), (s) => setStudents(s.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => a.name.localeCompare(b.name))));
-        onSnapshot(doc(db, "settings", "adminConfig"), (d) => {
-            if (d.exists()) setTeacherPin(d.data().pin);
-        });
+        onSnapshot(doc(db, "settings", "adminConfig"), (d) => { if (d.exists()) setTeacherPin(d.data().pin); });
         onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc")), (s) => setActivityLogs(s.docs.map(d => ({ id: d.id, ...d.data() }))));
         return () => unsubscribeAuth();
     }, []);
@@ -162,15 +152,9 @@ const App = () => {
         const matchedStudent = students.find(s => s.studentCode?.toString().trim() === enteredCode);
         if (!isGuestSessionEnabled) {
             if (!enteredCode) return alert("THIS EXAM IS PROTECTED! UNIQUE CODE IS MANDATORY.");
-            if (!matchedStudent) {
-                alert("INVALID STUDENT CODE! PLEASE CONTACT ANSHU SIR.");
-                return;
-            }
+            if (!matchedStudent) { alert("INVALID STUDENT CODE! PLEASE CONTACT ANSHU SIR."); return; }
             const daysLeft = getRemainingDays(matchedStudent.subscriptionEnd);
-            if (matchedStudent.isAccessEnabled === false || daysLeft <= 0) {
-                alert("ACCESS EXPIRED! PLEASE RENEW YOUR SUBSCRIPTION.");
-                return;
-            }
+            if (matchedStudent.isAccessEnabled === false || daysLeft <= 0) { alert("ACCESS EXPIRED! PLEASE RENEW YOUR SUBSCRIPTION."); return; }
             setCurrentExam(prev => ({ ...prev, studentName: matchedStudent.name, studentCode: enteredCode, isGuest: false }));
         } else {
             if (enteredCode && matchedStudent) {
@@ -179,17 +163,14 @@ const App = () => {
                 setCurrentExam(prev => ({ ...prev, studentName: studentNameInput.trim().toUpperCase(), studentCode: enteredCode || 'GUEST', isGuest: true }));
             }
         }
-        setExamStartTime(Date.now())
+        setExamStartTime(Date.now());
         setIsExamActive(true);
         setShowNameModal(false);
     };
 
     const handleGoogleLogin = async () => {
-        try {
-            await signInWithPopup(auth, provider);
-        } catch (error) {
-            alert("Login Failed: " + error.message);
-        }
+        try { await signInWithPopup(auth, provider); }
+        catch (error) { alert("Login Failed: " + error.message); }
     };
 
     const ongoingLive = liveMocks.filter(m => m.isPublished && (Date.now() - (m.timestamp || 0) < 6 * 3600000));
@@ -242,13 +223,7 @@ const App = () => {
 
             <nav className="fixed top-[50px] left-1/2 -translate-x-1/2 z-40 w-[96%] max-w-[600px] px-1 py-1 print:hidden">
                 <div className="bg-black/70 backdrop-blur-2xl border border-white/20 rounded-[1.5rem] shadow-[0_15px_40px_rgba(0,0,0,0.8)] flex justify-between items-center p-1.5 gap-1">
-                    {[
-                        { id: 'home', label: 'Home', icon: <Home size={20} /> },
-                        { id: 'live', label: 'Live', icon: <Radio size={20} /> },
-                        { id: 'practice', label: 'Practice', icon: <BookOpen size={20} /> },
-                        { id: 'growth', label: 'Growth', icon: <TrendingUp size={20} /> },
-                        { id: 'teacher', label: 'Admin', icon: <User size={20} /> }
-                    ].map((item) => (
+                    {[ { id: 'home', label: 'Home', icon: <Home size={20} /> }, { id: 'live', label: 'Live', icon: <Radio size={20} /> }, { id: 'practice', label: 'Practice', icon: <BookOpen size={20} /> }, { id: 'growth', label: 'Growth', icon: <TrendingUp size={20} /> }, { id: 'teacher', label: 'Admin', icon: <User size={20} /> } ].map((item) => (
                         <button key={item.id} onClick={() => setActiveTab(item.id)} className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all duration-300 relative group ${ activeTab === item.id ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.6)] scale-105' : 'text-slate-400 hover:text-white hover:bg-white/10' }`} >
                             <span className={`transition-all duration-500 ease-in-out ${ activeTab === item.id ? 'scale-110 animate-bounce' : 'group-hover:rotate-[360deg] group-hover:scale-110' }`}> {item.icon} </span>
                             <span className={`text-[9px] font-black uppercase italic tracking-tighter transition-all duration-300 ${ activeTab === item.id ? 'opacity-100' : 'opacity-60 group-hover:opacity-100' }`}> {item.label} </span>
@@ -360,7 +335,7 @@ const App = () => {
                         <div className="max-w-md w-full mx-auto mt-20 p-10 bg-slate-950 backdrop-blur-xl rounded-3xl shadow-2xl text-center border-t-8 border-blue-700 border-x border-b border-white/10 print:hidden">
                             <div className="flex justify-between items-center mb-6">
                                 <p className="text-[8px] font-black text-blue-400 uppercase italic">Logged: {currentUser.email}</p>
-                                <button onClick={() => signOut(auth)} className="text-red-500"><LogOut size={16}/></button>
+                                <button onClick={() => signOut(auth)} className="text-red-500"><LogOut size={16}/></button> 
                             </div>
                             <Lock size={40} className="text-blue-500 mx-auto mb-6" />
                             <input type="password" autoFocus onChange={(e) => { if (e.target.value === teacherPin) setIsTeacherAuthenticated(true); }} className="w-full py-4 bg-black border-2 border-slate-800 rounded-xl text-center text-4xl font-black outline-none text-white placeholder:text-slate-800" placeholder="••••" />
@@ -384,7 +359,6 @@ const App = () => {
                             
                             return classes.map(cls => (
                                 <div key={cls} className="space-y-2">
-                                    {/* --- PRACTICE ACCORDION --- */}
                                     <button 
                                         onClick={() => setExpandedPracticeClass(expandedPracticeClass === cls ? null : cls)}
                                         className="w-full flex justify-between items-center bg-black/40 backdrop-blur-md p-4 rounded-2xl border border-white/10 hover:border-blue-500/50 transition-all shadow-lg"
@@ -484,7 +458,7 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-3">
-                                            <button onClick={(e) => { e.stopPropagation(); updateField(item.id, item.source, 'isPublished', !item.isPublished); }} className={`px-4 py-1.5 rounded-full text-[8px] font-black shadow-sm ${item.isPublished ? 'bg-green-600 text-white' : 'bg-slate-800 text-slate-500'}`}>{item.isPublished ? 'LIVE' : 'HIDDEN'}</button>
+                                            <button onClick={(e) => { e.stopPropagation(); updateField(item.id, item.source, 'isPublished', !item.isPublished); }} className={`px-4 py-1.5 rounded-full text-[8px] font-black shadow-sm ${item.isPublished ? 'bg-green-600 text-white' : 'bg-slate-800 text-slate-500'}`}>{item.isPublished ? 'LIVE' : 'HIDDEN'}</button> 
                                             <button onClick={async (e) => { e.stopPropagation(); if(window.confirm("Permanent delete?")) { await deleteDoc(doc(db, item.source === 'live' ? 'liveMocks' : 'practiceSets', item.id)); } }} className="p-2 text-slate-600 hover:text-red-500 transition-colors"><Trash2 size={16}/></button>
                                             <ChevronRight size={18} className={`transition-transform text-slate-600 ${expandedId === item.id ? 'rotate-90 text-blue-400' : ''}`} />
                                         </div>
@@ -570,7 +544,7 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
                                 <div className="flex gap-2 animate-in slide-in-from-left-2">
                                     <input type="password" value={pinVal} onChange={(e) => setPinVal(e.target.value)} className="bg-black border border-white/10 rounded-full px-4 text-xs font-black outline-none text-white w-24" placeholder="NEW" />
                                     <button onClick={async () => { if (pinVal.length >= 4) { await setTeacherPin(pinVal); setIsChangingPin(false); setPinVal(''); alert("PIN UPDATED"); } }} className="bg-green-600 text-white px-3 py-1.5 rounded-full text-[8px] font-black uppercase">Save</button>
-                                    <button onClick={() => setIsChangingPin(false)} className="text-slate-500 text-[8px] font-black uppercase">X</button>
+                                    <button onClick={() => setIsChangingPin(false)} className="text-slate-500 text-[8px] font-black uppercase">X</button> 
                                 </div>
                             ) : (
                                 <button onClick={() => setIsChangingPin(true)} className="px-5 py-2 rounded-full bg-blue-900/40 text-blue-400 text-[10px] font-black uppercase border border-blue-800/50">PIN</button>
@@ -610,6 +584,7 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
                         </div>
                     </div>
                     {selectedStudent && <AdminMarksheetModal student={selectedStudent} results={studentResults} onClose={() => setSelectedStudent(null)} />}
+                        <\main>
                 </div>
             );
 };
@@ -618,13 +593,42 @@ const AdminMarksheetModal = ({ student, results, onClose }) => {
     const [newRes, setNewRes] = useState({ exam: "", obtained: "", total: "", date: "" });
     const [previewImg, setPreviewImg] = useState(null);
 
+    const addBonusMarks = async (res) => {
+        const bonus = prompt("Enter Bonus Marks to add (use negative for deduction):");
+        if (bonus === null || bonus === "") return;
+        const bValue = parseFloat(bonus);
+        if (isNaN(bValue)) return alert("Please enter a valid number!");
+        const updatedObtained = parseFloat(res.obtained) + bValue;
+        const updatedPercent = Math.round((updatedObtained / res.total) * 100);
+        try {
+            await setDoc(doc(db, "results", res.id), { obtained: updatedObtained, percent: updatedPercent }, { merge: true });
+            alert("Bonus Applied Successfully!");
+        } catch(e) { alert("Error updating marks."); }
+    };
+
     return (
         <div className="fixed inset-0 bg-slate-950 z-[1200] p-6 overflow-y-auto animate-in slide-in-from-right-full duration-500 print:hidden text-white">
             {previewImg && <ImagePreviewModal src={previewImg} onClose={() => setPreviewImg(null)} />}
             <button onClick={onClose} className="font-black text-blue-400 mb-10 flex items-center gap-3 border-b-4 border-blue-400 w-fit uppercase text-[11px] italic tracking-tighter hover:text-blue-200 transition-all print:hidden"><ChevronLeft size={24} /> Return to Registry</button>
             <div className="bg-slate-900/60 backdrop-blur-md p-10 rounded-[3rem] border border-white/10 shadow-3xl max-w-xl mx-auto space-y-10">
-                <div className="flex items-center gap-5 border-b border-white/10 pb-6"><div className="w-16 h-16 bg-blue-700 rounded-[1.5rem] flex items-center justify-center text-white shadow-xl italic font-black text-2xl">{student?.name?.charAt(0)}</div><div><h3 className="text-3xl font-black uppercase italic tracking-tighter text-white leading-none">{student?.name}</h3><p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-1 italic">Performance Logs</p></div></div>
-                <div className="p-8 bg-black rounded-[2.5rem] space-y-5 border border-white/10 print:hidden"><div className="grid grid-cols-1 gap-5 text-left"><input type="text" value={newRes.exam} onChange={(e) => setNewRes({ ...newRes, exam: e.target.value.toUpperCase() })} className="w-full p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-xs outline-none focus:border-blue-500" placeholder="Module Name" /><input type="date" value={newRes.date} onChange={(e) => setNewRes({ ...newRes, date: e.target.value })} className="w-full p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-xs outline-none" /><div className="flex gap-3"><input type="number" placeholder="Obt" value={newRes.obtained} onChange={(e) => setNewRes({ ...newRes, obtained: e.target.value })} className="w-1/2 p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-lg text-center outline-none focus:border-blue-500" /><input type="number" placeholder="Full" value={newRes.total} onChange={(e) => setNewRes({ ...newRes, total: e.target.value })} className="w-1/2 p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-lg text-center outline-none focus:border-blue-500" /></div></div><button onClick={async () => { if (newRes.exam && newRes.obtained && newRes.total && newRes.date) { const p = Math.round((parseFloat(newRes.obtained) / parseFloat(newRes.total)) * 100); await addDoc(collection(db, "results"), { ...newRes, name: student.name, percent: p, timestamp: Date.now() }); setNewRes({ exam: "", obtained: "", total: "", date: "" }); alert("Saved!"); } }} className="w-full py-5 bg-blue-700 text-white rounded-[1.5rem] font-black uppercase text-xs shadow-xl active:scale-95 transition-all">Manual Entry</button></div>
+                <div className="flex items-center gap-5 border-b border-white/10 pb-6">
+                    <div className="w-16 h-16 bg-blue-700 rounded-[1.5rem] flex items-center justify-center text-white shadow-xl italic font-black text-2xl">{student?.name?.charAt(0)}</div>
+                    <div>
+                        <h3 className="text-3xl font-black uppercase italic tracking-tighter text-white leading-none">{student?.name}</h3>
+                        <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-1 italic">Performance Logs</p>
+                    </div>
+                </div>
+                <div className="p-8 bg-black rounded-[2.5rem] space-y-5 border border-white/10 print:hidden">
+                    <div className="grid grid-cols-1 gap-5 text-left">
+                        <input type="text" value={newRes.exam} onChange={(e) => setNewRes({ ...newRes, exam: e.target.value.toUpperCase() })} className="w-full p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-xs outline-none focus:border-blue-500" placeholder="Module Name" />
+                        <input type="date" value={newRes.date} onChange={(e) => setNewRes({ ...newRes, date: e.target.value })} className="w-full p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-xs outline-none" />
+                        <div className="flex gap-3">
+                            <input type="number" placeholder="Obt" value={newRes.obtained} onChange={(e) => setNewRes({ ...newRes, obtained: e.target.value })} className="w-1/2 p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-lg text-center outline-none focus:border-blue-500" />
+                            <input type="number" placeholder="Full" value={newRes.total} onChange={(e) => setNewRes({ ...newRes, total: e.target.value })} className="w-1/2 p-4 rounded-xl border border-white/10 bg-slate-900 text-white font-black text-lg text-center outline-none focus:border-blue-500" />
+                        </div>
+                    </div>
+                    <button onClick={async () => { if (newRes.exam && newRes.obtained && newRes.total && newRes.date) { const p = Math.round((parseFloat(newRes.obtained) / parseFloat(newRes.total)) * 100); await addDoc(collection(db, "results"), { ...newRes, name: student.name, percent: p, timestamp: Date.now() }); setNewRes({ exam: "", obtained: "", total: "", date: "" }); alert("Saved!"); } }} className="w-full py-5 bg-blue-700 text-white rounded-[1.5rem] font-black uppercase text-xs shadow-xl active:scale-95 transition-all">Manual Entry</button>
+                </div>
                 <div className="space-y-8 pt-8 border-t border-white/10">
                     {results.filter(r => r.name === student?.name).sort((a, b) => b.timestamp - a.timestamp).map(r => (
                         <div key={r.id} className="p-6 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col gap-6 shadow-sm hover:shadow-md transition-all group">
@@ -636,7 +640,10 @@ const AdminMarksheetModal = ({ student, results, onClose }) => {
                                         <p className="text-[10px] font-bold text-slate-500 mt-1 italic"> {r.date} • Score: {r.obtained}/{r.total} {r.timeTaken && `• Time: ${r.timeTaken}`} </p>
                                     </div>
                                 </div>
-                                <button onClick={async () => { if (window.confirm("Purge record?")) await deleteDoc(doc(db, "results", r.id)); }} className="text-slate-600 hover:text-red-500 active:scale-90 transition-all flex-shrink-0 print:hidden"><Trash2 size={24} /></button>
+                                <div className="flex items-center gap-3 print:hidden">
+                                    <button onClick={() => addBonusMarks(r)} className="text-yellow-500 hover:text-yellow-400 active:scale-90 transition-all"><Gift size={22} /></button>
+                                    <button onClick={async () => { if (window.confirm("Purge record?")) await deleteDoc(doc(db, "results", r.id)); }} className="text-slate-600 hover:text-red-500 active:scale-90 transition-all flex-shrink-0"><Trash2 size={24} /></button>
+                                </div>
                             </div>
                             {r.details && r.details.some(d => d.pending) && (
                                 <div className="bg-orange-950/30 border border-orange-900/50 rounded-[2rem] p-4 flex flex-col gap-3 shadow-inner print:hidden"><p className="text-[10px] font-black text-orange-400 uppercase italic text-center animate-pulse tracking-widest">Action Required: Written Solutions</p><div className="flex overflow-x-auto gap-4 pb-4 no-scrollbar snap-x snap-mandatory">
@@ -688,10 +695,7 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
 
     useEffect(() => {
         const handleBeforeUnload = (e) => {
-            if (!isSubmitted) {
-                e.preventDefault();
-                e.returnValue = '';
-            }
+            if (!isSubmitted) { e.preventDefault(); e.returnValue = ''; }
         };
         window.addEventListener('beforeunload', handleBeforeUnload);
         return () => window.removeEventListener('beforeunload', handleBeforeUnload);
@@ -737,11 +741,8 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
     const handleOptionSelect = (qNum, opt) => {
         setAnswers(prev => {
             const newAnswers = { ...prev };
-            if (prev[qNum] === opt) {
-                delete newAnswers[qNum];
-            } else {
-                newAnswers[qNum] = opt;
-            }
+            if (prev[qNum] === opt) { delete newAnswers[qNum]; }
+            else { newAnswers[qNum] = opt; }
             return newAnswers;
         });
     };
