@@ -101,6 +101,8 @@ const App = () => {
   const [isTeacherAuthenticated, setIsTeacherAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [liveMocks, setLiveMocks] = useState([]);
+  const [qaStatus, setQaStatus] = useState('public');
+  const [qaChapter, setQaChapter] = useState('');
   const [practiceSets, setPracticeSets] = useState([]);
   const [students, setStudents] = useState([]);
   const [studentResults, setStudentResults] = useState([]);
@@ -108,7 +110,6 @@ const App = () => {
   const [examStartTime, setExamStartTime] = useState(null);
   const [openClass, setOpenClass] = useState(null);
   const [ads, setAds] = useState([]);
-
   useEffect(() => {
     const fetchPin = async () => {
       try {
@@ -508,7 +509,7 @@ const GrowthSectionView = ({ results, students }) => {
       {!sel && (
         <div className="mb-8 p-6 bg-yellow-500/10 border-2 border-yellow-500 rounded-[2rem] text-center animate-pulse print:hidden">
           <p className="text-yellow-400 font-black uppercase italic text-[14px] md:text-[16px] leading-tight tracking-tight">
-            This section is exclusively for registered students CONTACT ANSHU SIR FOR REGISTRATION.
+            This section is exclusively for registered students ,CONTACT ANSHU SIR FOR REGISTRATION.
           </p>
         </div>
       )}
