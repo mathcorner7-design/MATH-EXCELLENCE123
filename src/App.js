@@ -106,6 +106,7 @@ const App = () => {
     const [studentResults, setStudentResults] = useState([]);
     const [activityLogs, setActivityLogs] = useState([]);
     const [examStartTime, setExamStartTime] = useState(null);
+    const [openClass, setOpenClass] = useState(null);
 
     useEffect(() => {
         const fetchPin = async () => {
@@ -411,29 +412,67 @@ const App = () => {
                             const allMocks = [...practiceSets.filter(p => p.isPublished), ...shiftedLive];
                             const classes = [...new Set(allMocks.map(m => m.class || 'Other'))].sort((a, b) => parseInt(a) - parseInt(b));
                             if (allMocks.length === 0) return <p className="text-center text-slate-500 italic text-[10px]">No practice sets available.</p>;
-                            return classes.map(cls => (
-                                <div key={cls} className="space-y-4">
-                                    <h2 className="font-black uppercase text-blue-400 border-b-2 border-blue-900/50 pb-2 text-xs flex items-center gap-2 italic tracking-widest pl-2">
-                                        <BookOpen size={16} /> Class {cls}
-                                    </h2>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {allMocks.filter(m => (m.class || 'Other') === cls).map((p, i) => (
-                                            <div key={p.id} className="bg-black/60 backdrop-blur-xl p-4 rounded-2xl shadow flex flex-wrap justify-between items-center border border-white/10 hover:border-blue-500/50 transition-all gap-3">
-                                                <div className="flex-1 min-w-[150px]">
-                                                    <div className="flex items-center flex-wrap">
-                                                        <h3 className="font-bold uppercase text-xs italic text-white break-words">{i + 1}. {p.name}</h3>
-                                                        <LevelBadge level={p.level} />
-                                                    </div>
-                                                    <p className="text-[9px] font-bold text-slate-500 uppercase italic mt-1">Time: {p.hours || 0}h {p.minutes || 0}m</p>
-                                                </div>
-                                                <button onClick={() => handleStartExamFlow(p)} className={`px-6 py-2 rounded-full font-black text-[9px] uppercase shadow-md h-fit flex items-center gap-2 flex-shrink-0 ${p.isGuestEnabled ? 'bg-blue-600 text-white' : 'bg-slate-800 text-blue-400 border border-blue-900/50'}`}>
-                                                    {!p.isGuestEnabled && <Lock size={12} />} {p.isGuestEnabled ? 'Start' : 'Protected'}
-                                                </button>
-                                            </div>
-                                        ))}
+                            return classes.map(cls => {
+    const isOpen = openClass === cls;
+
+    return (
+        <div key={cls} className="space-y-2">
+
+            {/* Header */}
+            <div
+                onClick={() => setOpenClass(isOpen ? null : cls)}
+                className="cursor-pointer flex justify-between items-center font-black uppercase text-blue-400 border-b-2 border-blue-900/50 pb-2 text-xs italic tracking-widest pl-2"
+            >
+                <div className="flex items-center gap-2">
+                    <BookOpen size={16} />
+                    Class {cls}
+                </div>
+
+                <ChevronRight
+                    size={16}
+                    className={`transition-transform ${isOpen ? 'rotate-90' : ''}`}
+                />
+            </div>
+
+            {/* Content */}
+            {isOpen && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                    {allMocks
+                        .filter(m => (m.class || 'Other') === cls)
+                        .map((p, i) => (
+                            <div key={p.id} className="bg-black/60 backdrop-blur-xl p-4 rounded-2xl shadow flex flex-wrap justify-between items-center border border-white/10 hover:border-blue-500/50 transition-all gap-3">
+
+                                <div className="flex-1 min-w-[150px]">
+                                    <div className="flex items-center flex-wrap">
+                                        <h3 className="font-bold uppercase text-xs italic text-white break-words">
+                                            {i + 1}. {p.name}
+                                        </h3>
+                                        <LevelBadge level={p.level} />
                                     </div>
+
+                                    <p className="text-[9px] font-bold text-slate-500 uppercase italic mt-1">
+                                        Time: {p.hours || 0}h {p.minutes || 0}m
+                                    </p>
                                 </div>
-                            ));
+
+                                <button
+                                    onClick={() => handleStartExamFlow(p)}
+                                    className={`px-6 py-2 rounded-full font-black text-[9px] uppercase shadow-md h-fit flex items-center gap-2 flex-shrink-0 ${
+                                        p.isGuestEnabled
+                                            ? 'bg-blue-600 text-white'
+                                            : 'bg-slate-800 text-blue-400 border border-blue-900/50'
+                                    }`}
+                                >
+                                    {!p.isGuestEnabled && <Lock size={12} />}
+                                    {p.isGuestEnabled ? 'Start' : 'Protected'}
+                                </button>
+                            </div>
+                        ))}
+                </div>
+            )}
+        </div>
+    );
+});
                         })()}
                     </div>
                 )}
