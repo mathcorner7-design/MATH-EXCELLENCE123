@@ -107,6 +107,7 @@ const App = () => {
   const [activityLogs, setActivityLogs] = useState([]);
   const [examStartTime, setExamStartTime] = useState(null);
   const [openClass, setOpenClass] = useState(null);
+  const [ads, setAds] = useState([]);
 
   useEffect(() => {
     const fetchPin = async () => {
@@ -141,6 +142,9 @@ const App = () => {
       if (d.exists()) setTeacherPin(d.data().pin);
     });
     onSnapshot(query(collection(db, "logs"), orderBy("timestamp", "desc")), (s) => setActivityLogs(s.docs.map(d => ({ id: d.id, ...d.data() }))));
+    onSnapshot(collection(db, "advertisements"), (s) => {
+  setAds(s.docs.map(d => ({ id: d.id, ...d.data() })));
+});
     return () => unsubscribeAuth();
   }, []);
 
@@ -265,6 +269,25 @@ const App = () => {
         </div>
       </nav>
       <main className="w-full max-w-5xl pt-36 mb-20 flex flex-col items-center">
+          <div className="w-full mb-6">
+    <div className="bg-gradient-to-r from-blue-900/40 to-black p-1 rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl">
+        <div className="bg-black/40 backdrop-blur-xl p-6 rounded-[1.8rem] min-h-[120px] flex flex-col items-center justify-center text-center">
+            {ads.length > 0 ? (
+                ads.map(ad => (
+                    <div key={ad.id} className="animate-in fade-in zoom-in duration-700 w-full">
+                        {ad.imageUrl && <img src={ad.imageUrl} alt="Ad" className="max-h-48 mx-auto rounded-xl mb-3 shadow-lg border border-white/5" />}
+                        {ad.text && <p className="text-sm font-black italic uppercase tracking-tighter text-blue-300">{ad.text}</p>}
+                    </div>
+                ))
+            ) : (
+                <div className="flex flex-col items-center opacity-40">
+                    <Radio size={32} className="text-slate-500 mb-2 animate-pulse" />
+                    <p className="text-[10px] font-black uppercase tracking-widest italic text-slate-500">Advertisements Coming Soon</p>
+                </div>
+            )}
+        </div>
+    </div>
+</div>
         {activeTab === 'home' && (
           <div className="space-y-6 animate-in fade-in w-full text-center print:hidden">
             <div className="bg-black/60 backdrop-blur-xl p-8 rounded-[2.5rem] shadow-2xl border-2 border-white/10">
@@ -564,6 +587,29 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
       </div>
       <AdminPaperManager title="Live Mock Exam" items={adminLive} color="text-red-500" />
       <AdminPaperManager title="Practice Sets" items={adminShifted} color="text-blue-400" />
+            <div className="bg-black/60 backdrop-blur-xl p-8 rounded-[2.5rem] border-t-8 border-yellow-600 w-full mb-8 text-left border-x border-b border-white/5">
+    <h3 className="font-black text-xs uppercase mb-6 flex items-center gap-2 italic text-yellow-500"><Radio size={20} /> Ad Manager</h3>
+    <div className="space-y-4">
+        <input id="ad-text" type="text" placeholder="Ad Message (Optional)" className="w-full p-3 bg-black border border-white/10 rounded-xl text-[10px] text-white outline-none" />
+        <input id="ad-url" type="text" placeholder="Image URL (Direct link)" className="w-full p-3 bg-black border border-white/10 rounded-xl text-[10px] text-white outline-none" />
+        <button onClick={async () => {
+            const txt = document.getElementById('ad-text').value;
+            const url = document.getElementById('ad-url').value;
+            if(!txt && !url) return alert("Fill at least one!");
+            await addDoc(collection(db, "advertisements"), { text: txt, imageUrl: url, timestamp: Date.now() });
+            document.getElementById('ad-text').value = '';
+            document.getElementById('ad-url').value = '';
+        }} className="w-full bg-yellow-600 py-3 rounded-xl font-black text-[10px] uppercase">Post Advertisement</button>
+    </div>
+    <div className="mt-6 space-y-2">
+        {ads.map(ad => (
+            <div key={ad.id} className="p-3 bg-white/5 rounded-xl flex justify-between items-center border border-white/10">
+                <p className="text-[9px] font-bold truncate max-w-[200px]">{ad.text || 'Image Only'}</p>
+                <button onClick={async () => await deleteDoc(doc(db, "advertisements", ad.id))} className="text-red-500"><X size={16}/></button>
+            </div>
+        ))}
+    </div>
+</div>
       <div className="bg-black/60 backdrop-blur-xl p-8 rounded-[2.5rem] shadow-2xl border-t-8 border-slate-900 w-full mb-20 text-center print:hidden border-x border-b border-white/5">
         <h3 className="font-black text-xs uppercase mb-8 flex items-center justify-center gap-3 italic text-blue-300"><Trophy size={28} className="text-yellow-500" /> Student Registry</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
