@@ -370,9 +370,9 @@ const App = () => {
                   </div>
                   <LiveCountdown timestamp={m.timestamp} />
                   <p className={`text-[8px] font-black uppercase italic mt-2 tracking-widest ${ (m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'public' ? 'text-green-500' : (m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'premium' ? 'text-yellow-500' : 'text-red-500' }`}>
-                    {(m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'public' && "🌍 Public Exam"}
-                    {(m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'premium' && "💎 Premium Access"}
-                    {(m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'locked' && "🔒 Locked: Will open after specific time"}
+                    {(m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'public' && "🌍 FREE TO ALL"}
+                    {(m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'premium' && "💎 ONLY FOR REGISTERED STUDENTS"}
+                    {(m.status || (m.isGuestEnabled ? 'public' : 'premium')) === 'locked' && "🔒 LOCKED EXAM (COMING SOON)"}
                   </p>
                 </div>
                 <ChevronRight size={24} className="text-white/20 group-hover:text-blue-500 transition-colors" />
@@ -460,9 +460,9 @@ const App = () => {
                                     </div>
                                     <p className="text-[9px] font-bold text-slate-500 uppercase italic mt-1">Time: {p.hours || 0}h {p.minutes || 0}m</p>
                                     <p className={`text-[8px] font-black uppercase italic mt-2 tracking-widest ${ (p.status || (p.isGuestEnabled ? 'public' : 'premium')) === 'public' ? 'text-green-500' : (p.status || (p.isGuestEnabled ? 'public' : 'premium')) === 'premium' ? 'text-yellow-500' : 'text-red-500' }`}>
-                                      {(p.status || (p.isGuestEnabled ? 'public' : 'premium')) === 'public' && "🌍 Public"}
-                                      {(p.status || (p.isGuestEnabled ? 'public' : 'premium')) === 'premium' && "💎 Premium"}
-                                      {(p.status || (p.isGuestEnabled ? 'public' : 'premium')) === 'locked' && "🔒 Locked"}
+                                      {(p.status || (p.isGuestEnabled ? 'public' : 'premium')) === 'public' && "🌍 FREE TO ALL"}
+                                      {(p.status || (p.isGuestEnabled ? 'public' : 'premium')) === 'premium' && "💎 ONLY FOR REGISTERED STUDENTS"}
+                                      {(p.status || (p.isGuestEnabled ? 'public' : 'premium')) === 'locked' && "🔒 LOCKED EXAM (COMING SOON)"}
                                     </p>
                                   </div>
                                   <ChevronRight size={24} className="text-white/20 group-hover:text-blue-500 transition-colors" />
@@ -928,7 +928,7 @@ const GrowthSectionView = ({ results, students }) => {
     <div className="max-w-2xl mx-auto w-full animate-in fade-in duration-500 text-left px-2">
       {selectedReview && <ReviewResultModal result={selectedReview} onClose={() => setSelectedReview(null)} />}
       {!sel && (
-        <div className="mb-8 p-6 bg-yellow-500/10 border-2 border-yellow-500 rounded-[2rem] text-center animate-pulse print:hidden"><p className="text-yellow-400 font-black uppercase italic text-[14px] md:text-[16px] leading-tight tracking-tight"> This section is exclusively for registered students CONTACT ANSHU SIR FOR REGISTRATION. </p></div>
+        <div className="mb-8 p-6 bg-yellow-500/10 border-2 border-yellow-500 rounded-[2rem] text-center animate-pulse print:hidden"><p className="text-yellow-400 font-black uppercase italic text-[14px] md:text-[16px] leading-tight tracking-tight"> This section is exclusively for registered students (CONTACT ANSHU SIR FOR REGISTRATION). </p></div>
       )}
       {!sel ? (
         <div className="grid gap-4 print:hidden">{students.map((std) => ( <button key={std.id} onClick={() => { setSel(std.name); setIsVerified(false); setVCode(''); }} className="w-full bg-black/60 backdrop-blur-xl p-5 rounded-[2rem] shadow-lg border border-white/10 flex justify-between items-center group active:scale-95 transition-all"><div className="flex items-center gap-4"><div className="w-10 h-10 bg-blue-900/30 rounded-xl flex items-center justify-center text-blue-400 group-hover:bg-blue-600 group-hover:text-white transition-all"><User size={18} /></div><span className="font-black text-white uppercase text-[14px] italic tracking-tight break-words">{std.name}</span></div><div className="flex items-center gap-3"><div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase italic ${getRemainingDays(std.subscriptionEnd) <= 5 ? 'bg-red-900/40 text-red-500' : 'bg-blue-950 text-blue-400'}`}> {getRemainingDays(std.subscriptionEnd)}D Left </div><ChevronRight size={24} className="text-slate-600 group-hover:text-blue-400" /></div></button> ))}</div>
