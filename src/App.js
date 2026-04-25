@@ -502,13 +502,24 @@ const App = () => {
                 </p>
               </div>
               <ChevronRight size={24} className="text-white/20 group-hover:text-blue-500 transition-colors" />
+           </div>
+            ))}
+            
+            <div className="col-span-full py-4 border-t border-white/5 mt-2">
+               <p className="text-[8px] font-black text-blue-500/40 uppercase italic text-center tracking-widest">
+                  More Mocks Coming Soon for this Chapter...
+               </p>
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        )}
     </div>
   );
 })}
+<div className="mt-6 p-4 border-2 border-dashed border-white/5 rounded-2xl text-center">
+         <p className="text-[10px] font-black text-slate-500 uppercase italic tracking-[0.2em] animate-pulse">
+            --- More Chapters Coming Soon ---
+         </p>
+      </div>
                       </div>
                     )}
                   </div>
