@@ -586,7 +586,7 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
       class: qaClass,
       level: qaLevel,
       chapter: qaChapter.trim().toUpperCase() || 'GENERAL',
-      answerPdfUrl: qaAnswerLink.trim()
+      answerPdfUrl: qaAnswerLink.trim(),
       timestamp: Date.now()
     });
     setQaName(''); setQaLink(''); setQaKey(''); setQaMarks(''); setQaNeg('0'); setQaStatus('public'); setQaChapter(''); setQaAnswerLink('');
