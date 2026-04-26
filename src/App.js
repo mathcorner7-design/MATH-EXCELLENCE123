@@ -979,7 +979,7 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
       let finalName = exam.studentName.toUpperCase();
       await addDoc(collection(db, "logs"), { studentName: exam.isGuest ? `(Guest) ${finalName}` : finalName, examTitle: exam.name, timestamp: Date.now() });
       if (!exam.isGuest) {
-        await addDoc(collection(db, "results"), { name: finalName, exam: exam.name, percent, obtained: totalObtainedMarks, total: totalPossibleMarks, date: d.toLocaleDateString('en-GB'), timestamp: Date.now(), details: detailResults, answerPdfUrl: exam.answerPdfUrl timeTaken: timeDuration, bonus: 0 });
+        await addDoc(collection(db, "results"), { name: finalName, exam: exam.name, percent, obtained: totalObtainedMarks, total: totalPossibleMarks, date: d.toLocaleDateString('en-GB'), timestamp: Date.now(), details: detailResults, answerPdfUrl: exam.answerPdfUrl || "", timeTaken: timeDuration, bonus: 0 });
       }
       setScoreData({ correct: totalObtainedMarks, total: totalPossibleMarks, percent, details: detailResults });
       localStorage.removeItem(recoveryKey);
