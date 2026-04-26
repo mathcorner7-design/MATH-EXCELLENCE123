@@ -926,6 +926,7 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
   }, [timeLeft, isSubmitted]);
 
   const submitExam = async () => {
+    alert("Submitting your exam... Please wait a moment.");
     setIsAppSubmitting(true);
     try {
       const startTimeKey = `timer_end_${exam.studentCode}_${exam.id}`;
