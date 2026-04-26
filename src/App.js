@@ -166,13 +166,13 @@ const App = () => {
   if (!studentNameInput.trim()) return alert("PLEASE ENTER YOUR NAME");
   const enteredCode = studentCodeInput.trim();
 
-  // ১. চেক করা হচ্ছে এটা আপনার টিচার পিন কি না
+  // ১. অ্যাডমিন চেক: টিচার পিন ব্যবহার করলে সরাসরি প্রিভিউ মোড
   if (enteredCode === teacherPin) {
     setCurrentExam(prev => ({ 
       ...prev, 
       studentName: "ADMIN (PREVIEW)", 
       studentCode: "ADMIN_MASTER", 
-      isGuest: true // গেস্ট ট্রু রাখলে রেজাল্ট ডাটাবেসে সেভ হবে না
+      isGuest: true 
     }));
     setExamStartTime(Date.now());
     setIsExamActive(true);
@@ -180,11 +180,12 @@ const App = () => {
     return;
   }
 
-  // ২. পিন না মিললে আগের মতো স্টুডেন্ট চেক হবে
-  const isGuestSessionEnabled = currentExam?.isGuestEnabled;
+  // ২. গেস্ট সেশন চেক (তোমার ডাটাবেসের status ফিল্ড আর পুরনো প্রপার্টি দুটোই চেক করবে)
+  const isGuestSessionEnabled = currentExam?.isGuestEnabled || currentExam?.status === 'public';
   const matchedStudent = students.find(s => s.studentCode?.toString().trim() === enteredCode);
   
   if (!isGuestSessionEnabled) {
+      // এটি প্রোটেক্টেড বা প্রিমিয়াম এক্সাম
       if (!enteredCode) return alert("THIS EXAM IS PROTECTED! UNIQUE CODE IS MANDATORY.");
       if (!matchedStudent) {
         alert("INVALID STUDENT CODE! PLEASE CONTACT ANSHU SIR.");
@@ -197,16 +198,19 @@ const App = () => {
       }
       setCurrentExam(prev => ({ ...prev, studentName: matchedStudent.name, studentCode: enteredCode, isGuest: false }));
     } else {
+      // এটি পাবলিক বা ফ্রি এক্সাম (তোমার ছবির সেই মোড)
       if (enteredCode && matchedStudent) {
+        // কোড দিলে রেজিস্টার্ড স্টুডেন্ট হিসেবে ঢুকবে
         setCurrentExam(prev => ({ ...prev, studentName: matchedStudent.name, studentCode: enteredCode, isGuest: false }));
       } else {
+        // কোড না দিলে গেস্ট হিসেবে ঢুকবে
         setCurrentExam(prev => ({ ...prev, studentName: studentNameInput.trim().toUpperCase(), studentCode: enteredCode || 'GUEST', isGuest: true }));
       }
     }
-    setExamStartTime(Date.now())
+    setExamStartTime(Date.now());
     setIsExamActive(true);
     setShowNameModal(false);
-  };
+};
 
   const handleGoogleLogin = async () => {
     try {
@@ -245,27 +249,48 @@ const App = () => {
       `}</style>
 
       {showNameModal && (
-        <div className="fixed inset-0 bg-black/90 z-[1000] flex items-center justify-center p-6 backdrop-blur-md print:hidden">
-          <div className="bg-slate-900 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl border-2 border-slate-800">
-            {currentExam?.isGuestEnabled ? <Unlock size={40} className="text-green-500 mx-auto mb-4" /> : <Lock size={40} className="text-blue-500 mx-auto mb-4" />}
-            <h3 className="font-bold text-lg mb-2 uppercase tracking-tight italic text-white">{currentExam?.isGuestEnabled ? 'Public Entrance' : 'Student Login'}</h3>
-            {currentExam?.isGuestEnabled && (
-              <p className="text-[10px] font-black text-red-500 mb-6 uppercase italic leading-tight animate-pulse">
-                * REGISTERED STUDENTS MUST ENTER THEIR UNIQUE CODE TO GENERATE A PERFORMANCE TRANSCRIPT IN THE GROWTH SECTION.
-              </p>
-            )}
-            {!currentExam?.isGuestEnabled && <p className="text-[9px] text-slate-500 mb-6 uppercase">Private Exam: Code Required</p>}
-            <div className="space-y-4">
-              <input autoFocus type="text" value={studentNameInput} onChange={(e) => setStudentNameInput(e.target.value)} className="w-full p-3 rounded-xl border-2 border-slate-700 bg-black text-white font-bold text-center outline-none focus:border-blue-500 uppercase" placeholder="NAME" />
-              <input type="text" value={studentCodeInput} onChange={(e) => setStudentCodeInput(e.target.value)} className="w-full p-3 rounded-xl border-2 border-slate-700 bg-black text-white font-bold text-center outline-none focus:border-blue-500" placeholder={currentExam?.isGuestEnabled ? "UNIQUE CODE (OPTIONAL)" : "ENTER UNIQUE CODE"} />
-            </div>
-            <div className="flex gap-4 mt-8">
-              <button onClick={() => setShowNameModal(false)} className="flex-1 py-3 rounded-xl bg-slate-800 text-white font-bold text-[10px] uppercase">Cancel</button>
-              <button onClick={finalizeExamStart} className="flex-1 py-3 rounded-xl bg-blue-700 text-white font-bold text-[10px] uppercase shadow-lg">Confirm</button>
-            </div>
-          </div>
-        </div>
+  <div className="fixed inset-0 bg-black/90 z-[1000] flex items-center justify-center p-6 backdrop-blur-md print:hidden">
+    <div className="bg-slate-900 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl border-2 border-slate-800">
+      
+      {/* ছবির মতো তালা আইকন লজিক */}
+      {(currentExam?.status === 'public' || currentExam?.isGuestEnabled) ? 
+        <Unlock size={40} className="text-green-500 mx-auto mb-4" /> : 
+        <Lock size={40} className="text-blue-500 mx-auto mb-4" />
+      }
+
+      {/* ছবির টাইটেল */}
+      <h3 className="font-bold text-lg mb-2 uppercase tracking-tight italic text-white">
+        {(currentExam?.status === 'public' || currentExam?.isGuestEnabled) ? 'Public Entrance' : 'Student Login'}
+      </h3>
+
+      {/* তোমার ছবির সেই লাল রঙের লেখাটি হুবহু এখানে */}
+      {(currentExam?.status === 'public' || currentExam?.isGuestEnabled) && (
+        <p className="text-[10px] font-black text-red-500 mb-6 uppercase italic leading-tight animate-pulse">
+          * REGISTERED STUDENTS MUST ENTER THEIR UNIQUE CODE TO GENERATE A PERFORMANCE TRANSCRIPT IN THE GROWTH SECTION.
+        </p>
       )}
+      
+      {/* প্রিমিয়াম এক্সাম হলে ছোট মেসেজ */}
+      {!(currentExam?.status === 'public' || currentExam?.isGuestEnabled) && (
+        <p className="text-[9px] text-slate-500 mb-6 uppercase">Private Exam: Code Required</p>
+      )}
+
+      <div className="space-y-4">
+        <input autoFocus type="text" value={studentNameInput} onChange={(e) => setStudentNameInput(e.target.value)} className="w-full p-3 rounded-xl border-2 border-slate-700 bg-black text-white font-bold text-center outline-none focus:border-blue-500 uppercase" placeholder="NAME" />
+        
+        {/* ছবির সেই UNIQUE CODE (OPTIONAL) লেখাটি */}
+        <input type="text" value={studentCodeInput} onChange={(e) => setStudentCodeInput(e.target.value)} className="w-full p-3 rounded-xl border-2 border-slate-700 bg-black text-white font-bold text-center outline-none focus:border-blue-500" 
+          placeholder={(currentExam?.status === 'public' || currentExam?.isGuestEnabled) ? "UNIQUE CODE (OPTIONAL)" : "ENTER UNIQUE CODE"} 
+        />
+      </div>
+
+      <div className="flex gap-4 mt-8">
+        <button onClick={() => setShowNameModal(false)} className="flex-1 py-3 rounded-xl bg-slate-800 text-white font-bold text-[10px] uppercase">Cancel</button>
+        <button onClick={finalizeExamStart} className="flex-1 py-3 rounded-xl bg-blue-700 text-white font-bold text-[10px] uppercase shadow-lg">Confirm</button>
+      </div>
+    </div>
+  </div>
+)}
 
       <header className="fixed top-0 left-0 w-full z-50 h-[55px] bg-black/60 backdrop-blur-md border-b border-white/10 flex items-center justify-center overflow-hidden">
         <div className="relative">
