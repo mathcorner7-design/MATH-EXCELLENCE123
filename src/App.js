@@ -835,6 +835,7 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
     return savedAnswers ? JSON.parse(savedAnswers) : {};
   });
   const [activeQuestion, setActiveQuestion] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [scoreData, setScoreData] = useState(null);
 
   useEffect(() => {
@@ -913,6 +914,7 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
   }, [timeLeft, isSubmitted]);
 
   const submitExam = async () => {
+  setIsSubmitting(true);
     try {
       const startTimeKey = `timer_end_${exam.studentCode}_${exam.id}`;
       const savedTimerEnd = localStorage.getItem(startTimeKey);
@@ -946,8 +948,13 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList }) => {
       localStorage.removeItem(recoveryKey);
       localStorage.removeItem(timerKey);
       setIsSubmitted(true);
-    } catch (e) { console.error(e); setIsSubmitted(true); }
-  };
+     } catch (e) { 
+    console.error(e); 
+    setIsSubmitted(true); 
+  } finally {
+    setIsSubmitting(false); // লোডিং বন্ধ করার জন্য
+  }
+};
 
   const formatTime = (s) => `${Math.floor(s / 60)}:${s % 60 < 10 ? '0' + (s % 60) : s % 60}`;
 
@@ -1025,6 +1032,17 @@ const GrowthSectionView = ({ results, students, teacherPin }) => {
         </div>
       )}
     </div>
+{isSubmitting && (
+      <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[9999] flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-6 text-blue-500"></div>
+        <h2 className="text-blue-400 text-2xl font-black tracking-tighter animate-pulse uppercase italic">
+          Submitting Your Exam...
+        </h2>
+        <p className="text-gray-400 text-xs mt-4 font-bold uppercase italic tracking-widest leading-relaxed">
+          Please Wait! Saving your hard work. <br/> Do not close the app.
+        </p>
+      </div>
+    )}
   );
 };
 
