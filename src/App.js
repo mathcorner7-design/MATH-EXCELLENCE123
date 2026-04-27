@@ -900,19 +900,18 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
     localStorage.setItem(timerKey, (Date.now() + initialDuration * 1000).toString());
     return initialDuration;
   });
-    const [isSubmitted, setIsSubmitted] = useState(false);
+      const [isSubmitted, setIsSubmitted] = useState(false);
   const [tabSwitches, setTabSwitches] = useState(0);
-  const [inactiveTime, setInactiveTime] = useState(0);
+  const [inactiveTime, setInactiveTime] = useState(0); // আগের ইনঅ্যাক্টিভ টাইমের রেকর্ড
   const [isBanned, setIsBanned] = useState(false);
 
   useEffect(() => {
-    let inactiveInterval;
+    let startTime; // স্টুডেন্ট কখন বাইরে গেল সেই সময়
 
-    // ব্যান করার প্রক্রিয়া শুরু করার ফাংশন
     const triggerBanProcess = () => {
       if (!isBanned) {
         setIsBanned(true);
-        // স্টুডেন্ট যখন স্ক্রিনে থাকবে (document.hidden === false), তখনই ৫ সেকেন্ডের টাইমার শুরু হবে
+        // যদি স্টুডেন্ট এখন ট্যাবে ফিরে এসে থাকে, তবে ৫ সেকেন্ড পর সাবমিট হবে
         if (!document.hidden) {
           setTimeout(() => {
             submitExam();
@@ -930,22 +929,25 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
           return newCount;
         });
 
-        // ২. ইন্যাক্টিভ টাইমার শুরু
-        inactiveInterval = setInterval(() => {
-          setInactiveTime(prev => {
-            const nextTime = prev + 1;
-            if (nextTime >= 60) {
-              setIsBanned(true); // শুধু ব্যান ফ্ল্যাগ ট্রু করবে, সাবমিট নয়
-              clearInterval(inactiveInterval);
-            }
-            return nextTime;
-          });
-        }, 1000);
+        // ২. বাইরে যাওয়ার সময়টা রেকর্ড করে রাখা
+        startTime = new Date().getTime();
       } else {
-        // ৩. স্টুডেন্ট যখন ফিরে আসবে
-        clearInterval(inactiveInterval);
-        
-        // যদি সে বাইরে থাকাকালীন ব্যান হয়ে গিয়ে থাকে, তবে এখন ৫ সেকেন্ড টাইমার শুরু হবে
+        // ৩. ফিরে আসার পর সময় পরীক্ষা করা
+        if (startTime) {
+          const endTime = new Date().getTime();
+          const secondsAway = Math.floor((endTime - startTime) / 1000);
+          
+          // আগের বাইরে থাকার সময়ের সাথে বর্তমানের সময় যোগ করা
+          setInactiveTime(prev => {
+            const totalAway = prev + secondsAway;
+            if (totalAway >= 60 || isBanned) {
+              triggerBanProcess();
+            }
+            return totalAway;
+          });
+        }
+
+        // যদি বাইরে থাকাকালীনই ট্যাব সুইচিংয়ের জন্য ব্যান হয়ে থাকে
         if (isBanned) {
           setTimeout(() => {
             submitExam();
@@ -957,7 +959,6 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-      clearInterval(inactiveInterval);
     };
   }, [isBanned]);
 
