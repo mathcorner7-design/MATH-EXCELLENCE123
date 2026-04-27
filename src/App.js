@@ -1104,7 +1104,16 @@ status: isBanned ? "BANNED" : "COMPLETED", obtained: totalObtainedMarks, total: 
       <button onClick={onFinish} className="bg-blue-700 text-white px-16 py-4 rounded-full font-black uppercase text-[12px] shadow-2xl">Close Arena</button>
     </div>
   );
+// অটো-সাবমিট লজিক: ব্যান হওয়া মাত্রই ৫ সেকেন্ড পর জমা হয়ে যাবে
+useEffect(() => {
+    if (isBanned) {
+        const autoSubmitTimer = setTimeout(() => {
+            submitExam();
+        }, 5000); 
 
+        return () => clearTimeout(autoSubmitTimer);
+    }
+}, [isBanned]);
   if (isBanned) return (
     <div className="fixed inset-0 bg-black z-[9999] flex flex-col items-center justify-center p-6 text-center backdrop-blur-2xl">
       <div className="bg-red-600/10 border-2 border-red-600 p-10 rounded-[3rem] max-w-md w-full shadow-[0_0_50px_rgba(220,38,38,0.3)] border-t-8 border-red-500">
@@ -1116,6 +1125,9 @@ status: isBanned ? "BANNED" : "COMPLETED", obtained: totalObtainedMarks, total: 
         <div className="h-px bg-white/20 w-full mb-8"></div>
         <p className="text-blue-400 font-black text-xs italic uppercase mb-2">Contact: Anshu Sir</p>
         <p className="text-yellow-500 font-black text-[9px] uppercase animate-pulse">Or Re-attempt the Exam carefully</p>
+    <p className="text-red-400 font-black text-[10px] uppercase animate-bounce mb-4">
+    Exam is auto-submitting in 5 seconds...
+</p>
         <button 
           onClick={() => window.location.reload()} 
           className="mt-8 px-8 py-3 bg-white text-black rounded-full font-black text-[10px] uppercase shadow-xl active:scale-95 transition-all"
