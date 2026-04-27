@@ -890,15 +890,6 @@ const AdminMarksheetModal = ({ student, results, onClose }) => {
 const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting }) => {
   const recoveryKey = `exam_recovery_${exam.studentCode}_${exam.id}`;
   const timerKey = `timer_end_${exam.studentCode}_${exam.id}`;
-  
-  // ১. সব স্টেটগুলো এখানে (ডুপ্লিকেট রিমুভ করা হয়েছে)
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [tabSwitches, setTabSwitches] = useState(0);
-  const [inactiveTime, setInactiveTime] = useState(0);
-  const [isBanned, setIsBanned] = useState(false);
-  const [scoreData, setScoreData] = useState(null);
-  const [activeQuestion, setActiveQuestion] = useState(null);
-
   const [timeLeft, setTimeLeft] = useState(() => {
     const savedEnd = localStorage.getItem(timerKey);
     if (savedEnd) {
@@ -909,55 +900,58 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
     localStorage.setItem(timerKey, (Date.now() + initialDuration * 1000).toString());
     return initialDuration;
   });
+      const [isSubmitted, setIsSubmitted] = useState(false);
+  const [tabSwitches, setTabSwitches] = useState(0);
+  const [inactiveTime, setInactiveTime] = useState(0); // আগের ইনঅ্যাক্টিভ টাইমের রেকর্ড
+  const [isBanned, setIsBanned] = useState(false);
 
-  const [answers, setAnswers] = useState(() => {
-    const savedAnswers = localStorage.getItem(recoveryKey);
-    return savedAnswers ? JSON.parse(savedAnswers) : {};
-  });
-
-      // ২. ট্র্যাকিং লজিক (গ্যারান্টিড অটো-সাবমিট এবং সঠিক সময় ক্যালকুলেশন)
   useEffect(() => {
-    let hideStart;
-    
-    // ব্রাউজারের গ্লোবাল মেমোরি ব্যবহার করা হচ্ছে যাতে রিয়্যাক্ট ডাটা মিস না করে
-    if (typeof window !== 'undefined' && window.totalAway === undefined) {
-      window.totalAway = 0;
-    }
+    let startTime; // স্টুডেন্ট কখন বাইরে গেল সেই সময়
 
-    const executeAutoSubmit = () => {
-      setIsBanned(true); // ১. সাথে সাথে ব্যান স্ক্রিন দেখাবে
-      
-      // ২. ঠিক ৫ সেকেন্ড পর অটোমেটিক সাবমিট ফাংশন কল হবে
-      setTimeout(() => {
-        submitExam();
-      }, 5000);
+    const triggerBanProcess = () => {
+      if (!isBanned) {
+        setIsBanned(true);
+        // যদি স্টুডেন্ট এখন ট্যাবে ফিরে এসে থাকে, তবে ৫ সেকেন্ড পর সাবমিট হবে
+        if (!document.hidden) {
+          setTimeout(() => {
+            submitExam();
+          }, 5000);
+        }
+      }
     };
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        // ট্যাব সুইচ কাউন্ট আপডেট
+        // ১. ট্যাব সুইচিং কাউন্ট
         setTabSwitches(prev => {
-          const count = prev + 1;
-          if (count >= 2) executeAutoSubmit();
-          return count;
+          const newCount = prev + 1;
+          if (newCount >= 2) triggerBanProcess();
+          return newCount;
         });
-        hideStart = Date.now();
-      } else {
-        // ফিরে আসার পর সময় ক্যালকুলেশন
-        if (hideStart) {
-          const diff = Math.floor((Date.now() - hideStart) / 1000);
-          window.totalAway += diff;
-          setInactiveTime(window.totalAway); // স্ক্রিনে দেখানোর জন্য
 
-          // যদি মোট সময় ৬০ সেকেন্ড বা তার বেশি হয়
-          if (window.totalAway >= 60) {
-            executeAutoSubmit();
-          }
+        // ২. বাইরে যাওয়ার সময়টা রেকর্ড করে রাখা
+        startTime = new Date().getTime();
+      } else {
+        // ৩. ফিরে আসার পর সময় পরীক্ষা করা
+        if (startTime) {
+          const endTime = new Date().getTime();
+          const secondsAway = Math.floor((endTime - startTime) / 1000);
+          
+          // আগের বাইরে থাকার সময়ের সাথে বর্তমানের সময় যোগ করা
+          setInactiveTime(prev => {
+            const totalAway = prev + secondsAway;
+            if (totalAway >= 60 || isBanned) {
+              triggerBanProcess();
+            }
+            return totalAway;
+          });
         }
-        
-        // যদি বাইরে থাকাকালীনই ব্যান ট্রিগার হয়ে থাকে (ফিরে এলে আবার চেক)
+
+        // যদি বাইরে থাকাকালীনই ট্যাব সুইচিংয়ের জন্য ব্যান হয়ে থাকে
         if (isBanned) {
-          setTimeout(() => { submitExam(); }, 5000);
+          setTimeout(() => {
+            submitExam();
+          }, 5000);
         }
       }
     };
@@ -965,11 +959,16 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-      // সেশন শেষ হলে মেমোরি ক্লিয়ার
-      if (typeof window !== 'undefined') window.totalAway = 0;
     };
   }, [isBanned]);
-  // ৩. এরপর আপনার ডাটা সেভ করার লজিক (যা আপনার ৯৮১ লাইনে ছিল)
+
+  const [answers, setAnswers] = useState(() => {
+    const savedAnswers = localStorage.getItem(recoveryKey);
+    return savedAnswers ? JSON.parse(savedAnswers) : {};
+  });
+  const [activeQuestion, setActiveQuestion] = useState(null);
+  const [scoreData, setScoreData] = useState(null);
+
   useEffect(() => {
     localStorage.setItem(recoveryKey, JSON.stringify(answers));
   }, [answers, recoveryKey]);
@@ -1045,11 +1044,11 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
     return () => clearInterval(t);
   }, [timeLeft, isSubmitted]);
 
-   const submitExam = async () => {
-    const loadingDiv = document.createElement('div');
-    loadingDiv.id = 'loading-overlay';
-    loadingDiv.innerHTML = "<div style='position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;font-family:sans-serif;text-align:center;'><div style='width:50px;height:50px;border:5px solid #3b82f6;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;'></div><br><b style='letter-spacing:1px;'>SUBMITTING EXAM...</b><p style='font-size:12px;opacity:0.7;'>Please wait, saving your data.</p></div><style>@keyframes spin{to{transform:rotate(360deg)}}</style>";
-    document.body.appendChild(loadingDiv);
+  const submitExam = async () => {
+      const loadingDiv = document.createElement('div');
+  loadingDiv.id = 'loading-overlay';
+  loadingDiv.innerHTML = "<div style='position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;font-family:sans-serif;text-align:center;'><div style='width:50px;height:50px;border:5px solid #3b82f6;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;'></div><br><b style='letter-spacing:1px;'>SUBMITTING EXAM...</b><p style='font-size:12px;opacity:0.7;'>Please wait, saving your data.</p></div><style>@keyframes spin{to{transform:rotate(360deg)}}</style>";
+  document.body.appendChild(loadingDiv);
     setIsAppSubmitting(true);
     try {
       const startTimeKey = `timer_end_${exam.studentCode}_${exam.id}`;
@@ -1076,29 +1075,10 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
       const percent = totalPossibleMarks > 0 ? Math.round((totalObtainedMarks / totalPossibleMarks) * 100) : 0;
       const d = new Date();
       let finalName = exam.studentName.toUpperCase();
-      
-      // --- এইখানে নতুন স্ট্যাটাস চেক ---
-      const finalStatus = (isBanned || inactiveTime >= 60) ? "BANNED" : "COMPLETED";
-
       await addDoc(collection(db, "logs"), { studentName: exam.isGuest ? `(Guest) ${finalName}` : finalName, examTitle: exam.name, timestamp: Date.now() });
-      
       if (!exam.isGuest) {
-        await addDoc(collection(db, "results"), { 
-          name: finalName, 
-          exam: exam.name, 
-          percent, 
-          tabSwitches: tabSwitches,
-          inactiveTime: inactiveTime, // ইনঅ্যাক্টিভ টাইম সেভ হচ্ছে
-          status: finalStatus,        // ব্যান স্ট্যাটাস সেভ হচ্ছে
-          obtained: totalObtainedMarks, 
-          total: totalPossibleMarks, 
-          date: d.toLocaleDateString('en-GB'), 
-          timestamp: Date.now(), 
-          details: detailResults, 
-          answerPdfUrl: exam.answerPdfUrl || "", 
-          timeTaken: timeDuration, 
-          bonus: 0 
-        });
+        await addDoc(collection(db, "results"), { name: finalName, exam: exam.name, percent, tabSwitches: tabSwitches,
+status: isBanned ? "BANNED" : "COMPLETED", obtained: totalObtainedMarks, total: totalPossibleMarks, date: d.toLocaleDateString('en-GB'), timestamp: Date.now(), details: detailResults, answerPdfUrl: exam.answerPdfUrl || "", timeTaken: timeDuration, bonus: 0 });
       }
       setScoreData({ correct: totalObtainedMarks, total: totalPossibleMarks, percent, details: detailResults });
       localStorage.removeItem(recoveryKey);
@@ -1272,77 +1252,54 @@ const GrowthSectionView = ({ results, students, teacherPin }) => {
                   const isMultiple = stdRes.filter(sr => sr.exam === r.exam).length > 1;
                   const hasPending = r.details && r.details.some(d => d.type === 'written' && d.pending === true);
                   const totalObtained = (parseFloat(r.obtained) || 0) + (parseFloat(r.bonus) || 0);
-    return (
-  <div key={r.id} className={`w-full rounded-[2rem] border shadow-sm flex items-center p-4 md:p-5 gap-3 md:gap-6 transition-all group print-card relative overflow-hidden ${
-    (r.status === "BANNED" || (r.inactiveTime && parseInt(r.inactiveTime) >= 60)) 
-    ? "bg-red-950/30 border-red-900/50" 
-    : "bg-slate-900/60 border-white/10 hover:shadow-md"
-  }`}>
-    
-    {/* বাম পাশের কন্টেন্ট */}
-    <div className={`flex-1 min-w-0 border-l-4 md:border-l-8 border-blue-600 pl-3 md:pl-5 ${
-      (r.status === "BANNED" || (r.inactiveTime && parseInt(r.inactiveTime) >= 60)) ? "opacity-40 grayscale" : ""
-    }`}>
-      <p className="text-[8px] md:text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">
-        Exam Unit {isMultiple && <span className="text-yellow-500 ml-2">| ATTEMPT {r.attemptNo}</span>}
-      </p>
-      <p className="text-xs md:text-lg font-black uppercase italic text-white leading-tight whitespace-normal break-words">{r.exam}</p>
-      <p className="text-[8px] md:text-[9px] font-black text-blue-400 uppercase italic mt-1">
-        {new Date(r.timestamp).toLocaleDateString('en-GB')}
-      </p>
-    </div>
+                  return (
+                    <div key={r.id} className="w-full bg-slate-900/60 rounded-[2rem] border border-white/10 shadow-sm flex items-center p-4 md:p-5 gap-3 md:gap-6 hover:shadow-md transition-all group print-card">
+                      <div className="flex-1 min-w-0 border-l-4 md:border-l-8 border-blue-600 pl-3 md:pl-5">
+                        <p className="text-[8px] md:text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Exam Unit {isMultiple && <span className="text-yellow-500 ml-2">| ATTEMPT {r.attemptNo}</span>}</p>
+                        <p className="text-xs md:text-lg font-black uppercase italic text-white leading-tight whitespace-normal break-words">{r.exam}</p>
+                        {r.bonus > 0 && <p className="text-[7px] text-green-400 font-black uppercase italic">+ Includes {r.bonus} Bonus Marks</p>}
+                        {hasPending && <p className="text-[7px] md:text-[8px] font-black text-orange-400 uppercase italic mt-0.5 animate-pulse">Score may increase after sir's review</p>}
+                        <p className="text-[8px] md:text-[9px] font-black text-blue-400 uppercase italic mt-1">{new Date(r.timestamp).toLocaleDateString('en-GB')} • {new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                      </div>
+                      <div className="text-center px-2 md:px-4 border-l border-white/10 min-w-[70px] md:min-w-[100px]">
+                        <p className="text-[8px] md:text-[9px] font-bold text-slate-500 uppercase mb-0.5">Score</p>
+                        <p className="text-xl md:text-3xl font-black italic text-blue-400 leading-none">{totalObtained}/{r.total}</p>
+                        {r.timeTaken && <p className="text-[9px] font-black text-yellow-500 uppercase italic mt-1 border-t border-white/5 pt-1">Time: {r.timeTaken}</p>}
+                          <div className="mt-1 border-t border-white/5 pt-1">
+  <p className="text-[8px] font-bold text-gray-400 uppercase italic">
+    Switches: <span className="text-orange-500">{r.tabSwitches || 0}</span>
+  </p>
+  {r.status === "BANNED" && (
+    <p className="text-[8px] font-black text-red-500 animate-pulse italic mt-0.5">
+      🚨 BANNED
+    </p>
+  )}
+</div>
+                      </div>
+                     <div className="flex-shrink-0 flex flex-col gap-2 print:hidden">
+  {/* কুইক রিভিউ বাটন */}
+  <button onClick={() => setSelectedReview(r)} className="bg-slate-800 text-blue-400 p-2 md:p-3 rounded-2xl border border-white/10 shadow-sm hover:bg-blue-600 hover:text-white transition-all flex flex-col items-center min-w-[65px]">
+    <Eye size={16} />
+    <span className="text-[7px] font-black mt-1 uppercase italic">Quick</span>
+  </button>
 
-    {/* স্কোর সেকশন - ব্যান হলে এখানে BANNED লেখা উঠবে */}
-    <div className="text-center px-2 md:px-4 border-l border-white/10 min-w-[70px] md:min-w-[100px]">
-      {(r.status === "BANNED" || (r.inactiveTime && parseInt(r.inactiveTime) >= 60)) ? (
-        <div className="flex flex-col items-center justify-center">
-          <p className="text-[10px] font-black text-red-500 animate-pulse uppercase italic">Restricted</p>
-          <p className="text-xl font-black text-red-600 italic leading-none">BANNED</p>
-        </div>
-      ) : (
-        <>
-          <p className="text-[8px] md:text-[9px] font-bold text-slate-500 uppercase mb-0.5">Score</p>
-          <p className="text-xl md:text-3xl font-black italic text-blue-400 leading-none">{totalObtained}/{r.total}</p>
-        </>
-      )}
+  {/* ডিটেল রিভিউ (লিঙ্ক থাকলে দেখাবে, না থাকলে লক) */}
+  {r.answerPdfUrl ? (
+    <a href={r.answerPdfUrl} target="_blank" rel="noreferrer" className="bg-slate-800 text-green-400 p-2 md:p-3 rounded-2xl border border-white/10 shadow-sm hover:bg-green-600 hover:text-white transition-all flex flex-col items-center min-w-[65px]">
+      <FileText size={16} />
+      <span className="text-[7px] font-black mt-1 uppercase italic">Detail</span>
+    </a>
+  ) : (
+    <div className="bg-slate-900/40 text-slate-600 p-1.5 rounded-xl border border-white/5 flex flex-col items-center opacity-50 min-w-[65px]">
+      <Lock size={12} />
+      <span className="text-[6px] font-black uppercase text-center leading-tight">No Link<br/>Available</span>
     </div>
-
-    {/* বাটন সেকশন - এগুলো এখন গ্যারান্টিড লক হবে */}
-    <div className="flex-shrink-0 flex flex-col gap-2 print:hidden">
-      
-      {/* Quick রিভিউ বাটন */}
-      <button 
-        disabled={(r.status === "BANNED" || (r.inactiveTime && parseInt(r.inactiveTime) >= 60))}
-        onClick={() => setSelectedReview(r)} 
-        className={`p-2 md:p-3 rounded-2xl border shadow-sm flex flex-col items-center min-w-[65px] transition-all ${
-          (r.status === "BANNED" || (r.inactiveTime && parseInt(r.inactiveTime) >= 60))
-          ? "bg-black/40 border-red-900/20 text-red-900/40 cursor-not-allowed"
-          : "bg-slate-800 text-blue-400 border-white/10 hover:bg-blue-600 hover:text-white"
-        }`}
-      >
-        <Eye size={16} />
-        <span className="text-[7px] font-black mt-1 uppercase italic">Quick</span>
-      </button>
-
-      {/* Detail রিভিউ লিঙ্ক */}
-      {(r.answerPdfUrl && !(r.status === "BANNED" || (r.inactiveTime && parseInt(r.inactiveTime) >= 60))) ? (
-        <a href={r.answerPdfUrl} target="_blank" rel="noreferrer" className="bg-slate-800 text-green-400 p-2 md:p-3 rounded-2xl border border-white/10 shadow-sm hover:bg-green-600 hover:text-white transition-all flex flex-col items-center min-w-[65px]">
-          <FileText size={16} />
-          <span className="text-[7px] font-black mt-1 uppercase italic">Detail</span>
-        </a>
-      ) : (
-        <div className="bg-black/20 text-slate-700 p-1.5 rounded-xl border border-white/5 flex flex-col items-center opacity-40 min-w-[65px]">
-          <Lock size={12} />
-          <span className="text-[6px] font-black uppercase text-center leading-tight">
-            {(r.status === "BANNED" || (r.inactiveTime && parseInt(r.inactiveTime) >= 60)) ? "LOCKED" : "No Link"}
-          </span>
-        </div>
-      )}
-    </div>
-  </div>
-);
-});
-})()}
+  )}
+</div> 
+                    </div>
+                  );
+                });
+              })()}
             </div>
           </div>
         </div>
