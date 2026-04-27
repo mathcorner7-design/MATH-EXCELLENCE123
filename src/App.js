@@ -900,45 +900,52 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
     localStorage.setItem(timerKey, (Date.now() + initialDuration * 1000).toString());
     return initialDuration;
   });
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [answers, setAnswers] = useState(() => {
-    const [tabSwitches, setTabSwitches] = useState(0);
-const [inactiveTime, setInactiveTime] = useState(0);
-const [isBanned, setIsBanned] = useState(false);
+    const [isSubmitted, setIsSubmitted] = useState(false);
+  
+  // ট্র্যাকিং স্টেটগুলো এখন আলাদা এবং নিরাপদ জায়গায়
+  const [tabSwitches, setTabSwitches] = useState(0);
+  const [inactiveTime, setInactiveTime] = useState(0);
+  const [isBanned, setIsBanned] = useState(false);
 
-useEffect(() => {
-  let inactiveInterval;
-  const handleVisibilityChange = () => {
-    if (document.hidden) {
-      setTabSwitches(prev => {
-        const newCount = prev + 1;
-        if (newCount >= 2) setIsBanned(true); 
-        return newCount;
-      });
-      inactiveInterval = setInterval(() => {
-        setInactiveTime(prev => {
-          if (prev >= 60) {
-            setIsBanned(true); 
-            clearInterval(inactiveInterval);
-          }
-          return prev + 1;
+  // ট্যাব সুইচ এবং ইনঅ্যাক্টিভ ট্র্যাকিং লজিক
+  useEffect(() => {
+    let inactiveInterval;
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        setTabSwitches(prev => {
+          const newCount = prev + 1;
+          if (newCount >= 2) setIsBanned(true); 
+          return newCount;
         });
-      }, 1000);
-    } else {
+        inactiveInterval = setInterval(() => {
+          setInactiveTime(prev => {
+            if (prev >= 60) { 
+              setIsBanned(true);
+              clearInterval(inactiveInterval);
+            }
+            return prev + 1;
+          });
+        }, 1000);
+      } else {
+        clearInterval(inactiveInterval);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       clearInterval(inactiveInterval);
-    }
-  };
-  document.addEventListener("visibilitychange", handleVisibilityChange);
-  return () => {
-    document.removeEventListener("visibilitychange", handleVisibilityChange);
-    clearInterval(inactiveInterval);
-  };
-}, []);
+    };
+  }, []);
 
-// ব্যান হওয়া মাত্রই অটো-সাবমিট কল হবে
-useEffect(() => {
-  if (isBanned) { submitExam(); }
-}, [isBanned]);
+  // ব্যান হওয়া মাত্রই অটো-সাবমিট লজিক
+  useEffect(() => {
+    if (isBanned) {
+      submitExam();
+    }
+  }, [isBanned]);
+
+  // আপনার সেই কাঙ্ক্ষিত answers সেট করার লাইনটি এখানে (সঠিকভাবে সাজানো)
+  const [answers, setAnswers] = useState(() => {
     const savedAnswers = localStorage.getItem(recoveryKey);
     return savedAnswers ? JSON.parse(savedAnswers) : {};
   });
