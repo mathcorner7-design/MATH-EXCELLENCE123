@@ -902,6 +902,43 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [answers, setAnswers] = useState(() => {
+    const [tabSwitches, setTabSwitches] = useState(0);
+const [inactiveTime, setInactiveTime] = useState(0);
+const [isBanned, setIsBanned] = useState(false);
+
+useEffect(() => {
+  let inactiveInterval;
+  const handleVisibilityChange = () => {
+    if (document.hidden) {
+      setTabSwitches(prev => {
+        const newCount = prev + 1;
+        if (newCount >= 2) setIsBanned(true); 
+        return newCount;
+      });
+      inactiveInterval = setInterval(() => {
+        setInactiveTime(prev => {
+          if (prev >= 60) {
+            setIsBanned(true); 
+            clearInterval(inactiveInterval);
+          }
+          return prev + 1;
+        });
+      }, 1000);
+    } else {
+      clearInterval(inactiveInterval);
+    }
+  };
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+  return () => {
+    document.removeEventListener("visibilitychange", handleVisibilityChange);
+    clearInterval(inactiveInterval);
+  };
+}, []);
+
+// ব্যান হওয়া মাত্রই অটো-সাবমিট কল হবে
+useEffect(() => {
+  if (isBanned) { submitExam(); }
+}, [isBanned]);
     const savedAnswers = localStorage.getItem(recoveryKey);
     return savedAnswers ? JSON.parse(savedAnswers) : {};
   });
@@ -1016,7 +1053,8 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
       let finalName = exam.studentName.toUpperCase();
       await addDoc(collection(db, "logs"), { studentName: exam.isGuest ? `(Guest) ${finalName}` : finalName, examTitle: exam.name, timestamp: Date.now() });
       if (!exam.isGuest) {
-        await addDoc(collection(db, "results"), { name: finalName, exam: exam.name, percent, obtained: totalObtainedMarks, total: totalPossibleMarks, date: d.toLocaleDateString('en-GB'), timestamp: Date.now(), details: detailResults, answerPdfUrl: exam.answerPdfUrl || "", timeTaken: timeDuration, bonus: 0 });
+        await addDoc(collection(db, "results"), { name: finalName, exam: exam.name, percent, tabSwitches: tabSwitches,
+status: isBanned ? "BANNED" : "COMPLETED", obtained: totalObtainedMarks, total: totalPossibleMarks, date: d.toLocaleDateString('en-GB'), timestamp: Date.now(), details: detailResults, answerPdfUrl: exam.answerPdfUrl || "", timeTaken: timeDuration, bonus: 0 });
       }
       setScoreData({ correct: totalObtainedMarks, total: totalPossibleMarks, percent, details: detailResults });
       localStorage.removeItem(recoveryKey);
@@ -1032,6 +1070,27 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
   const formatTime = (s) => `${Math.floor(s / 60)}:${s % 60 < 10 ? '0' + (s % 60) : s % 60}`;
 
   if (isSubmitted) return (
+   if (isBanned) return (
+  <div className="fixed inset-0 bg-black z-[9999] flex flex-col items-center justify-center p-6 text-center backdrop-blur-2xl">
+    <div className="bg-red-600/10 border-2 border-red-600 p-10 rounded-[3rem] max-w-md w-full shadow-[0_0_50px_rgba(220,38,38,0.3)] border-t-8 border-red-500">
+      <h1 className="text-4xl font-black text-red-500 mb-4 italic uppercase tracking-tighter">You are Banned!</h1>
+      <p className="text-white font-bold text-xs mb-2 uppercase italic tracking-widest">Suspicious Activity Detected</p>
+      <p className="text-gray-400 text-[10px] mb-8 uppercase leading-relaxed">
+        Reason: Multiple Tab Switches or Inactivity during the exam.
+      </p>
+      <div className="h-px bg-white/20 w-full mb-8"></div>
+      <p className="text-blue-400 font-black text-xs italic uppercase mb-2">Contact: Anshu Sir</p>
+      <p className="text-yellow-500 font-black text-[9px] uppercase animate-pulse">Or Re-attempt the Exam carefully</p>
+      
+      <button 
+        onClick={() => window.location.reload()} 
+        className="mt-8 px-8 py-3 bg-white text-black rounded-full font-black text-[10px] uppercase shadow-xl active:scale-95 transition-all"
+      >
+        Return to Home
+      </button>
+    </div>
+  </div>
+); 
     <div className="fixed inset-0 bg-slate-950 z-[2000] flex flex-col items-center overflow-y-auto p-10 text-center animate-in zoom-in duration-500 text-white"><CheckCircle size={80} className="text-green-500 mb-6 animate-bounce shadow-2xl rounded-full" /><h2 className="text-3xl font-black uppercase italic mb-8 tracking-tighter leading-none">Session Completed</h2><div className="bg-slate-900 p-10 rounded-[3rem] border-4 border-slate-800 mb-10 w-full max-sm shadow-2xl text-center"><p className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2 opacity-60">Result Transcript</p><h3 className="text-5xl font-black text-blue-400 italic tracking-tighter leading-none">{scoreData?.correct} / {scoreData?.total}</h3>{exam.isGuest && <p className="text-orange-400 text-[10px] font-black mt-4 uppercase italic">Notice: Guest data is not saved permanentally.</p>}<div className="mt-8 space-y-2 max-h-60 overflow-y-auto no-scrollbar border-t border-slate-800 pt-4 w-full px-2"><p className="text-[9px] font-black text-slate-500 uppercase italic mb-3 text-center">Quick Review:</p><div className="grid grid-cols-5 gap-2">{scoreData?.details?.map((item, idx) => (<div key={idx} className={`p-2 rounded-lg border flex flex-col items-center ${item.type === 'written' ? 'bg-orange-900/20 border-orange-800 text-orange-400' : (item.status ? 'bg-green-900/20 border-green-800 text-green-400' : 'bg-red-900/20 border-red-800 text-red-400')}`}><span className="text-[8px] font-black">Q{item.qNum}</span>{item.type === 'written' ? <Clock size={10} /> : (item.status ? <CheckCircle size={10} /> : <X size={10} />)}</div>))}</div></div></div><button onClick={onFinish} className="bg-blue-700 text-white px-16 py-4 rounded-full font-black uppercase text-[12px] shadow-2xl">Close Arena</button></div>
   );
 
@@ -1094,6 +1153,16 @@ const GrowthSectionView = ({ results, students, teacherPin }) => {
                         <p className="text-[8px] md:text-[9px] font-bold text-slate-500 uppercase mb-0.5">Score</p>
                         <p className="text-xl md:text-3xl font-black italic text-blue-400 leading-none">{totalObtained}/{r.total}</p>
                         {r.timeTaken && <p className="text-[9px] font-black text-yellow-500 uppercase italic mt-1 border-t border-white/5 pt-1">Time: {r.timeTaken}</p>}
+                          <div className="mt-1 border-t border-white/5 pt-1">
+  <p className="text-[8px] font-bold text-gray-400 uppercase italic">
+    Switches: <span className="text-orange-500">{r.tabSwitches || 0}</span>
+  </p>
+  {r.status === "BANNED" && (
+    <p className="text-[8px] font-black text-red-500 animate-pulse italic mt-0.5">
+      🚨 BANNED
+    </p>
+  )}
+</div>
                       </div>
                      <div className="flex-shrink-0 flex flex-col gap-2 print:hidden">
   {/* কুইক রিভিউ বাটন */}
