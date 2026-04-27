@@ -1033,58 +1033,96 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
   }, [timeLeft, isSubmitted]);
 
   const submitExam = async () => {
-      const loadingDiv = document.createElement('div');
-  loadingDiv.id = 'loading-overlay';
-  loadingDiv.innerHTML = "<div style='position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;font-family:sans-serif;text-align:center;'><div style='width:50px;height:50px;border:5px solid #3b82f6;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;'></div><br><b style='letter-spacing:1px;'>SUBMITTING EXAM...</b><p style='font-size:12px;opacity:0.7;'>Please wait, saving your data.</p></div><style>@keyframes spin{to{transform:rotate(360deg)}}</style>";
-  document.body.appendChild(loadingDiv);
+    const loadingDiv = document.createElement('div');
+    loadingDiv.id = 'loading-overlay';
+    loadingDiv.innerHTML = "<div style='position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;font-family:sans-serif;text-align:center;'><div style='width:50px;height:50px;border:5px solid #3b82f6;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;'></div><br><b style='letter-spacing:1px;'>SUBMITTING EXAM...</b><p style='font-size:12px;opacity:0.7;'>Please wait, saving your data.</p></div><style>@keyframes spin{to{transform:rotate(360deg)}}</style>";
+    document.body.appendChild(loadingDiv);
+    
     setIsAppSubmitting(true);
-    try {
-      const startTimeKey = `timer_end_${exam.studentCode}_${exam.id}`;
-      const savedTimerEnd = localStorage.getItem(startTimeKey);
-      const startTime = savedTimerEnd ? (parseInt(savedTimerEnd) - (parseInt(exam?.duration) * 1000)) : Date.now();
-      const minutesTaken = Math.floor((Date.now() - startTime) / 60000);
-      const secondsTaken = Math.floor(((Date.now() - startTime) % 60000) / 1000);
-      const timeDuration = `${minutesTaken}m ${secondsTaken}s`;
-      let totalObtainedMarks = 0;
-      let totalPossibleMarks = 0;
-      const detailResults = answerKeyArray.map((key, index) => {
-        const qNum = index + 1;
-        const qMark = marksArray[index] !== undefined ? marksArray[index] : 1;
-        const studentAns = answers[qNum] || 'None';
-        const isCorrect = studentAns === key;
-        const isWrong = studentAns !== 'None' && studentAns !== key;
-        totalPossibleMarks += qMark;
-        if (key !== 'W') {
-          if (isCorrect) totalObtainedMarks += qMark;
-          else if (isWrong) totalObtainedMarks -= negVal;
-        }
-        return { qNum, selected: studentAns, correct: key, status: isCorrect, mark: qMark, type: key === 'W' ? 'written' : 'mcq', pending: key === 'W' };
-      });
-      const percent = totalPossibleMarks > 0 ? Math.round((totalObtainedMarks / totalPossibleMarks) * 100) : 0;
-      const d = new Date();
-      let finalName = exam.studentName.toUpperCase();
-      await addDoc(collection(db, "logs"), { studentName: exam.isGuest ? `(Guest) ${finalName}` : finalName, examTitle: exam.name, timestamp: Date.now() });
-      if (!exam.isGuest) {
-        await addDoc(collection(db, "results"), { name: finalName, exam: exam.name, percent, tabSwitches: tabSwitches,
-status: isBanned ? "BANNED" : "COMPLETED", obtained: totalObtainedMarks, total: totalPossibleMarks, date: d.toLocaleDateString('en-GB'), timestamp: Date.now(), details: detailResults, answerPdfUrl: exam.answerPdfUrl || "", timeTaken: timeDuration, bonus: 0 });
-      }
-          // ... আপনার আগের মার্কস ক্যালকুলেশন কোড ঠিক থাকবে ...
-    
-    setScoreData({ correct: totalObtainedMarks, total: totalPossibleMarks, percent, details: detailResults });
-    localStorage.removeItem(recoveryKey);
-    localStorage.removeItem(timerKey);
-    
-    // এই সিরিয়ালটি খুব গুরুত্বপূর্ণ:
-    setIsSubmitted(true); // আগে ইউজারকে জানানো যে সাবমিট হয়েছে
-    setIsAppSubmitting(false); // তারপর লোডিং স্ক্রিন সরানো
 
-  } catch (e) {
-    console.error(e);
-    setIsAppSubmitting(false); // ভুল হলেও লোডিং সরাতে হবে
-    setIsSubmitted(true); 
-  } finally {
-    document.getElementById('loading-overlay')?.remove();
-  }
+    try {
+        const startTimeKey = `timer_end_${exam.studentCode}_${exam.id}`;
+        const savedTimerEnd = localStorage.getItem(startTimeKey);
+        const startTime = savedTimerEnd ? (parseInt(savedTimerEnd) - (parseInt(exam?.duration) * 1000)) : Date.now();
+        const minutesTaken = Math.floor((Date.now() - startTime) / 60000);
+        const secondsTaken = Math.floor(((Date.now() - startTime) % 60000) / 1000);
+        const timeDuration = `${minutesTaken}m ${secondsTaken}s`;
+
+        let totalObtainedMarks = 0;
+        let totalPossibleMarks = 0;
+
+        const detailResults = answerKeyArray.map((key, index) => {
+            const qNum = index + 1;
+            const qMark = marksArray[index] !== undefined ? marksArray[index] : 1;
+            const studentAns = answers[qNum] || 'None';
+            const isCorrect = studentAns === key;
+            const isWrong = studentAns !== 'None' && studentAns !== key;
+            
+            totalPossibleMarks += qMark;
+            if (key !== 'W') {
+                if (isCorrect) totalObtainedMarks += qMark;
+                else if (isWrong) totalObtainedMarks -= negVal;
+            }
+            return { qNum, selected: studentAns, correct: key, status: isCorrect, mark: qMark, type: key === 'W' ? 'written' : 'mcq', pending: key === 'W' };
+        });
+
+        const percent = totalPossibleMarks > 0 ? Math.round((totalObtainedMarks / totalPossibleMarks) * 100) : 0;
+        const d = new Date();
+        let finalName = exam.studentName.toUpperCase();
+
+        // ১. লগ এবং রেজাল্ট ডাটাবেসে সেভ করা
+        await addDoc(collection(db, "logs"), { 
+            studentName: exam.isGuest ? `(Guest) ${finalName}` : finalName, 
+            examTitle: exam.name, 
+            timestamp: Date.now() 
+        });
+
+        if (!exam.isGuest) {
+            await addDoc(collection(db, "results"), {
+                name: finalName,
+                exam: exam.name,
+                percent,
+                tabSwitches: tabSwitches,
+                status: isBanned ? "BANNED" : "COMPLETED",
+                obtained: totalObtainedMarks,
+                total: totalPossibleMarks,
+                date: d.toLocaleDateString('en-GB'),
+                timestamp: Date.now(),
+                details: detailResults,
+                answerPdfUrl: exam.answerPdfUrl || "",
+                timeTaken: timeDuration,
+                bonus: 0
+            });
+        }
+
+        // ২. রেজাল্ট ডাটা স্টেটে সেট করা (সাদা স্ক্রিন রোধ করতে এটি আগে জরুরি)
+        setScoreData({ correct: totalObtainedMarks, total: totalPossibleMarks, percent, details: detailResults });
+        
+        // ৩. লোকাল স্টোরেজ ক্লিয়ার করা
+        localStorage.removeItem(recoveryKey);
+        localStorage.removeItem(timerKey);
+        
+        // ৪. অ্যাপের সাবমিশন স্টেট আপডেট (প্রথমে সাবমিটেড ট্রু, তারপর লোডিং অফ)
+        setIsSubmitted(true);
+        setIsAppSubmitting(false);
+
+        // ৫. যদি ব্যান হয়, তবে ৫ সেকেন্ড পর ড্যাশবোর্ডে অটো ফেরত নিয়ে যাওয়া
+        if (isBanned) {
+            setTimeout(() => {
+                onFinish();
+            }, 5000);
+        }
+
+    } catch (e) {
+        console.error("Submission Error:", e);
+        setIsAppSubmitting(false);
+        // এরর হলে ইউজারকে জানানো
+        alert("Submission Failed! Please check internet connection.");
+    } finally {
+        // নীল লোডিং স্ক্রিন সরিয়ে ফেলা
+        const overlay = document.getElementById('loading-overlay');
+        if (overlay) overlay.remove();
+    }
 };
 
   const formatTime = (s) => `${Math.floor(s / 60)}:${s % 60 < 10 ? '0' + (s % 60) : s % 60}`;
