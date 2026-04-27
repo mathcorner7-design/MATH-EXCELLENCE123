@@ -914,70 +914,50 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
     const savedAnswers = localStorage.getItem(recoveryKey);
     return savedAnswers ? JSON.parse(savedAnswers) : {};
   });
+  const [activeQuestion, setActiveQuestion] = useState(null);
+  const [scoreData, setScoreData] = useState(null);
 
-  // ২. ট্র্যাকিং লজিক
+  // ২. ট্র্যাকিং লজিক (ব্যান এবং ইন্যাক্টিভ টাইম)
   useEffect(() => {
     let startTime;
-
     const triggerBanProcess = () => {
       if (!isBanned) {
         setIsBanned(true);
         if (!document.hidden) {
-          setTimeout(() => {
-            submitExam();
-          }, 5000);
+          setTimeout(() => { submitExam(); }, 5000);
         }
       }
     };
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        // ট্যাব সুইচিং কাউন্ট
         setTabSwitches(prev => {
           const newCount = prev + 1;
           if (newCount >= 2) triggerBanProcess();
           return newCount;
         });
-        // বাইরে যাওয়ার সময় রেকর্ড
         startTime = new Date().getTime();
       } else {
-        // ফিরে আসার পর সময় ক্যালকুলেশন
         if (startTime) {
           const endTime = new Date().getTime();
           const secondsAway = Math.floor((endTime - startTime) / 1000);
-          
           setInactiveTime(prev => {
             const totalAway = prev + secondsAway;
-            if (totalAway >= 60) {
-              triggerBanProcess();
-            }
+            if (totalAway >= 60) triggerBanProcess();
             return totalAway;
           });
         }
-
         if (isBanned) {
-          setTimeout(() => {
-            submitExam();
-          }, 5000);
+          setTimeout(() => { submitExam(); }, 5000);
         }
       }
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [isBanned, inactiveTime]); 
 
-  // ৩. এরপর আপনার submitExam ফাংশনটি শুরু হবে...
-
-  const [answers, setAnswers] = useState(() => {
-    const savedAnswers = localStorage.getItem(recoveryKey);
-    return savedAnswers ? JSON.parse(savedAnswers) : {};
-  });
-  const [activeQuestion, setActiveQuestion] = useState(null);
-  const [scoreData, setScoreData] = useState(null);
-
+  // ৩. এরপর আপনার ডাটা সেভ করার লজিক (যা আপনার ৯৮১ লাইনে ছিল)
   useEffect(() => {
     localStorage.setItem(recoveryKey, JSON.stringify(answers));
   }, [answers, recoveryKey]);
