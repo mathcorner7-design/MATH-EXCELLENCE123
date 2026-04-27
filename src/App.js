@@ -555,17 +555,13 @@ const App = () => {
           </div>
         )}
       </main>
-        {isAppSubmitting && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[9999] flex flex-col items-center justify-center p-6 text-center text-white">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-6"></div>
-          <h2 className="text-blue-400 text-2xl font-black tracking-tighter animate-pulse uppercase italic">
-            Submitting Your Exam...
-          </h2>
-          <p className="text-gray-400 text-[10px] mt-4 font-bold uppercase italic tracking-widest leading-relaxed">
-            Please Wait! Saving your hard work. <br/> Do not close the app.
-          </p>
-        </div>
-      )}
+         {isAppSubmitting && !isSubmitted && (
+    <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[9999] flex flex-col items-center justify-center p-6 text-center text-white">
+        <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-6"></div>
+        <h2 className="text-blue-400 text-2xl font-black tracking-tighter animate-pulse uppercase italic"> Submitting Your Exam... </h2>
+        <p className="text-gray-400 text-[10px] mt-4 font-bold uppercase italic tracking-widest leading-relaxed"> Please Wait! Saving your hard work. <br/> Do not close the app. </p>
+    </div>
+ )}
 
     </div>
   );
@@ -1096,35 +1092,34 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
         }
 
         // ২. রেজাল্ট ডাটা স্টেটে সেট করা (সাদা স্ক্রিন রোধ করতে এটি আগে জরুরি)
-        setScoreData({ correct: totalObtainedMarks, total: totalPossibleMarks, percent, details: detailResults });
-        
-        // ৩. লোকাল স্টোরেজ ক্লিয়ার করা
-        localStorage.removeItem(recoveryKey);
-        localStorage.removeItem(timerKey);
-        
-        // ৪. অ্যাপের সাবমিশন স্টেট আপডেট (প্রথমে সাবমিটেড ট্রু, তারপর লোডিং অফ)
-        setIsSubmitted(true);
-        setIsAppSubmitting(false);
+             // এই অংশটুকু রিপ্লেস করুন
+      setScoreData({ correct: totalObtainedMarks, total: totalPossibleMarks, percent, details: detailResults });
+      localStorage.removeItem(recoveryKey);
+      localStorage.removeItem(timerKey);
 
-        // ৫. যদি ব্যান হয়, তবে ৫ সেকেন্ড পর ড্যাশবোর্ডে অটো ফেরত নিয়ে যাওয়া
-        if (isBanned) {
-            setTimeout(() => {
-                onFinish();
-            }, 5000);
-        }
+      // গুরুত্বপূর্ণ: আগে রেজাল্ট স্টেট সেট হবে
+      setIsSubmitted(true); 
 
+      // ১ সেকেন্ড সময় দিন যাতে ব্রাউজার রেজাল্ট রেন্ডার করতে পারে, তারপর লোডিং স্ক্রিন সরান
+      setTimeout(() => {
+          setIsAppSubmitting(false);
+          const overlay = document.getElementById('loading-overlay');
+          if (overlay) overlay.remove();
+      }, 1000);
+
+      if (isBanned) {
+          setTimeout(() => {
+              onFinish();
+          }, 6000);
+      }
     } catch (e) {
-        console.error("Submission Error:", e);
-        setIsAppSubmitting(false);
-        // এরর হলে ইউজারকে জানানো
-        alert("Submission Failed! Please check internet connection.");
-    } finally {
-        // নীল লোডিং স্ক্রিন সরিয়ে ফেলা
-        const overlay = document.getElementById('loading-overlay');
-        if (overlay) overlay.remove();
+      console.error(e);
+      setIsAppSubmitting(false);
+      const overlay = document.getElementById('loading-overlay');
+      if (overlay) overlay.remove();
+      setIsSubmitted(true); 
     }
 };
-
   const formatTime = (s) => `${Math.floor(s / 60)}:${s % 60 < 10 ? '0' + (s % 60) : s % 60}`;
 
   if (isSubmitted) return (
