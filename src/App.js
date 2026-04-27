@@ -555,13 +555,17 @@ const App = () => {
           </div>
         )}
       </main>
-         {isAppSubmitting && !isSubmitted && (
-    <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[9999] flex flex-col items-center justify-center p-6 text-center text-white">
-        <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-6"></div>
-        <h2 className="text-blue-400 text-2xl font-black tracking-tighter animate-pulse uppercase italic"> Submitting Your Exam... </h2>
-        <p className="text-gray-400 text-[10px] mt-4 font-bold uppercase italic tracking-widest leading-relaxed"> Please Wait! Saving your hard work. <br/> Do not close the app. </p>
-    </div>
- )}
+        {isAppSubmitting && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[9999] flex flex-col items-center justify-center p-6 text-center text-white">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-6"></div>
+          <h2 className="text-blue-400 text-2xl font-black tracking-tighter animate-pulse uppercase italic">
+            Submitting Your Exam...
+          </h2>
+          <p className="text-gray-400 text-[10px] mt-4 font-bold uppercase italic tracking-widest leading-relaxed">
+            Please Wait! Saving your hard work. <br/> Do not close the app.
+          </p>
+        </div>
+      )}
 
     </div>
   );
@@ -902,49 +906,61 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
   const [isBanned, setIsBanned] = useState(false);
 
   useEffect(() => {
-    let startTime;
+    let startTime; // স্টুডেন্ট কখন বাইরে গেল সেই সময়
+
     const triggerBanProcess = () => {
-        if (!isBanned) {
-            setIsBanned(true);
-            // ইউজার যদি স্ক্রিনে ফিরে আসে, তবে ৫ সেকেন্ড পর অটো সাবমিট হবে
-            if (!document.hidden) {
-                setTimeout(() => {
-                    submitExam();
-                }, 5000);
-            }
+      if (!isBanned) {
+        setIsBanned(true);
+        // যদি স্টুডেন্ট এখন ট্যাবে ফিরে এসে থাকে, তবে ৫ সেকেন্ড পর সাবমিট হবে
+        if (!document.hidden) {
+          setTimeout(() => {
+            submitExam();
+          }, 5000);
         }
+      }
     };
 
     const handleVisibilityChange = () => {
-        if (document.hidden) {
-            // ট্যাব পাল্টালে কাউন্ট বাড়বে
-            setTabSwitches(prev => {
-                const newCount = prev + 1;
-                if (newCount >= 2) triggerBanProcess();
-                return newCount;
-            });
-            startTime = new Date().getTime(); // বাইরে যাওয়ার সময় শুরু
-        } else {
-            // ফিরে আসার পর চেক
-            if (startTime) {
-                const endTime = new Date().getTime();
-                const secondsAway = Math.floor((endTime - startTime) / 1000);
-                
-                setInactiveTime(prev => {
-                    const totalAway = prev + secondsAway;
-                    // যদি ১ মিনিটের বেশি বাইরে থাকে (৬০ সেকেন্ড)
-                    if (totalAway >= 60) {
-                        triggerBanProcess();
-                    }
-                    return totalAway;
-                });
+      if (document.hidden) {
+        // ১. ট্যাব সুইচিং কাউন্ট
+        setTabSwitches(prev => {
+          const newCount = prev + 1;
+          if (newCount >= 2) triggerBanProcess();
+          return newCount;
+        });
+
+        // ২. বাইরে যাওয়ার সময়টা রেকর্ড করে রাখা
+        startTime = new Date().getTime();
+      } else {
+        // ৩. ফিরে আসার পর সময় পরীক্ষা করা
+        if (startTime) {
+          const endTime = new Date().getTime();
+          const secondsAway = Math.floor((endTime - startTime) / 1000);
+          
+          // আগের বাইরে থাকার সময়ের সাথে বর্তমানের সময় যোগ করা
+          setInactiveTime(prev => {
+            const totalAway = prev + secondsAway;
+            if (totalAway >= 60 || isBanned) {
+              triggerBanProcess();
             }
+            return totalAway;
+          });
         }
+
+        // যদি বাইরে থাকাকালীনই ট্যাব সুইচিংয়ের জন্য ব্যান হয়ে থাকে
+        if (isBanned) {
+          setTimeout(() => {
+            submitExam();
+          }, 5000);
+        }
+      }
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-}, [isBanned]);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [isBanned]);
 
   const [answers, setAnswers] = useState(() => {
     const savedAnswers = localStorage.getItem(recoveryKey);
@@ -1029,70 +1045,52 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
   }, [timeLeft, isSubmitted]);
 
   const submitExam = async () => {
-    // লোডিং স্টেট সেট করা (এখন আর আলাদা কোনো div তৈরি হবে না)
+      const loadingDiv = document.createElement('div');
+  loadingDiv.id = 'loading-overlay';
+  loadingDiv.innerHTML = "<div style='position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;font-family:sans-serif;text-align:center;'><div style='width:50px;height:50px;border:5px solid #3b82f6;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;'></div><br><b style='letter-spacing:1px;'>SUBMITTING EXAM...</b><p style='font-size:12px;opacity:0.7;'>Please wait, saving your data.</p></div><style>@keyframes spin{to{transform:rotate(360deg)}}</style>";
+  document.body.appendChild(loadingDiv);
     setIsAppSubmitting(true);
-
     try {
-        const startTimeKey = `timer_end_${exam.studentCode}_${exam.id}`;
-        const savedTimerEnd = localStorage.getItem(startTimeKey);
-        const startTime = savedTimerEnd ? (parseInt(savedTimerEnd) - (parseInt(exam?.duration) * 1000)) : Date.now();
-        const minutesTaken = Math.floor((Date.now() - startTime) / 60000);
-        const secondsTaken = Math.floor(((Date.now() - startTime) % 60000) / 1000);
-        const timeDuration = `${minutesTaken}m ${secondsTaken}s`;
-
-        let totalObtainedMarks = 0;
-        let totalPossibleMarks = 0;
-
-        const detailResults = answerKeyArray.map((key, index) => {
-            const qNum = index + 1;
-            const qMark = marksArray[index] !== undefined ? marksArray[index] : 1;
-            const studentAns = answers[qNum] || 'None';
-            const isCorrect = studentAns === key;
-            const isWrong = studentAns !== 'None' && studentAns !== key;
-            
-            totalPossibleMarks += qMark;
-            if (key !== 'W') {
-                if (isCorrect) totalObtainedMarks += qMark;
-                else if (isWrong) totalObtainedMarks -= negVal;
-            }
-            return { qNum, selected: studentAns, correct: key, status: isCorrect, mark: qMark, type: key === 'W' ? 'written' : 'mcq', pending: key === 'W' };
-        });
-
-        const percent = totalPossibleMarks > 0 ? Math.round((totalObtainedMarks / totalPossibleMarks) * 100) : 0;
-        let finalName = exam.studentName.toUpperCase();
-
-        // লগ এবং রেজাল্ট সেভ
-        await addDoc(collection(db, "logs"), { 
-            studentName: exam.isGuest ? `(Guest) ${finalName}` : finalName, 
-            examTitle: exam.name, 
-            timestamp: Date.now() 
-        });
-
-        if (!exam.isGuest) {
-            await addDoc(collection(db, "results"), { 
-                name: finalName, exam: exam.name, percent, tabSwitches: tabSwitches, 
-                status: isBanned ? "BANNED" : "COMPLETED", 
-                obtained: totalObtainedMarks, total: totalPossibleMarks, 
-                date: new Date().toLocaleDateString('en-GB'), 
-                timestamp: Date.now(), details: detailResults, 
-                answerPdfUrl: exam.answerPdfUrl || "", timeTaken: timeDuration, bonus: 0 
-            });
+      const startTimeKey = `timer_end_${exam.studentCode}_${exam.id}`;
+      const savedTimerEnd = localStorage.getItem(startTimeKey);
+      const startTime = savedTimerEnd ? (parseInt(savedTimerEnd) - (parseInt(exam?.duration) * 1000)) : Date.now();
+      const minutesTaken = Math.floor((Date.now() - startTime) / 60000);
+      const secondsTaken = Math.floor(((Date.now() - startTime) % 60000) / 1000);
+      const timeDuration = `${minutesTaken}m ${secondsTaken}s`;
+      let totalObtainedMarks = 0;
+      let totalPossibleMarks = 0;
+      const detailResults = answerKeyArray.map((key, index) => {
+        const qNum = index + 1;
+        const qMark = marksArray[index] !== undefined ? marksArray[index] : 1;
+        const studentAns = answers[qNum] || 'None';
+        const isCorrect = studentAns === key;
+        const isWrong = studentAns !== 'None' && studentAns !== key;
+        totalPossibleMarks += qMark;
+        if (key !== 'W') {
+          if (isCorrect) totalObtainedMarks += qMark;
+          else if (isWrong) totalObtainedMarks -= negVal;
         }
-
-        setScoreData({ correct: totalObtainedMarks, total: totalPossibleMarks, percent, details: detailResults });
-        localStorage.removeItem(recoveryKey);
-        localStorage.removeItem(timerKey);
-        
-        // রেজাল্ট স্টেট আপডেট এবং লোডিং শেষ করা
-        setIsSubmitted(true);
-        setIsAppSubmitting(false);
-
-    } catch (e) {
-        console.error(e);
-        setIsAppSubmitting(false);
-        setIsSubmitted(true); // এরর হলেও রেজাল্ট স্ক্রিনে পাঠিয়ে দাও
+        return { qNum, selected: studentAns, correct: key, status: isCorrect, mark: qMark, type: key === 'W' ? 'written' : 'mcq', pending: key === 'W' };
+      });
+      const percent = totalPossibleMarks > 0 ? Math.round((totalObtainedMarks / totalPossibleMarks) * 100) : 0;
+      const d = new Date();
+      let finalName = exam.studentName.toUpperCase();
+      await addDoc(collection(db, "logs"), { studentName: exam.isGuest ? `(Guest) ${finalName}` : finalName, examTitle: exam.name, timestamp: Date.now() });
+      if (!exam.isGuest) {
+        await addDoc(collection(db, "results"), { name: finalName, exam: exam.name, percent, tabSwitches: tabSwitches,
+status: isBanned ? "BANNED" : "COMPLETED", obtained: totalObtainedMarks, total: totalPossibleMarks, date: d.toLocaleDateString('en-GB'), timestamp: Date.now(), details: detailResults, answerPdfUrl: exam.answerPdfUrl || "", timeTaken: timeDuration, bonus: 0 });
+      }
+      setScoreData({ correct: totalObtainedMarks, total: totalPossibleMarks, percent, details: detailResults });
+      localStorage.removeItem(recoveryKey);
+      localStorage.removeItem(timerKey);
+      setIsSubmitted(true);
+    } catch (e) { console.error(e); setIsSubmitted(true); }
+    finally {
+      setIsAppSubmitting(false);
+      document.getElementById('loading-overlay')?.remove();
     }
-};
+  };
+
   const formatTime = (s) => `${Math.floor(s / 60)}:${s % 60 < 10 ? '0' + (s % 60) : s % 60}`;
 
   if (isSubmitted) return (
@@ -1118,16 +1116,7 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
       <button onClick={onFinish} className="bg-blue-700 text-white px-16 py-4 rounded-full font-black uppercase text-[12px] shadow-2xl">Close Arena</button>
     </div>
   );
-// অটো-সাবমিট লজিক: ব্যান হওয়া মাত্রই ৫ সেকেন্ড পর জমা হয়ে যাবে
-useEffect(() => {
-    if (isBanned) {
-        const autoSubmitTimer = setTimeout(() => {
-            submitExam();
-        }, 5000); 
 
-        return () => clearTimeout(autoSubmitTimer);
-    }
-}, [isBanned]);
   if (isBanned) return (
     <div className="fixed inset-0 bg-black z-[9999] flex flex-col items-center justify-center p-6 text-center backdrop-blur-2xl">
       <div className="bg-red-600/10 border-2 border-red-600 p-10 rounded-[3rem] max-w-md w-full shadow-[0_0_50px_rgba(220,38,38,0.3)] border-t-8 border-red-500">
@@ -1139,9 +1128,6 @@ useEffect(() => {
         <div className="h-px bg-white/20 w-full mb-8"></div>
         <p className="text-blue-400 font-black text-xs italic uppercase mb-2">Contact: Anshu Sir</p>
         <p className="text-yellow-500 font-black text-[9px] uppercase animate-pulse">Or Re-attempt the Exam carefully</p>
-    <p className="text-red-400 font-black text-[10px] uppercase animate-bounce mb-4">
-    Exam is auto-submitting in 5 seconds...
-</p>
         <button 
           onClick={() => window.location.reload()} 
           className="mt-8 px-8 py-3 bg-white text-black rounded-full font-black text-[10px] uppercase shadow-xl active:scale-95 transition-all"
@@ -1284,10 +1270,10 @@ const GrowthSectionView = ({ results, students, teacherPin }) => {
     Switches: <span className="text-orange-500">{r.tabSwitches || 0}</span>
   </p>
   {r.status === "BANNED" && (
-    <p className="text-[10px] font-black text-red-500 animate-pulse italic mt-1 border-t border-red-900/20 pt-1">
-        🚨 BANNED BY SYSTEM
+    <p className="text-[8px] font-black text-red-500 animate-pulse italic mt-0.5">
+      🚨 BANNED
     </p>
-)}
+  )}
 </div>
                       </div>
                      <div className="flex-shrink-0 flex flex-col gap-2 print:hidden">
