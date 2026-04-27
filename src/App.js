@@ -915,42 +915,47 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
     return savedAnswers ? JSON.parse(savedAnswers) : {};
   });
 
-    // ২. ট্র্যাকিং লজিক (ব্যান এবং ইন্যাক্টিভ টাইম)
+      // ২. ট্র্যাকিং লজিক (গ্যারান্টিড অটো-সাবমিট এবং সঠিক সময় ক্যালকুলেশন)
   useEffect(() => {
-    let startTime;
+    let hideStart;
+    
+    // ব্রাউজারের গ্লোবাল মেমোরি ব্যবহার করা হচ্ছে যাতে রিয়্যাক্ট ডাটা মিস না করে
+    if (typeof window !== 'undefined' && window.totalAway === undefined) {
+      window.totalAway = 0;
+    }
+
+    const executeAutoSubmit = () => {
+      setIsBanned(true); // ১. সাথে সাথে ব্যান স্ক্রিন দেখাবে
+      
+      // ২. ঠিক ৫ সেকেন্ড পর অটোমেটিক সাবমিট ফাংশন কল হবে
+      setTimeout(() => {
+        submitExam();
+      }, 5000);
+    };
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        // ১. ট্যাব সুইচিং কাউন্ট
+        // ট্যাব সুইচ কাউন্ট আপডেট
         setTabSwitches(prev => {
-          const newCount = prev + 1;
-          if (newCount >= 2) {
-            setIsBanned(true);
-            // সরাসরি সাবমিট ফাংশন কল
-            setTimeout(() => { submitExam(); }, 5000);
-          }
-          return newCount;
+          const count = prev + 1;
+          if (count >= 2) executeAutoSubmit();
+          return count;
         });
-
-        // ২. বাইরে যাওয়ার সময়টা রেকর্ড
-        startTime = new Date().getTime();
+        hideStart = Date.now();
       } else {
-        // ৩. ফিরে আসার পর সময় পরীক্ষা করা
-        if (startTime) {
-          const endTime = new Date().getTime();
-          const secondsAway = Math.floor((endTime - startTime) / 1000);
-          
-          setInactiveTime(prev => {
-            const totalAway = prev + secondsAway;
-            if (totalAway >= 60) {
-              setIsBanned(true);
-              setTimeout(() => { submitExam(); }, 5000);
-            }
-            return totalAway;
-          });
-        }
+        // ফিরে আসার পর সময় ক্যালকুলেশন
+        if (hideStart) {
+          const diff = Math.floor((Date.now() - hideStart) / 1000);
+          window.totalAway += diff;
+          setInactiveTime(window.totalAway); // স্ক্রিনে দেখানোর জন্য
 
-        // যদি অলরেডি ব্যান হয়ে থাকে তবে সাবমিট করো
+          // যদি মোট সময় ৬০ সেকেন্ড বা তার বেশি হয়
+          if (window.totalAway >= 60) {
+            executeAutoSubmit();
+          }
+        }
+        
+        // যদি বাইরে থাকাকালীনই ব্যান ট্রিগার হয়ে থাকে (ফিরে এলে আবার চেক)
         if (isBanned) {
           setTimeout(() => { submitExam(); }, 5000);
         }
@@ -958,8 +963,12 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-  }, [isBanned, inactiveTime]); // এখানে dependency যোগ করা হয়েছে যাতে লজিক রি-রান হয় 
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      // সেশন শেষ হলে মেমোরি ক্লিয়ার
+      if (typeof window !== 'undefined') window.totalAway = 0;
+    };
+  }, [isBanned]);
   // ৩. এরপর আপনার ডাটা সেভ করার লজিক (যা আপনার ৯৮১ লাইনে ছিল)
   useEffect(() => {
     localStorage.setItem(recoveryKey, JSON.stringify(answers));
