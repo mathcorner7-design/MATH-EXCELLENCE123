@@ -890,6 +890,14 @@ const AdminMarksheetModal = ({ student, results, onClose }) => {
 const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting }) => {
   const recoveryKey = `exam_recovery_${exam.studentCode}_${exam.id}`;
   const timerKey = `timer_end_${exam.studentCode}_${exam.id}`;
+  
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [tabSwitches, setTabSwitches] = useState(0);
+  const [inactiveTime, setInactiveTime] = useState(0);
+  const [isBanned, setIsBanned] = useState(false);
+  const [scoreData, setScoreData] = useState(null);
+  const [activeQuestion, setActiveQuestion] = useState(null);
+
   const [timeLeft, setTimeLeft] = useState(() => {
     const savedEnd = localStorage.getItem(timerKey);
     if (savedEnd) {
@@ -900,18 +908,19 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
     localStorage.setItem(timerKey, (Date.now() + initialDuration * 1000).toString());
     return initialDuration;
   });
-      const [isSubmitted, setIsSubmitted] = useState(false);
-  const [tabSwitches, setTabSwitches] = useState(0);
-  const [inactiveTime, setInactiveTime] = useState(0); // আগের ইনঅ্যাক্টিভ টাইমের রেকর্ড
-  const [isBanned, setIsBanned] = useState(false);
 
+  const [answers, setAnswers] = useState(() => {
+    const savedAnswers = localStorage.getItem(recoveryKey);
+    return savedAnswers ? JSON.parse(savedAnswers) : {};
+  });
+
+  // --- ট্র্যাকিং লজিক (শুদ্ধ করা হয়েছে) ---
   useEffect(() => {
-    let startTime; // স্টুডেন্ট কখন বাইরে গেল সেই সময়
+    let startTime;
 
     const triggerBanProcess = () => {
       if (!isBanned) {
         setIsBanned(true);
-        // যদি স্টুডেন্ট এখন ট্যাবে ফিরে এসে থাকে, তবে ৫ সেকেন্ড পর সাবমিট হবে
         if (!document.hidden) {
           setTimeout(() => {
             submitExam();
@@ -928,26 +937,24 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
           if (newCount >= 2) triggerBanProcess();
           return newCount;
         });
-
-        // ২. বাইরে যাওয়ার সময়টা রেকর্ড করে রাখা
+        // ২. বাইরে যাওয়ার সময় রেকর্ড
         startTime = new Date().getTime();
       } else {
-        // ৩. ফিরে আসার পর সময় পরীক্ষা করা
+        // ৩. ফিরে আসার পর সময় ক্যালকুলেশন
         if (startTime) {
           const endTime = new Date().getTime();
           const secondsAway = Math.floor((endTime - startTime) / 1000);
           
-          // আগের বাইরে থাকার সময়ের সাথে বর্তমানের সময় যোগ করা
           setInactiveTime(prev => {
             const totalAway = prev + secondsAway;
-            if (totalAway >= 60 || isBanned) {
+            // এখানে চেক করা হচ্ছে ৬০ সেকেন্ড হয়েছে কি না
+            if (totalAway >= 60) {
               triggerBanProcess();
             }
             return totalAway;
           });
         }
 
-        // যদি বাইরে থাকাকালীনই ট্যাব সুইচিংয়ের জন্য ব্যান হয়ে থাকে
         if (isBanned) {
           setTimeout(() => {
             submitExam();
@@ -960,7 +967,7 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [isBanned]);
+  }, [isBanned, inactiveTime]); // ইনঅ্যাক্টিভ টাইম এখানে ট্র্যাক হবে
 
   const [answers, setAnswers] = useState(() => {
     const savedAnswers = localStorage.getItem(recoveryKey);
