@@ -914,11 +914,8 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
     const savedAnswers = localStorage.getItem(recoveryKey);
     return savedAnswers ? JSON.parse(savedAnswers) : {};
   });
-  
-  // ২. ট্র্যাকিং লজিক (ব্যান এবং ইন্যাক্টিভ টাইম)
-   // ২. ট্র্যাকিং লজিক (ব্যান এবং ইন্যাক্টিভ টাইম)
-  const [lastAwayTime, setLastAwayTime] = useState(0);
 
+  // ২. ট্র্যাকিং লজিক (ব্যান এবং ইন্যাক্টিভ টাইম)
   useEffect(() => {
     let startTime;
 
@@ -929,7 +926,11 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
           const newCount = prev + 1;
           if (newCount >= 2) {
             setIsBanned(true);
-            setTimeout(() => { submitExam(); }, 5000);
+            // সরাসরি ৫ সেকেন্ডের ডিলে দিয়ে সাবমিট কল করা হলো
+            setTimeout(() => {
+              const submitBtn = document.querySelector('button[className*="bg-green-600"]');
+              if (submitBtn) submitBtn.click(); // সরাসরি সাবমিট বাটনে ক্লিক করা হচ্ছে
+            }, 5000);
           }
           return newCount;
         });
@@ -943,25 +944,28 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
             const total = prev + secondsAway;
             if (total >= 60) {
               setIsBanned(true);
-              setTimeout(() => { submitExam(); }, 5000);
+              setTimeout(() => {
+                const submitBtn = document.querySelector('button[className*="bg-green-600"]');
+                if (submitBtn) submitBtn.click();
+              }, 5000);
             }
             return total;
           });
         }
-        
-        // যদি বাইরে থাকাকালীন ট্যাব সুইচের জন্য ব্যান হয়ে থাকে
+
+        // ফিরে আসার পর যদি অলরেডি ব্যান হয়ে থাকে
         if (isBanned) {
-          setTimeout(() => { submitExam(); }, 5000);
+          setTimeout(() => {
+            const submitBtn = document.querySelector('button[className*="bg-green-600"]');
+            if (submitBtn) submitBtn.click();
+          }, 5000);
         }
       }
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [isBanned, inactiveTime]); // এই দুটি স্টেট পরিবর্তন হলে ইফেক্টটি আপডেট হবে
-
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [isBanned]); 
   // ৩. এরপর আপনার ডাটা সেভ করার লজিক (যা আপনার ৯৮১ লাইনে ছিল)
   useEffect(() => {
     localStorage.setItem(recoveryKey, JSON.stringify(answers));
