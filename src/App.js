@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, setDoc, deleteDoc, getDocs, writeBatch, getDoc } from "firebase/firestore";
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "firebase/auth";
@@ -33,7 +33,7 @@ const getRemainingDays = (expiryDate) => {
 
 // --- Countdown Component ---
 const LiveCountdown = ({ timestamp, onExpire }) => {
-  const isSubmittingRef = useRef(false);
+  const [timeLeft, setTimeLeft] = useState("");
   useEffect(() => {
     const timer = setInterval(() => {
       const diff = (timestamp + 6 * 3600000) - Date.now();
@@ -887,7 +887,6 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
   const recoveryKey = `exam_recovery_${exam.studentCode}_${exam.id}`;
   const timerKey = `timer_end_${exam.studentCode}_${exam.id}`;
   const [timeLeft, setTimeLeft] = useState(() => {
-    const isSubmittingRef = useRef(false);
     const savedEnd = localStorage.getItem(timerKey);
     if (savedEnd) {
       const remaining = Math.floor((parseInt(savedEnd) - Date.now()) / 1000);
@@ -917,7 +916,6 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
     };
 
     const handleVisibilityChange = () => {
-      if (isSubmittingRef.current) return;
         if (document.hidden) {
             // ট্যাব পাল্টালে কাউন্ট বাড়বে
             setTabSwitches(prev => {
@@ -1031,10 +1029,12 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
   }, [timeLeft, isSubmitted]);
 
   const submitExam = async () => {
-    if (isSubmittingRef.current) return; // সাবমিট হতে থাকলে আর কাজ করবে না
-    isSubmittingRef.current = true; // সাবমিট ফ্ল্যাগ অন করে দিলাম
+    const loadingDiv = document.createElement('div');
+    loadingDiv.id = 'loading-overlay';
+    loadingDiv.innerHTML = "<div style='position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;font-family:sans-serif;text-align:center;'><div style='width:50px;height:50px;border:5px solid #3b82f6;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;'></div><br><b style='letter-spacing:1px;'>SUBMITTING EXAM...</b><p style='font-size:12px;opacity:0.7;'>Please wait, saving your data.</p></div><style>@keyframes spin{to{transform:rotate(360deg)}}</style>";
+    document.body.appendChild(loadingDiv);
     
-    setIsAppSubmitting(true); // এটি আপনার লোডিং স্ক্রিন দেখাবে
+    setIsAppSubmitting(true);
 
     try {
         const startTimeKey = `timer_end_${exam.studentCode}_${exam.id}`;
@@ -1049,10 +1049,11 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
 
         const detailResults = answerKeyArray.map((key, index) => {
             const qNum = index + 1;
-            const qMark = marksArray[index] || 1;
+            const qMark = marksArray[index] !== undefined ? marksArray[index] : 1;
             const studentAns = answers[qNum] || 'None';
             const isCorrect = studentAns === key;
             const isWrong = studentAns !== 'None' && studentAns !== key;
+            
             totalPossibleMarks += qMark;
             if (key !== 'W') {
                 if (isCorrect) totalObtainedMarks += qMark;
@@ -1062,47 +1063,61 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
         });
 
         const percent = totalPossibleMarks > 0 ? Math.round((totalObtainedMarks / totalPossibleMarks) * 100) : 0;
+        const d = new Date();
+        let finalName = exam.studentName.toUpperCase();
 
+        // ১. লগ এবং রেজাল্ট ডাটাবেসে সেভ করা
         await addDoc(collection(db, "logs"), { 
-            studentName: exam.isGuest ? `(Guest) ${exam.studentName}` : exam.studentName, 
+            studentName: exam.isGuest ? `(Guest) ${finalName}` : finalName, 
             examTitle: exam.name, 
             timestamp: Date.now() 
         });
 
         if (!exam.isGuest) {
-            await addDoc(collection(db, "results"), { 
-                name: exam.studentName.toUpperCase(), 
-                exam: exam.name, 
-                percent, 
-                tabSwitches, 
-                status: isBanned ? "BANNED" : "COMPLETED", 
-                obtained: totalObtainedMarks, 
-                total: totalPossibleMarks, 
-                date: new Date().toLocaleDateString('en-GB'), 
-                timestamp: Date.now(), 
-                details: detailResults, 
-                answerPdfUrl: exam.answerPdfUrl || "", 
-                timeTaken: timeDuration, 
-                bonus: 0 
+            await addDoc(collection(db, "results"), {
+                name: finalName,
+                exam: exam.name,
+                percent,
+                tabSwitches: tabSwitches,
+                status: isBanned ? "BANNED" : "COMPLETED",
+                obtained: totalObtainedMarks,
+                total: totalPossibleMarks,
+                date: d.toLocaleDateString('en-GB'),
+                timestamp: Date.now(),
+                details: detailResults,
+                answerPdfUrl: exam.answerPdfUrl || "",
+                timeTaken: timeDuration,
+                bonus: 0
             });
         }
 
-        localStorage.removeItem(recoveryKey);
-        localStorage.removeItem(timerKey);
+        // ২. রেজাল্ট ডাটা স্টেটে সেট করা (সাদা স্ক্রিন রোধ করতে এটি আগে জরুরি)
+             // এই অংশটুকু রিপ্লেস করুন
+      setScoreData({ correct: totalObtainedMarks, total: totalPossibleMarks, percent, details: detailResults });
+      localStorage.removeItem(recoveryKey);
+      localStorage.removeItem(timerKey);
 
-        setScoreData({ 
-            correct: totalObtainedMarks, 
-            total: totalPossibleMarks, 
-            percent, 
-            details: detailResults 
-        });
-        
-        setIsSubmitted(true);
-        setIsAppSubmitting(false);
+      // গুরুত্বপূর্ণ: আগে রেজাল্ট স্টেট সেট হবে
+      setIsSubmitted(true); 
 
+      // ১ সেকেন্ড সময় দিন যাতে ব্রাউজার রেজাল্ট রেন্ডার করতে পারে, তারপর লোডিং স্ক্রিন সরান
+      setTimeout(() => {
+          setIsAppSubmitting(false);
+          const overlay = document.getElementById('loading-overlay');
+          if (overlay) overlay.remove();
+      }, 1000);
+
+      if (isBanned) {
+          setTimeout(() => {
+              onFinish();
+          }, 6000);
+      }
     } catch (e) {
-        console.error(e);
-        setIsAppSubmitting(false);
+      console.error(e);
+      setIsAppSubmitting(false);
+      const overlay = document.getElementById('loading-overlay');
+      if (overlay) overlay.remove();
+      setIsSubmitted(true); 
     }
 };
   const formatTime = (s) => `${Math.floor(s / 60)}:${s % 60 < 10 ? '0' + (s % 60) : s % 60}`;
