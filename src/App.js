@@ -1191,6 +1191,7 @@ status: (isBanned || forcedBan) ? "BANNED" : "COMPLETED", obtained: totalObtaine
                           {Array.isArray(answers[activeQuestion]) && answers[activeQuestion].length > 0 && (
                             <button onClick={() => setActiveQuestion(null)} className="bg-green-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase shadow-xl">DONE</button>
                           )}
+                            </label>
                         </div>
                       </>
                     )}
