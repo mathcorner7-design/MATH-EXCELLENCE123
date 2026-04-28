@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, setDoc, deleteDoc, getDocs, writeBatch, getDoc } from "firebase/firestore";
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "firebase/auth";
@@ -904,18 +904,22 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
   const [tabSwitches, setTabSwitches] = useState(0);
   const [inactiveTime, setInactiveTime] = useState(0); // আগের ইনঅ্যাক্টিভ টাইমের রেকর্ড
   const [isBanned, setIsBanned] = useState(false);
+  const banTriggeredRef = useRef(false);
 
   useEffect(() => {
     let startTime; // স্টুডেন্ট কখন বাইরে গেল সেই সময়
 
     const triggerBanProcess = () => {
-      if (!isBanned) return;
-        setIsBanned(true);
-        // যদি স্টুডেন্ট এখন ট্যাবে ফিরে এসে থাকে, তবে ৫ সেকেন্ড পর সাবমিট হবে
-        setTimeout(() => {
-          submitExam(true);
-        }, 3000);
-    };
+  if (banTriggeredRef.current) return; // ✅ duplicate block
+
+  banTriggeredRef.current = true;
+
+  setIsBanned(true);
+
+  setTimeout(() => {
+    submitExam(true);
+  }, 3000);
+};
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
@@ -938,18 +942,10 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
           setInactiveTime(prev => {
             const totalAway = prev + secondsAway;
             if (totalAway >= 60 ) {
-              setIsBanned(true);
               triggerBanProcess();
             }
             return totalAway;
           });
-        }
-
-        // যদি বাইরে থাকাকালীনই ট্যাব সুইচিংয়ের জন্য ব্যান হয়ে থাকে
-        if (isBanned) {
-          setTimeout(() => {
-            submitExam();
-          }, 5000);
         }
       }
     };
