@@ -901,6 +901,7 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
     return initialDuration;
   });
       const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isCapturing, setIsCapturing] = useState(false);
   const [tabSwitches, setTabSwitches] = useState(0);
   const [inactiveTime, setInactiveTime] = useState(0); // আগের ইনঅ্যাক্টিভ টাইমের রেকর্ড
   const [isBanned, setIsBanned] = useState(false);
@@ -923,16 +924,17 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        // ১. ট্যাব সুইচিং কাউন্ট
-        setTabSwitches(prev => {
-          const newCount = prev + 1;
-          if (newCount >= 2) triggerBanProcess();
-          return newCount;
-        });
 
-        // ২. বাইরে যাওয়ার সময়টা রেকর্ড করে রাখা
-        startTime = new Date().getTime();
-      } else {
+  if (isCapturing) return; // ✅ camera ignore
+
+  setTabSwitches(prev => {
+    const newCount = prev + 1;
+    if (newCount >= 2) triggerBanProcess();
+    return newCount;
+  });
+
+  startTime = new Date().getTime();
+} else {
         // ৩. ফিরে আসার পর সময় পরীক্ষা করা
         if (startTime) {
           const endTime = new Date().getTime();
@@ -999,6 +1001,7 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
           const existingPhotos = Array.isArray(prev[qNum]) ? prev[qNum] : [];
           return { ...prev, [qNum]: [...existingPhotos, compressedBase64] };
         });
+        setIsCapturing(false);
       };
     };
   };
@@ -1175,10 +1178,15 @@ status: (isBanned || forcedBan) ? "BANNED" : "COMPLETED", obtained: totalObtaine
                           ))}
                         </div> 
                         <div className="flex gap-4">
-                          <label className="bg-blue-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase cursor-pointer shadow-xl flex items-center gap-2 active:scale-95 transition-all">
-                            <Camera size={16} /> {Array.isArray(answers[activeQuestion]) && answers[activeQuestion].length > 0 ? 'ADD ANOTHER' : 'CAPTURE'}
-                            <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => { handleImageUpload(activeQuestion, e.target.files[0]); e.target.value = null; }} />
-                          </label>
+                          <label 
+  onClick={() => setIsCapturing(true);
+// 🔥 safety timeout
+    setTimeout(() => {
+      setIsCapturing(false);
+    }, 20000); // 10 sec
+  }}
+  className="bg-blue-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase cursor-pointer shadow-xl flex items-center gap-2 active:scale-95 transition-all"
+>
                           {Array.isArray(answers[activeQuestion]) && answers[activeQuestion].length > 0 && (
                             <button onClick={() => setActiveQuestion(null)} className="bg-green-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase shadow-xl">DONE</button>
                           )}
