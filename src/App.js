@@ -912,11 +912,9 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
       if (!isBanned) {
         setIsBanned(true);
         // যদি স্টুডেন্ট এখন ট্যাবে ফিরে এসে থাকে, তবে ৫ সেকেন্ড পর সাবমিট হবে
-        if (!document.hidden) {
-          setTimeout(() => {
-            submitExam();
-          }, 5000);
-        }
+        setTimeout(() => {
+          submitExam();
+        }, 3000);
       }
     };
 
@@ -940,7 +938,8 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
           // আগের বাইরে থাকার সময়ের সাথে বর্তমানের সময় যোগ করা
           setInactiveTime(prev => {
             const totalAway = prev + secondsAway;
-            if (totalAway >= 60 || isBanned) {
+            if (totalAway >= 60 ) {
+              setIsBanned(true);
               triggerBanProcess();
             }
             return totalAway;
@@ -1092,6 +1091,27 @@ status: isBanned ? "BANNED" : "COMPLETED", obtained: totalObtainedMarks, total: 
   };
 
   const formatTime = (s) => `${Math.floor(s / 60)}:${s % 60 < 10 ? '0' + (s % 60) : s % 60}`;
+  
+  if (isBanned) return (
+    <div className="fixed inset-0 bg-black z-[9999] flex flex-col items-center justify-center p-6 text-center backdrop-blur-2xl">
+      <div className="bg-red-600/10 border-2 border-red-600 p-10 rounded-[3rem] max-w-md w-full shadow-[0_0_50px_rgba(220,38,38,0.3)] border-t-8 border-red-500">
+        <h1 className="text-4xl font-black text-red-500 mb-4 italic uppercase tracking-tighter text-white">You are Banned!</h1>
+        <p className="text-white font-bold text-xs mb-2 uppercase italic tracking-widest">Suspicious Activity Detected</p>
+        <p className="text-gray-400 text-[10px] mb-8 uppercase leading-relaxed">
+          Reason: Multiple Tab Switches or Inactivity during the exam.
+        </p>
+        <div className="h-px bg-white/20 w-full mb-8"></div>
+        <p className="text-blue-400 font-black text-xs italic uppercase mb-2">Contact: Anshu Sir</p>
+        <p className="text-yellow-500 font-black text-[9px] uppercase animate-pulse">Or Re-attempt the Exam carefully</p>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="mt-8 px-8 py-3 bg-white text-black rounded-full font-black text-[10px] uppercase shadow-xl active:scale-95 transition-all"
+        >
+          Return to Home
+        </button>
+      </div>
+    </div>
+  );
 
   if (isSubmitted) return (
     <div className="fixed inset-0 bg-slate-950 z-[2000] flex flex-col items-center overflow-y-auto p-10 text-center animate-in zoom-in duration-500 text-white">
@@ -1117,27 +1137,7 @@ status: isBanned ? "BANNED" : "COMPLETED", obtained: totalObtainedMarks, total: 
     </div>
   );
 
-  if (isBanned) return (
-    <div className="fixed inset-0 bg-black z-[9999] flex flex-col items-center justify-center p-6 text-center backdrop-blur-2xl">
-      <div className="bg-red-600/10 border-2 border-red-600 p-10 rounded-[3rem] max-w-md w-full shadow-[0_0_50px_rgba(220,38,38,0.3)] border-t-8 border-red-500">
-        <h1 className="text-4xl font-black text-red-500 mb-4 italic uppercase tracking-tighter text-white">You are Banned!</h1>
-        <p className="text-white font-bold text-xs mb-2 uppercase italic tracking-widest">Suspicious Activity Detected</p>
-        <p className="text-gray-400 text-[10px] mb-8 uppercase leading-relaxed">
-          Reason: Multiple Tab Switches or Inactivity during the exam.
-        </p>
-        <div className="h-px bg-white/20 w-full mb-8"></div>
-        <p className="text-blue-400 font-black text-xs italic uppercase mb-2">Contact: Anshu Sir</p>
-        <p className="text-yellow-500 font-black text-[9px] uppercase animate-pulse">Or Re-attempt the Exam carefully</p>
-        <button 
-          onClick={() => window.location.reload()} 
-          className="mt-8 px-8 py-3 bg-white text-black rounded-full font-black text-[10px] uppercase shadow-xl active:scale-95 transition-all"
-        >
-          Return to Home
-        </button>
-      </div>
-    </div>
-  );
-
+  
   return (
     <div className="fixed inset-0 bg-black z-[100] flex flex-col overflow-hidden animate-in fade-in duration-500">
       <div className="bg-slate-900 p-2 md:p-3 flex justify-between items-center border-b-4 border-yellow-500 shadow-2xl relative z-50 text-white">
