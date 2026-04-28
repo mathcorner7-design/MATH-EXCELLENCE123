@@ -1188,6 +1188,14 @@ status: (isBanned || forcedBan) ? "BANNED" : "COMPLETED", obtained: totalObtaine
   }}
   className="bg-blue-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase cursor-pointer shadow-xl flex items-center gap-2 active:scale-95 transition-all"
 >
+    {/* 🔥 THIS LINE ADDED ONLY (camera trigger) */}
+  <input
+    type="file"
+    accept="image/*"
+    capture="environment"
+    hidden
+    onChange={(e) => handleImageUpload(activeQuestion, e.target.files[0])}
+  />
                           {Array.isArray(answers[activeQuestion]) && answers[activeQuestion].length > 0 && (
                             <button onClick={() => setActiveQuestion(null)} className="bg-green-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase shadow-xl">DONE</button>
                           )}
