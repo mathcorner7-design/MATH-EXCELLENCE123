@@ -913,7 +913,7 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
         setIsBanned(true);
         // যদি স্টুডেন্ট এখন ট্যাবে ফিরে এসে থাকে, তবে ৫ সেকেন্ড পর সাবমিট হবে
         setTimeout(() => {
-          submitExam();
+          submitExam(true);
         }, 3000);
       }
     };
@@ -1043,7 +1043,7 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
     return () => clearInterval(t);
   }, [timeLeft, isSubmitted]);
 
-  const submitExam = async () => {
+  const submitExam = async (forcedBan = false) => {
       const loadingDiv = document.createElement('div');
   loadingDiv.id = 'loading-overlay';
   loadingDiv.innerHTML = "<div style='position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;font-family:sans-serif;text-align:center;'><div style='width:50px;height:50px;border:5px solid #3b82f6;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;'></div><br><b style='letter-spacing:1px;'>SUBMITTING EXAM...</b><p style='font-size:12px;opacity:0.7;'>Please wait, saving your data.</p></div><style>@keyframes spin{to{transform:rotate(360deg)}}</style>";
@@ -1077,7 +1077,7 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
       await addDoc(collection(db, "logs"), { studentName: exam.isGuest ? `(Guest) ${finalName}` : finalName, examTitle: exam.name, timestamp: Date.now() });
       if (!exam.isGuest) {
         await addDoc(collection(db, "results"), { name: finalName, exam: exam.name, percent, tabSwitches: tabSwitches,
-status: isBanned ? "BANNED" : "COMPLETED", obtained: totalObtainedMarks, total: totalPossibleMarks, date: d.toLocaleDateString('en-GB'), timestamp: Date.now(), details: detailResults, answerPdfUrl: exam.answerPdfUrl || "", timeTaken: timeDuration, bonus: 0 });
+status: (isBanned || forcedBan) ? "BANNED" : "COMPLETED", obtained: totalObtainedMarks, total: totalPossibleMarks, date: d.toLocaleDateString('en-GB'), timestamp: Date.now(), details: detailResults, answerPdfUrl: exam.answerPdfUrl || "", timeTaken: timeDuration, bonus: 0 });
       }
       setScoreData({ correct: totalObtainedMarks, total: totalPossibleMarks, percent, details: detailResults });
       localStorage.removeItem(recoveryKey);
