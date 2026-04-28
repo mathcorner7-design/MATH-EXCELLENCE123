@@ -1179,7 +1179,8 @@ status: (isBanned || forcedBan) ? "BANNED" : "COMPLETED", obtained: totalObtaine
                         </div> 
                         <div className="flex gap-4">
                           <label 
-  onClick={() => setIsCapturing(true);
+  onClick={() => {
+    setIsCapturing(true);
 // 🔥 safety timeout
     setTimeout(() => {
       setIsCapturing(false);
