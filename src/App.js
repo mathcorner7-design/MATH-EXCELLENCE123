@@ -902,6 +902,7 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
   });
       const [isSubmitted, setIsSubmitted] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [lastCaptureTime, setLastCaptureTime] = useState(0);
   const [tabSwitches, setTabSwitches] = useState(0);
   const [inactiveTime, setInactiveTime] = useState(0); // আগের ইনঅ্যাক্টিভ টাইমের রেকর্ড
   const [isBanned, setIsBanned] = useState(false);
@@ -925,7 +926,12 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
     const handleVisibilityChange = () => {
       if (document.hidden) {
 
-  if (isCapturing) return; // ✅ camera ignore
+  const now = Date.now();
+
+  // 🔥 MAIN FIX
+  if (isCapturing || (now - lastCaptureTime < 3000)) {
+    return;
+  }
 
   setTabSwitches(prev => {
     const newCount = prev + 1;
@@ -956,7 +962,7 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [isBanned]);
+  }, [isBanned, isCapturing, lastCaptureTimre]);
 
   const [answers, setAnswers] = useState(() => {
     const savedAnswers = localStorage.getItem(recoveryKey);
@@ -1181,10 +1187,11 @@ status: (isBanned || forcedBan) ? "BANNED" : "COMPLETED", obtained: totalObtaine
                           <label 
   onClick={() => {
     setIsCapturing(true);
+    setLastCaptureTime(Date.now());
 // 🔥 safety timeout
     setTimeout(() => {
       setIsCapturing(false);
-    }, 20000); // 10 sec
+    }, 20000); // 20 sec
   }}
   className="bg-blue-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase cursor-pointer shadow-xl flex items-center gap-2 active:scale-95 transition-all"
 >
