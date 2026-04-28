@@ -909,13 +909,12 @@ const InteractiveExamHall = ({ exam, onFinish, studentsList, setIsAppSubmitting 
     let startTime; // স্টুডেন্ট কখন বাইরে গেল সেই সময়
 
     const triggerBanProcess = () => {
-      if (!isBanned) {
+      if (!isBanned) return;
         setIsBanned(true);
         // যদি স্টুডেন্ট এখন ট্যাবে ফিরে এসে থাকে, তবে ৫ সেকেন্ড পর সাবমিট হবে
         setTimeout(() => {
           submitExam(true);
         }, 3000);
-      }
     };
 
     const handleVisibilityChange = () => {
