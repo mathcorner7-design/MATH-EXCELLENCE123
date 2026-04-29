@@ -627,7 +627,7 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
   ...liveMocks
     .filter(m => (Date.now() - (m.timestamp || 0) >= 6 * 3600000))
     .map(m => ({ ...m, source: 'live' }))
-];.sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
+].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
        const AdminPaperManager = ({ title, items, color, isOpen, onToggle }) => {
     // কার্সার ফিক্স করার জন্য স্টেটগুলো এখানে রাখা জরুরি
