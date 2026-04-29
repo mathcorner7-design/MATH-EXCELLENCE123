@@ -1032,6 +1032,7 @@ document.body.style.overflow = "auto";
     </div>
   </div>
 )}
+  </div>
   );
 };
 
