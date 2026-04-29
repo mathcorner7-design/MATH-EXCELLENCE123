@@ -576,6 +576,7 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
   const [isChangingPin, setIsChangingPin] = useState(false);
   const [pinVal, setPinVal] = useState('');
   const [expandedId, setExpandedId] = useState(null);
+  const [activeManager, setActiveManager] = useState(null); 
   const [quickAddType, setQuickAddType] = useState('live');
   const [qaName, setQaName] = useState('');
   const [qaAnswerLink, setQaAnswerLink] = useState('');
@@ -621,19 +622,20 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
   const adminLive = liveMocks.filter(m => (Date.now() - (m.timestamp || 0) < 6 * 3600000)).sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
   const adminShifted = [...practiceSets, ...liveMocks.filter(m => (Date.now() - (m.timestamp || 0) >= 6 * 3600000))].sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
 
-  const AdminPaperManager = ({ title, items, color }) => {
+  const AdminPaperManager = ({ title, items, color, isOpen, onToggle }) => {
     const classes = [...new Set(items.map(m => m.class || 'Other'))].sort((a,b) => parseInt(a) - parseInt(b));
     return (
       <div className="bg-black/60 backdrop-blur-xl rounded-[2rem] shadow-2xl border-t-8 border-slate-900 mb-8 w-full overflow-hidden print:hidden border-x border-b border-white/5">
-        <div className="flex justify-between items-center p-6 border-b border-white/5">
+        <div onClick={onToggle} className="flex justify-between items-center p-6 border-b border-white/5 cursor-pointer hover:bg-white/5">
           <h3 className={`font-black uppercase text-xs italic ${color}`}>{title} Manager ({items.length})</h3>
         </div>
-        <div className="max-h-[600px] overflow-y-auto p-4 space-y-6 bg-white/5 no-scrollbar">
+  {isOpen && (
+        <div className="max-h-[500px] overflow-y-auto p-4 space-y-6 bg-white/5 no-scrollbar scroll-smooth">
           {classes.map(cls => (
             <div key={cls} className="space-y-3">
-              <h4 className="text-[10px] font-black text-blue-400 uppercase italic border-b border-white/5 pb-1">Class {cls}</h4>
+              <h4 className="text-[10px] font-black text-blue-400 uppercase italic border-b border-white/5 pb-1 sticky top-0 bg-slate-950/90 backdrop-blur-md z-10">Class {cls}</h4>
               {items.filter(m => (m.class || 'Other') === cls).map((item, index) => (
-                <div key={item.id} className="bg-slate-900/60 rounded-2xl border border-white/10 overflow-hidden transition-all">
+                <div key={item.id} className="bg-slate-900/60 rounded-2xl border border-white/10 overflow-hidden transition-all duration-200">
                   <div onClick={() => setExpandedId(expandedId === item.id ? null : item.id)} className="p-4 flex justify-between items-center cursor-pointer hover:bg-white/5 group">
                     <div className="flex-1 pr-2">
                       <div className="flex flex-col">
@@ -714,6 +716,7 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
             </div>
           ))}
         </div>
+            )}
       </div>
     );
   };
@@ -794,8 +797,20 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
           <button onClick={async () => { if (window.confirm("Clear Logs?")) { const q = query(collection(db, "logs")); const snapshot = await getDocs(q); const batch = writeBatch(db); snapshot.docs.forEach((d) => batch.delete(d.ref)); await batch.commit(); } }} className="px-5 py-2 rounded-full bg-red-900/40 text-red-400 text-[10px] font-black uppercase border border-red-800/50">Clear Activity</button>
         </div>
       </div>
-      <AdminPaperManager title="Live Mock Exam" items={adminLive} color="text-red-500" />
-      <AdminPaperManager title="Practice Sets" items={adminShifted} color="text-blue-400" />
+      <AdminPaperManager 
+  title="Live Mock Exam" 
+  items={adminLive} 
+  color="text-red-500" 
+  isOpen={activeManager === 'live'} 
+  onToggle={() => setActiveManager(activeManager === 'live' ? null : 'live')} 
+/>
+      <AdminPaperManager 
+  title="Practice Sets" 
+  items={adminShifted} 
+  color="text-blue-400" 
+  isOpen={activeManager === 'practice'} 
+  onToggle={() => setActiveManager(activeManager === 'practice' ? null : 'practice')} 
+/>
       <div className="bg-black/60 backdrop-blur-xl p-8 rounded-[2.5rem] border-t-8 border-yellow-600 w-full mb-8 text-left border-x border-b border-white/5">
         <h3 className="font-black text-xs uppercase mb-6 flex items-center gap-2 italic text-yellow-500"><Radio size={20} /> Ad Manager</h3>
         <div className="space-y-4">
