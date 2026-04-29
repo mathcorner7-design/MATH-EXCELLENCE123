@@ -748,7 +748,8 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
                 </div>
               ))}
             </div>
-          ))}
+          );
+})}
         </div>
             )}
       </div>
