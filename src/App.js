@@ -622,7 +622,12 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
   };
 
   const adminLive = liveMocks.filter(m => (Date.now() - (m.timestamp || 0) < 6 * 3600000)).sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
-  const adminShifted = [...practiceSets, ...liveMocks.filter(m => (Date.now() - (m.timestamp || 0) >= 6 * 3600000))].sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
+  const adminShifted = [
+  ...practiceSets.map(p => ({ ...p, source: 'practice' })),
+  ...liveMocks
+    .filter(m => (Date.now() - (m.timestamp || 0) >= 6 * 3600000))
+    .map(m => ({ ...m, source: 'live' }))
+];.sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
 
        const AdminPaperManager = ({ title, items, color, isOpen, onToggle }) => {
     // কার্সার ফিক্স করার জন্য স্টেটগুলো এখানে রাখা জরুরি
@@ -662,7 +667,13 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
                   <h4 className="text-[10px] font-black text-blue-400 uppercase italic border-b border-white/5 pb-1 sticky top-0 bg-slate-950/90 backdrop-blur-md z-10 pl-2">Class {cls}</h4>
                   {filteredItems.map((item) => (
                     <div key={item.id} className="bg-slate-900/60 rounded-2xl border border-white/10 overflow-hidden transition-all duration-200">
-                      <div onClick={() => title.includes("Practice") ? setEditExam(item) : setExpandedId(expandedId === item.id ? null : item.id)} className="p-4 flex justify-between items-center cursor-pointer hover:bg-white/5 group">
+                      <div onClick={() => {
+  if (item.source === 'practice') {
+    setEditExam(item);
+  } else {
+    setExpandedId(expandedId === item.id ? null : item.id);
+  }
+}} className="p-4 flex justify-between items-center cursor-pointer hover:bg-white/5 group">
                         <div className="flex-1 pr-2">
                           <div className="flex flex-col">
                             <div className="flex items-center gap-3">
