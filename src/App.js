@@ -624,7 +624,8 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
   const adminLive = liveMocks.filter(m => (Date.now() - (m.timestamp || 0) < 6 * 3600000)).sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
   const adminShifted = [...practiceSets, ...liveMocks.filter(m => (Date.now() - (m.timestamp || 0) >= 6 * 3600000))].sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
 
-     const AdminPaperManager = ({ title, items, color, isOpen, onToggle }) => {
+       const AdminPaperManager = ({ title, items, color, isOpen, onToggle }) => {
+    // কার্সার ফিক্স করার জন্য স্টেটগুলো এখানে রাখা জরুরি
     const classes = [...new Set(items.map(m => m.class || 'Other'))].sort((a,b) => parseInt(a) - parseInt(b));
 
     return (
@@ -636,11 +637,17 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
 
         {isOpen && (
           <div className="max-h-[500px] overflow-y-auto p-4 space-y-6 bg-white/5 no-scrollbar scroll-smooth">
+            {/* সার্চ বার: কার্সার ফিক্স সহ */}
             {title.includes("Practice") && (
               <div className="sticky top-0 z-20 pb-4 bg-slate-950/90 backdrop-blur-md pt-2 text-left">
-                <div className="relative group">
-                  <input type="text" placeholder="Search exams..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full p-3 bg-black/40 border border-white/10 rounded-2xl text-xs text-white outline-none focus:border-blue-500 font-bold pl-10" />
-                  {/* এখানে Search এর বদলে PlusCircle ব্যবহার করা হয়েছে যাতে এরর না আসে */}
+                <div className="relative">
+                  <input 
+                    type="text" 
+                    placeholder="Search exams..." 
+                    value={searchTerm} 
+                    onChange={(e) => setSearchTerm(e.target.value)} 
+                    className="w-full p-3 bg-black border border-white/10 rounded-2xl text-xs text-white outline-none focus:border-blue-500 font-black pl-10" 
+                  />
                   <div className="absolute left-3 top-3.5 text-slate-500"><PlusCircle size={18} className="rotate-45" /></div>
                 </div>
               </div>
@@ -672,7 +679,7 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
                         </div>
                       </div>
 
-                      {/* ১১টি এডিট অপশন সংবলিত এডিটিং প্যানেল */}
+                      {/* ১১টি এডিটিং কম্পোনেন্ট সংবলিত প্যানেল */}
                       {expandedId === item.id && (
                         <div className="p-5 border-t border-white/5 bg-black/40 space-y-4 animate-in slide-in-from-top-2 text-left font-black">
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 italic text-[9px]">
@@ -681,15 +688,15 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
                             <div className="space-y-1"><p className="text-yellow-500 ml-1">3. COMPLEXITY</p><select value={item.level || 'Moderate'} onChange={(e) => updateField(item.id, item.source, 'level', e.target.value)} className="w-full p-2 bg-black border border-white/10 rounded-xl text-white outline-none">{['Easy', 'Moderate', 'Hard'].map(lvl => <option key={lvl} value={lvl}>{lvl}</option>)}</select></div>
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-1"><p className="text-[8px] text-slate-500 ml-1 italic">4. EXAM NAME</p><input type="text" defaultValue={item.name} onBlur={(e) => updateField(item.id, item.source, 'name', e.target.value.toUpperCase())} className="w-full p-3 bg-black border border-white/10 rounded-xl text-white text-xs outline-none focus:border-blue-500" /></div>
-                            <div className="space-y-1"><p className="text-[8px] text-purple-400 ml-1 italic">5. CHAPTER NAME</p><input type="text" defaultValue={item.chapter} onBlur={(e) => updateField(item.id, item.source, 'chapter', e.target.value.toUpperCase())} className="w-full p-3 bg-black border border-white/10 rounded-xl text-white text-xs outline-none focus:border-purple-500" /></div>
+                            <div className="space-y-1"><p className="text-[8px] text-slate-500 ml-1 italic">4. EXAM NAME</p><input type="text" defaultValue={item.name} onBlur={(e) => updateField(item.id, item.source, 'name', e.target.value.toUpperCase())} className="w-full p-3 bg-black border border-white/10 rounded-xl text-white text-xs outline-none focus:border-blue-500 font-black" /></div>
+                            <div className="space-y-1"><p className="text-[8px] text-purple-400 ml-1 italic">5. CHAPTER NAME</p><input type="text" defaultValue={item.chapter} onBlur={(e) => updateField(item.id, item.source, 'chapter', e.target.value.toUpperCase())} className="w-full p-3 bg-black border border-white/10 rounded-xl text-white text-xs outline-none focus:border-purple-500 font-black" /></div>
                           </div>
                           <div className="flex flex-wrap gap-4">
-                            <div className="bg-black p-3 rounded-xl border border-white/10 min-w-[140px] space-y-1"><p className="text-[8px] text-blue-400 italic">6. TIME LIMIT</p><div className="flex items-center gap-1 text-white text-xs"><input type="number" defaultValue={item.hours} onBlur={(e) => updateField(item.id, item.source, 'hours', e.target.value)} className="w-10 text-center bg-slate-900 rounded-lg" /><span>H</span><input type="number" defaultValue={item.minutes} onBlur={(e) => updateField(item.id, item.source, 'minutes', e.target.value)} className="w-10 text-center bg-slate-900 rounded-lg" /><span>M</span></div></div>
-                            <div className="flex-1 bg-black p-3 rounded-xl border border-white/10 space-y-1"><p className="text-[8px] text-slate-500 italic">7. DRIVE LINK</p><input type="text" defaultValue={item.fileUrl} onBlur={(e) => updateField(item.id, item.source, 'fileUrl', e.target.value)} className="w-full bg-transparent text-white text-[10px] outline-none" /></div>
+                            <div className="bg-black p-3 rounded-xl border border-white/10 min-w-[140px] space-y-1"><p className="text-[8px] text-blue-400 italic">6. TIME LIMIT</p><div className="flex items-center gap-1 text-white text-xs"><input type="number" defaultValue={item.hours} onBlur={(e) => updateField(item.id, item.source, 'hours', e.target.value)} className="w-10 text-center bg-slate-900 rounded-lg outline-none" /><span>H</span><input type="number" defaultValue={item.minutes} onBlur={(e) => updateField(item.id, item.source, 'minutes', e.target.value)} className="w-10 text-center bg-slate-900 rounded-lg outline-none" /><span>M</span></div></div>
+                            <div className="flex-1 bg-black p-3 rounded-xl border border-white/10 space-y-1"><p className="text-[8px] text-slate-500 italic">7. DRIVE LINK</p><input type="text" defaultValue={item.fileUrl} onBlur={(e) => updateField(item.id, item.source, 'fileUrl', e.target.value)} className="w-full bg-transparent text-white text-[10px] outline-none font-bold" /></div>
                           </div>
                           <div className="bg-black p-3 rounded-xl border border-white/10 space-y-1"><p className="text-[8px] text-green-500 italic">8. ANSWER PDF LINK</p><input type="text" defaultValue={item.answerPdfUrl} onBlur={(e) => updateField(item.id, item.source, 'answerPdfUrl', e.target.value)} className="w-full bg-transparent text-white text-[10px] outline-none" placeholder="Enter link..." /></div>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-black">
                             <div className="bg-black p-3 rounded-xl border border-white/10 space-y-1"><p className="text-[8px] text-yellow-500 italic">9. KEY</p><input type="text" defaultValue={item.answerKey} onBlur={(e) => updateField(item.id, item.source, 'answerKey', e.target.value.toUpperCase())} className="w-full bg-transparent text-white outline-none" /></div>
                             <div className="bg-black p-3 rounded-xl border border-white/10 space-y-1"><p className="text-[8px] text-green-500 italic">10. MARKS/Q</p><input type="text" defaultValue={item.questionMarks} onBlur={(e) => updateField(item.id, item.source, 'questionMarks', e.target.value)} className="w-full bg-transparent text-white outline-none" /></div>
                             <div className="bg-black p-3 rounded-xl border border-white/10 space-y-1"><p className="text-[8px] text-red-500 italic">11. NEGATIVE</p><input type="number" step="0.01" defaultValue={item.negativeMark} onBlur={(e) => updateField(item.id, item.source, 'negativeMark', e.target.value)} className="w-full bg-transparent text-white outline-none" /></div>
