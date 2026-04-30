@@ -1022,7 +1022,7 @@ document.body.style.overflow = "auto";
         </div>
       </div> {/* Closure of space-y-5 */}
     </div> {/* Closure of max-w-3xl div */}
-  </div> {/* Closure of fixed inset-0 div */}
+  </div> 
 )}
 
   
