@@ -661,10 +661,6 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
                       <ChevronRight size={18} className={`transition-transform text-slate-600 ${expandedId === item.id ? 'rotate-90 text-blue-400' : ''}`} />
                     </div>
                   </div>
-                  {expandedId === item.id && (
-                    
-                    </div>
-                  )}
                 </div>
 )
               ))}
