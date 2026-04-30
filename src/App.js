@@ -873,6 +873,7 @@ document.body.style.overflow = "auto";
     
     <div className="bg-slate-900 w-full max-w-3xl rounded-3xl p-6 border border-white/10 max-h-[90vh] overflow-y-auto">
 
+      {/* HEADER */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-lg font-black text-blue-400 uppercase italic">
           Edit Practice: {selectedPracticeExam.name}
@@ -881,10 +882,13 @@ document.body.style.overflow = "auto";
           <X size={24}/>
         </button>
       </div>
-   
+
+      {/* BODY */}
       <div className="space-y-5">
-        {/* ===== ACCESS MODE + CLASS + LEVEL ===== */}
+
+        {/* ACCESS MODE + CLASS + LEVEL */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+
           <div>
             <p className="text-[8px] font-black text-green-400 uppercase mb-1 ml-1 italic">Access Mode</p>
             <select
@@ -919,10 +923,12 @@ document.body.style.overflow = "auto";
               {['Easy','Moderate','Hard'].map(lvl => <option key={lvl} value={lvl}>{lvl}</option>)}
             </select>
           </div>
+
         </div>
 
-        {/* ===== NAME + CHAPTER ===== */}
+        {/* NAME + CHAPTER */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
           <div>
             <p className="text-[8px] font-black text-slate-500 uppercase mb-1 ml-1">Exam Name</p>
             <input
@@ -940,9 +946,10 @@ document.body.style.overflow = "auto";
               className="w-full p-2.5 rounded-xl border border-white/10 bg-black text-white text-xs font-black"
             />
           </div>
+
         </div>
 
-        {/* ===== TIME LIMIT ===== */}
+        {/* TIME LIMIT */}
         <div className="bg-black p-3 rounded-xl border border-white/10">
           <p className="text-[8px] font-black text-blue-400 uppercase mb-1 ml-1">Time Limit</p>
           <div className="flex items-center gap-2">
@@ -964,8 +971,9 @@ document.body.style.overflow = "auto";
           </div>
         </div>
 
-        {/* ===== LINKS ===== */}
+        {/* LINKS */}
         <div className="space-y-3">
+
           <div>
             <p className="text-[8px] font-black text-slate-500 uppercase mb-1 ml-1">Question Link</p>
             <input
@@ -983,10 +991,12 @@ document.body.style.overflow = "auto";
               className="w-full p-2 rounded-lg border border-white/10 bg-black text-white text-[10px]"
             />
           </div>
+
         </div>
 
-        {/* ===== ANSWER KEY + MARKS ===== */}
+        {/* ANSWER KEY + MARKS */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
           <div>
             <p className="text-[8px] font-black text-yellow-500 uppercase mb-1 ml-1">Correct Answer Key</p>
             <input
@@ -1006,9 +1016,10 @@ document.body.style.overflow = "auto";
               placeholder="1,1,2,1"
             />
           </div>
+
         </div>
 
-        {/* ===== NEGATIVE MARK ===== */}
+        {/* NEGATIVE MARK */}
         <div>
           <p className="text-[8px] font-black text-red-500 uppercase mb-1 ml-1">Negative Mark</p>
           <input
@@ -1018,14 +1029,15 @@ document.body.style.overflow = "auto";
             onBlur={(e)=>updateField(selectedPracticeExam.id, selectedPracticeExam.source,'negativeMark',e.target.value)}
             className="w-full p-2.5 bg-black border border-white/10 rounded-xl text-white text-xs font-bold"
             placeholder="0.25"
-          /> 
+          />
         </div>
-      </div> {/* Closure of space-y-5 */}
-    </div> {/* Closure of max-w-3xl div */}
-  </div> 
-)}
 
-  
+      </div>
+
+    </div>
+
+  </div>
+)}
 
 const AdminMarksheetModal = ({ student, results, onClose }) => {
   const [newRes, setNewRes] = useState({ exam: "", obtained: "", total: "", date: "" });
