@@ -869,8 +869,7 @@ document.body.style.overflow = "auto";
       {selectedStudent && <AdminMarksheetModal student={selectedStudent} results={studentResults} onClose={() => setSelectedStudent(null)} />}
        
   
-  );
-};
+  
 
 const AdminMarksheetModal = ({ student, results, onClose }) => {
   const [newRes, setNewRes] = useState({ exam: "", obtained: "", total: "", date: "" });
