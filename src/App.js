@@ -800,9 +800,9 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
 
 <div 
   onClick={() => setShowPracticeManager(prev => !prev)}
-  className="cursor-pointer p-3 bg-black/60 rounded-xl border border-white/10 mb-3"
+  className="cursor-pointer p-5 bg-black/70 rounded-2xl border border-white/10 mb-4 text-center"
 >
-  <h3 className="text-xs font-black text-blue-400 uppercase italic">
+  <h3 className="text-sm font-black text-blue-400 uppercase italic">
     Practice Sets Manager (Click to Open)
   </h3>
 </div>
