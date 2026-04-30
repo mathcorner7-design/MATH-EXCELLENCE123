@@ -881,8 +881,7 @@ const TeacherZoneMainView = ({ liveMocks, practiceSets, students, teacherPin, se
 {/* --- মডেল শেষ --- */}
       {selectedStudent && <AdminMarksheetModal student={selectedStudent} results={studentResults} onClose={() => setSelectedStudent(null)} />}
     </div>
-  );
-};
+  )};
 
 const AdminMarksheetModal = ({ student, results, onClose }) => {
   const [newRes, setNewRes] = useState({ exam: "", obtained: "", total: "", date: "" });
